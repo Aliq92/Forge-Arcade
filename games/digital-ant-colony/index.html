@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Digital Ant Colony — Project Forge</title>
+<meta name="description" content="A living ant colony simulation: emergent foraging, pheromone trails, and colony growth, rendered on canvas." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐜</text></svg>" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="app" id="app">
+
+  <header class="topbar" id="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">🐜</span>
+      <div class="brand-text">
+        <h1>Digital Ant Colony</h1>
+        <p id="presetLabel">Project Forge · Simple Forage</p>
+      </div>
+    </div>
+
+    <div class="hud" id="hud" aria-label="Colony statistics">
+      <div class="stat">
+        <span class="stat-label">Population</span>
+        <span class="stat-value" id="statPopulation">–</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Stored Food</span>
+        <span class="stat-value" id="statStored">–</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Collected</span>
+        <span class="stat-value" id="statCollected">–</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Food Sources</span>
+        <span class="stat-value" id="statFoodSources">–</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Sim Time</span>
+        <span class="stat-value" id="statTime">00:00</span>
+      </div>
+    </div>
+
+    <button id="btnCinematic" class="btn btn-ghost" type="button" title="Hide UI and just watch">Cinematic</button>
+  </header>
+
+  <main class="stage">
+    <canvas id="canvas" aria-label="Ant colony simulation"></canvas>
+
+    <div class="hint" id="hint">
+      <ol>
+        <li>Drop food with the <strong>Food</strong> tool.</li>
+        <li>Watch scouts discover it.</li>
+        <li>Turn on the <strong>pheromone overlay</strong>.</li>
+        <li>Draw an <strong>obstacle</strong> across the trail.</li>
+        <li>Watch the colony find another route.</li>
+      </ol>
+      <button id="btnDismissHint" class="hint-close" type="button" aria-label="Dismiss hint">✕</button>
+    </div>
+
+    <div class="cinematic-bar" id="cinematicBar" hidden>
+      <button id="btnCinematicOverlay" class="btn btn-ghost" type="button">Pheromones: Food</button>
+      <button id="btnExitCinematic" class="btn" type="button">Exit Cinematic</button>
+    </div>
+  </main>
+
+  <aside class="panel" id="panel">
+    <button class="panel-handle" id="btnPanelHandle" type="button" aria-expanded="true">
+      <span>Controls</span><span class="chevron" aria-hidden="true">▾</span>
+    </button>
+
+    <div class="panel-body" id="panelBody">
+      <section class="controls" aria-label="Simulation controls">
+        <div class="control-row">
+          <button id="btnPause" class="btn btn-primary" type="button">Pause</button>
+        </div>
+
+        <div class="control-group">
+          <span class="group-label">Speed</span>
+          <div class="speed-group" role="group" aria-label="Simulation speed">
+            <button class="btn speed-btn" data-speed="0.5" type="button">0.5x</button>
+            <button class="btn speed-btn active" data-speed="1" type="button">1x</button>
+            <button class="btn speed-btn" data-speed="2" type="button">2x</button>
+            <button class="btn speed-btn" data-speed="4" type="button">4x</button>
+            <button class="btn speed-btn" data-speed="8" type="button">8x</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <span class="group-label">Tool</span>
+          <div class="tool-group" role="group" aria-label="World editing tool">
+            <button class="btn tool-btn active" data-tool="food" type="button">🍞 Food</button>
+            <button class="btn tool-btn" data-tool="obstacle" type="button">🧱 Obstacle</button>
+            <button class="btn tool-btn" data-tool="hazard" type="button">☣ Hazard</button>
+            <button class="btn tool-btn" data-tool="erase" type="button">🧽 Erase</button>
+          </div>
+
+          <div class="tool-options" id="foodOptions">
+            <div class="chip-group" role="group" aria-label="Food type">
+              <button class="chip active" data-food="crumbs" type="button">Crumbs</button>
+              <button class="chip" data-food="sugar" type="button">Sugar</button>
+              <button class="chip" data-food="fruit" type="button">Fruit</button>
+              <button class="chip" data-food="protein" type="button">Protein</button>
+            </div>
+          </div>
+
+          <div class="tool-options" id="brushOptions" hidden>
+            <div class="chip-group" role="group" aria-label="Brush size">
+              <button class="chip" data-brush="small" type="button">Small</button>
+              <button class="chip active" data-brush="medium" type="button">Medium</button>
+              <button class="chip" data-brush="large" type="button">Large</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <span class="group-label">Pheromone Overlay</span>
+          <div class="chip-group" role="group" aria-label="Pheromone overlay mode" id="overlayGroup">
+            <button class="chip" data-overlay="off" type="button">Off</button>
+            <button class="chip active" data-overlay="food" type="button">Food</button>
+            <button class="chip" data-overlay="home" type="button">Home</button>
+            <button class="chip" data-overlay="danger" type="button">Danger</button>
+            <button class="chip" data-overlay="all" type="button">All</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <span class="group-label">Colony</span>
+          <div class="control-row">
+            <button id="btnAddAnt" class="btn" type="button">+ Ant</button>
+            <button id="btnGrowth" class="btn active" type="button" aria-pressed="true">Growth: On</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <span class="group-label">Preset</span>
+          <select id="presetSelect" class="select">
+            <option value="simpleForage">Simple Forage</option>
+            <option value="twoFoodSources">Two Food Sources</option>
+            <option value="twoPaths">Two Paths</option>
+            <option value="mazeRun">Maze Run</option>
+            <option value="scarceFood">Scarce Food</option>
+            <option value="hazardRoute">Hazard Route</option>
+          </select>
+        </div>
+
+        <div class="control-row">
+          <button id="btnReset" class="btn btn-danger" type="button">Reset Colony</button>
+        </div>
+
+        <p class="shortcuts">
+          <kbd>Space</kbd> pause &nbsp; <kbd>1-5</kbd> speed &nbsp; <kbd>P</kbd> overlay &nbsp;
+          <kbd>A</kbd> ant &nbsp; <kbd>R</kbd> reset &nbsp; <kbd>C</kbd> cinematic
+        </p>
+      </section>
+
+      <section class="stats-extra" aria-label="Colony breakdown" id="statsExtra">
+        <span><b id="statScouts">0</b> Scouts</span>
+        <span><b id="statWorkers">0</b> Workers</span>
+        <span><b id="statCarriers">0</b> Carriers</span>
+        <span><b id="statTrail">0%</b> Trail</span>
+      </section>
+
+      <section class="log" aria-label="Event log">
+        <h2>Event Log</h2>
+        <ul id="eventLog"></ul>
+      </section>
+    </div>
+  </aside>
+
+</div>
+
+<script src="js/utils.js"></script>
+<script src="js/pheromoneGrid.js"></script>
+<script src="js/obstacles.js"></script>
+<script src="js/food.js"></script>
+<script src="js/ant.js"></script>
+<script src="js/colony.js"></script>
+<script src="js/presets.js"></script>
+<script src="app.js"></script>
+<a href="../../index.html" id="forge-back-link" style="position:fixed;right:12px;bottom:12px;z-index:2147483000;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;font:500 12px/1.2 system-ui,-apple-system,sans-serif;color:#e8e8ec;background:rgba(10,10,14,.55);border:1px solid rgba(255,255,255,.14);border-radius:999px;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:.55;transition:opacity .15s ease;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.55">← Arcade</a></body>
+</html>

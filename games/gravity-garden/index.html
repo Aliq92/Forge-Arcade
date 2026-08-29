@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Gravity Garden</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<canvas id="stage"></canvas>
+
+<div id="hud">
+  <div id="title">Gravity Garden</div>
+  <div id="stats">
+    <span><span id="wellCount">0</span> wells · <span id="particleCount">0</span> particles</span>
+    <div id="helpBtn">?</div>
+  </div>
+</div>
+
+<div id="hint">Tap empty space to place a well · tap a well to flip attract/repel · drag to move · hold to remove. Particles reveal the gravity field.</div>
+<div id="toast"></div>
+
+<div id="exitCinematic" class="btn small">Exit ✕</div>
+
+<div id="uiStack">
+
+  <div id="inspector" class="panel" style="display:none;">
+    <div class="panel-row">
+      <span id="inspTitle">ATTRACT · MASS 1.0</span>
+      <span class="close-x" id="inspClose">✕</span>
+    </div>
+    <div class="panel-row" style="margin-top:8px;">
+      <div class="mass-control">
+        <div class="btn small" id="massDown">−</div>
+        <span class="mass-val" id="massVal">1.0</span>
+        <div class="btn small" id="massUp">+</div>
+      </div>
+      <div class="btn small" id="inspLock">Lock</div>
+      <div class="btn small" id="inspDup">Duplicate</div>
+      <div class="btn small danger" id="inspDel">Delete</div>
+    </div>
+  </div>
+
+  <div id="wellSubrow" class="row" style="display:none;">
+    <div class="btn small active" id="polAttract">New: Attract</div>
+    <div class="btn small" id="polRepel">New: Repel</div>
+  </div>
+
+  <div id="particleSubrow" class="row" style="display:none;">
+    <div class="btn small" id="pmSeed20">Seed 20</div>
+    <div class="btn small" id="pmSeed50">Seed 50</div>
+    <div class="btn small" id="pmSeed100">Seed 100</div>
+    <div class="btn small active" id="pmBurst">Burst</div>
+    <div class="btn small" id="pmStream">Stream</div>
+    <div class="btn small" id="pmRing">Ring</div>
+    <div class="btn small" id="pmCloud">Cloud</div>
+  </div>
+
+  <div id="stepRow" class="row" style="display:none;">
+    <div class="btn small" id="btnStep">Step ▸</div>
+  </div>
+
+  <div id="primaryToolbar" class="row">
+    <div class="btn active" id="toolWell">Well</div>
+    <div class="btn" id="toolParticles">Particles</div>
+    <div class="btn" id="btnPresets">Presets</div>
+    <div class="btn" id="btnPause">Pause</div>
+    <div class="btn" id="btnMore">More</div>
+  </div>
+
+</div>
+
+<div class="overlay" id="presetOverlay">
+  <div class="sheet">
+    <h3>Presets</h3>
+    <div id="presetList"></div>
+    <div class="row" style="margin-top:10px;">
+      <div class="btn small" id="btnResetPreset">Reset Current</div>
+      <div class="btn small" id="btnEmptyGarden">New / Empty Garden</div>
+    </div>
+    <div class="btn sheet-close" id="closePresets">Close</div>
+  </div>
+</div>
+
+<div class="overlay" id="moreOverlay">
+  <div class="sheet">
+    <h3>Settings</h3>
+
+    <div class="sub">Simulation Speed</div>
+    <div class="row" id="speedRow"></div>
+
+    <div class="sub">Trails</div>
+    <div class="row" id="trailRow"></div>
+
+    <div class="sub">Particle Color</div>
+    <div class="row" id="colorRow"></div>
+
+    <div class="sub">Gravity Field</div>
+    <div class="row" id="fieldRow"></div>
+
+    <div class="sub">Boundary</div>
+    <div class="row" id="boundaryRow"></div>
+
+    <div class="sub">Toggles</div>
+    <div class="switch-row">Well Merging <div class="switch on" id="swMerge"><div class="dot"></div></div></div>
+    <div class="switch-row">Absorption <div class="switch on" id="swAbsorb"><div class="dot"></div></div></div>
+    <div class="switch-row">Center of Mass <div class="switch" id="swCom"><div class="dot"></div></div></div>
+    <div class="switch-row">Reduced Motion <div class="switch" id="swReduced"><div class="dot"></div></div></div>
+
+    <div class="sub">Garden</div>
+    <div class="row">
+      <div class="btn small" id="btnClearParticles2">Clear Particles</div>
+      <div class="btn small" id="btnClearWells2">Clear Wells</div>
+      <div class="btn small danger" id="btnClearAll2">Clear All</div>
+      <div class="btn small" id="btnCinematic">Cinematic Mode</div>
+    </div>
+
+    <div class="btn sheet-close" id="closeMore">Close</div>
+  </div>
+</div>
+
+<div class="overlay" id="helpOverlay">
+  <div class="sheet">
+    <h3>How To Play</h3>
+    <div class="preset-desc" style="font-size:13px; line-height:1.6; color:var(--ui-text); opacity:0.85;">
+      Tap empty space to place a gravity well.<br>
+      Tap a well to flip it between attract (gold) and repel (coral).<br>
+      Drag a well to reshape the garden around it.<br>
+      Hold a well to remove it.<br><br>
+      Gold wells pull particles in. Coral wells push them away. Particles reveal the invisible field between them — mix attract and repel to grow petals, streams and rings.<br><br>
+      Use the Particles tool to seed, burst, stream, ring or cloud new particles. Use More for speed, trails, color, and field visualization.
+    </div>
+    <div class="btn sheet-close" id="closeHelp">Close</div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<a href="../../index.html" id="forge-back-link" style="position:fixed;right:12px;bottom:12px;z-index:2147483000;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;font:500 12px/1.2 system-ui,-apple-system,sans-serif;color:#e8e8ec;background:rgba(10,10,14,.55);border:1px solid rgba(255,255,255,.14);border-radius:999px;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:.55;transition:opacity .15s ease;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.55">← Arcade</a></body>
+</html>

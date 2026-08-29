@@ -1,0 +1,17 @@
+# Development-only source for Digital Ant Colony (Python backend, worktrees, venv).
+# The deployed game lives in games/digital-ant-colony/ — this is kept locally only.
+/digital-ant-colony-dev/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.log
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Node
+node_modules/
