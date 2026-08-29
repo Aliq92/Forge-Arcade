@@ -24,13 +24,6 @@ const GAMES = [
     featured: true,
   },
   {
-    id: 'orbital-bloom-cosmic-gardener',
-    title: 'Orbital Bloom',
-    description: 'Place gravity attractors and watch clouds of particles bloom into rings, spirals, and orbits.',
-    category: 'Simulations',
-    featured: true,
-  },
-  {
     id: 'echo-runner',
     title: 'Echo Runner',
     description: 'Record your own movement and coordinate with your echoes to solve each level.',
