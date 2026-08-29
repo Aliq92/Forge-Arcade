@@ -3,33 +3,60 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>The Forge Arcade</title>
+<title>Forge Arcade</title>
 <meta name="description" content="A curated collection of small browser games, simulations, and interactive experiments." />
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230b0c10%22/><path d=%22M30 70 L50 25 L70 70 Z%22 fill=%22none%22 stroke=%22%23e2703a%22 stroke-width=%226%22/></svg>" />
+<meta name="theme-color" content="#08090a" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%2308090a%22/><path d=%22M30 70 L50 25 L70 70 Z%22 fill=%22none%22 stroke=%22%23e2703a%22 stroke-width=%226%22/></svg>" />
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
+<a class="skip-link" href="#main">Skip to experiments</a>
+
 <div class="wrap">
 
-  <header class="hub-header">
-    <div class="brand">
-      <span class="brand-mark" aria-hidden="true"></span>
-      <span class="brand-name">THE FORGE ARCADE</span>
+  <header class="hero">
+    <div class="hero-bg" aria-hidden="true">
+      <div class="hero-grid"></div>
+      <div class="hero-glow"></div>
+      <div class="hero-grain"></div>
+      <div class="hero-particles">
+        <span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span>
+      </div>
     </div>
-    <p class="tagline">A curated collection of small browser games, simulations, and interactive experiments.</p>
+
+    <div class="hero-inner">
+      <div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Project Forge</div>
+      <h1 class="hero-title">FORGE ARCADE</h1>
+      <p class="hero-sub">Browser-native games, simulations &amp; experiments</p>
+      <p class="hero-status" id="hero-status" aria-hidden="true"></p>
+    </div>
   </header>
 
-  <nav class="tabs" id="tabs" aria-label="Filter by category"></nav>
+  <section class="spotlight" id="spotlight" aria-label="Featured experiment"></section>
 
-  <div class="meta-row">
-    <span id="count-label" class="count-label"></span>
-  </div>
+  <section class="featured-collection" aria-labelledby="featured-heading">
+    <div class="section-head">
+      <h2 id="featured-heading" class="section-title">Featured Collection</h2>
+      <span class="section-hint">Hand-picked highlights</span>
+    </div>
+    <div class="featured-grid" id="featured-grid"></div>
+  </section>
 
-  <main class="grid" id="grid" aria-live="polite"></main>
+  <main id="main">
+    <div class="section-head">
+      <h2 id="all-heading" class="section-title">All Experiments</h2>
+      <span class="count-label" id="count-label"></span>
+    </div>
+
+    <nav class="filter-bar" id="tabs" aria-label="Filter experiments by category"></nav>
+
+    <div class="grid" id="grid" role="list" aria-live="polite" aria-describedby="all-heading"></div>
+  </main>
 
   <footer class="hub-footer">
-    <p>17 independent experiences. Built to run entirely in the browser.</p>
+    <p><span id="footer-count"></span> independent experiences. Built to run entirely in the browser.</p>
   </footer>
 
 </div>
