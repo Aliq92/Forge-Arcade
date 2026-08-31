@@ -1,0 +1,21 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#05070d">
+<title>AFTERIMAGE</title>
+<body style="margin:0;background:#05070d;color:#dffcff;font:14px system-ui">
+<div id="boot" style="position:fixed;inset:0;display:grid;place-items:center;letter-spacing:.12em">REMEMBERING THE LIGHT…</div>
+<script>
+(async()=>{
+  const names=['chunk-01.txt','chunk-02.txt','chunk-03.txt','chunk-04.txt','chunk-05.txt','chunk-06.txt','chunk-07.txt'];
+  const parts=await Promise.all(names.map(n=>fetch('./payload/'+n).then(r=>{if(!r.ok)throw Error(n);return r.text()})));
+  const s=parts.join('').trim();
+  const b=Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+  const ds=new DecompressionStream('gzip');
+  const html=await new Response(new Blob([b]).stream().pipeThrough(ds)).text();
+  document.open(); document.write(html); document.close();
+})().catch(e=>{
+  console.error(e);
+  document.getElementById('boot').textContent='AFTERIMAGE COULD NOT LOAD.';
+});
+</script>
