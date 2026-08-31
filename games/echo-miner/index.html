@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#04070c" />
+  <title>Echo Miner</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <canvas id="game-canvas" aria-label="Echo Miner cave view"></canvas>
+
+    <div id="hud" aria-hidden="true">
+      <div id="hud-top">
+        <div class="hud-chip" id="hud-crystals">Crystals: 0 / 0</div>
+        <div class="hud-chip" id="hud-status">Descending</div>
+      </div>
+      <div id="hud-awareness" role="img" aria-label="Hunter awareness meter">
+        <div id="hud-awareness-fill"></div>
+      </div>
+    </div>
+
+    <div id="overlays">
+      <section id="screen-title" class="screen" role="dialog" aria-labelledby="title-heading">
+        <h1 id="title-heading">ECHO MINER</h1>
+        <p class="tagline">Sonar reveals the dark. Sonar also calls the Hunter.</p>
+        <div class="difficulty-picker" role="radiogroup" aria-label="Difficulty">
+          <button type="button" class="difficulty-btn" data-difficulty="survey">Survey</button>
+          <button type="button" class="difficulty-btn" data-difficulty="descent" aria-pressed="true">Descent</button>
+          <button type="button" class="difficulty-btn" data-difficulty="abyss">Abyss</button>
+        </div>
+        <button type="button" id="btn-start" class="primary-btn">Start Expedition</button>
+        <button type="button" id="btn-tutorial" class="secondary-btn">Tutorial</button>
+        <div id="title-records" class="records"></div>
+        <div class="settings-row">
+          <label><input type="checkbox" id="toggle-sound" checked /> Sound</label>
+          <label><input type="checkbox" id="toggle-vibration" checked /> Vibration</label>
+        </div>
+        <button type="button" id="btn-fullscreen" class="secondary-btn">Fullscreen</button>
+      </section>
+
+      <section id="screen-tutorial" class="screen tutorial-banner hidden" role="status" aria-labelledby="tutorial-heading">
+        <h2 id="tutorial-heading">How to Survive</h2>
+        <p id="tutorial-step-text">Move to begin.</p>
+        <button type="button" id="btn-tutorial-skip" class="secondary-btn">Skip Tutorial</button>
+      </section>
+
+      <section id="screen-paused" class="screen hidden" role="dialog" aria-labelledby="paused-heading">
+        <h2 id="paused-heading">Paused</h2>
+        <button type="button" id="btn-resume" class="primary-btn">Resume</button>
+        <button type="button" id="btn-quit" class="secondary-btn">Quit to Title</button>
+      </section>
+
+      <section id="screen-victory" class="screen hidden" role="dialog" aria-labelledby="victory-heading">
+        <h2 id="victory-heading">Surfaced</h2>
+        <p id="victory-summary"></p>
+        <button type="button" id="btn-victory-restart" class="primary-btn">Descend Again</button>
+        <button type="button" id="btn-victory-title" class="secondary-btn">Title</button>
+      </section>
+
+      <section id="screen-defeat" class="screen hidden" role="dialog" aria-labelledby="defeat-heading">
+        <h2 id="defeat-heading">Caught</h2>
+        <p id="defeat-summary"></p>
+        <button type="button" id="btn-defeat-restart" class="primary-btn">Try Again</button>
+        <button type="button" id="btn-defeat-title" class="secondary-btn">Title</button>
+      </section>
+    </div>
+
+    <div id="touch-controls" aria-hidden="true">
+      <div id="move-pad" class="touch-zone"></div>
+      <div id="action-buttons">
+        <button type="button" id="btn-sonar" class="touch-btn" aria-label="Sonar pulse">Sonar</button>
+        <button type="button" id="btn-sprint" class="touch-btn" aria-label="Sprint">Sprint</button>
+      </div>
+      <button type="button" id="btn-pause" class="touch-btn small" aria-label="Pause">II</button>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.mjs"></script>
+</body>
+</html>
+

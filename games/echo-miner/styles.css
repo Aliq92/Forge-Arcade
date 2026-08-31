@@ -1,0 +1,317 @@
+:root {
+  --bg: #04070c;
+  --panel: #0b121c;
+  --panel-border: #1c2b3d;
+  --text: #dfeaf5;
+  --text-dim: #8ea3b8;
+  --accent: #38e1c6;
+  --danger: #ff4d5e;
+  --warning: #ffb347;
+  --crystal: #f6c453;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+#game-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #000;
+  touch-action: none;
+}
+
+/* ---------- HUD ---------- */
+
+#hud {
+  position: absolute;
+  top: max(env(safe-area-inset-top), 10px);
+  left: max(env(safe-area-inset-left), 10px);
+  right: max(env(safe-area-inset-right), 10px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+  z-index: 5;
+  /* Reserve room for the touch pause button (top-right) so it never
+     overlaps the status chip; cleared on desktop, where that button is hidden. */
+  padding-right: 52px;
+}
+
+#hud-top {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.hud-chip {
+  background: rgba(8, 14, 22, 0.72);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(3px);
+}
+
+#hud-awareness {
+  height: 6px;
+  border-radius: 4px;
+  background: rgba(8, 14, 22, 0.72);
+  border: 1px solid var(--panel-border);
+  overflow: hidden;
+  max-width: 220px;
+}
+
+#hud-awareness-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent), var(--warning) 70%, var(--danger));
+  transition: width 0.15s linear;
+}
+
+/* ---------- Overlays ---------- */
+
+#overlays {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.screen {
+  pointer-events: auto;
+  width: min(420px, 92vw);
+  max-height: min(88vh, 640px);
+  overflow-y: auto;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  padding: 28px 24px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.screen.hidden {
+  display: none;
+}
+
+.screen.tutorial-banner {
+  align-self: flex-start;
+  margin-top: max(env(safe-area-inset-top), 56px);
+  padding: 14px 18px;
+  width: min(360px, 88vw);
+  text-align: left;
+}
+
+.screen.tutorial-banner h2 {
+  font-size: 15px;
+  margin: 0 0 4px;
+  color: var(--accent);
+}
+
+.screen.tutorial-banner p {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.screen.tutorial-banner .secondary-btn {
+  margin-top: 0;
+  padding: 8px;
+  font-size: 12px;
+}
+
+.screen h1 {
+  margin: 0 0 6px;
+  font-size: 28px;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+.screen h2 {
+  margin: 0 0 12px;
+}
+
+.tagline {
+  color: var(--text-dim);
+  margin: 0 0 20px;
+  font-size: 14px;
+}
+
+.difficulty-picker {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.difficulty-btn {
+  flex: 1;
+  padding: 10px 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.difficulty-btn[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(56, 225, 198, 0.1);
+}
+
+.primary-btn, .secondary-btn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  margin-top: 10px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.primary-btn {
+  background: var(--accent);
+  color: #04211c;
+}
+
+.secondary-btn {
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--panel-border);
+}
+
+.records {
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--text-dim);
+  white-space: pre-line;
+}
+
+.settings-row {
+  margin-top: 18px;
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.settings-row label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ---------- Touch controls ---------- */
+
+#touch-controls {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+
+#move-pad {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 55%;
+  height: 45%;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+#action-buttons {
+  position: absolute;
+  right: max(env(safe-area-inset-right), 14px);
+  bottom: max(env(safe-area-inset-bottom), 18px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: flex-end;
+  pointer-events: auto;
+}
+
+.touch-btn {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  border: 2px solid var(--panel-border);
+  background: rgba(11, 18, 28, 0.78);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  touch-action: none;
+  pointer-events: auto;
+}
+
+.touch-btn:active,
+.touch-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.touch-btn.small {
+  width: 42px;
+  height: 42px;
+  position: absolute;
+  top: max(env(safe-area-inset-top), 10px);
+  right: max(env(safe-area-inset-right), 10px);
+  font-size: 14px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  #touch-controls {
+    display: none;
+  }
+
+  #hud {
+    padding-right: 0;
+  }
+}
+
+@media (max-height: 420px) {
+  .screen {
+    padding: 16px 18px;
+  }
+  .screen h1 {
+    font-size: 22px;
+  }
+}
+

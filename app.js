@@ -43,6 +43,14 @@ const GAMES = [
     palette: ['#ffb84d', '#ff6f91'],
   },
   {
+    id: 'echo-miner',
+    title: 'Echo Miner',
+    description: 'Map a living cave with sonar, gather crystals, and outwit the creature hunting every sound.',
+    category: 'Games',
+    featured: true,
+    palette: ['#51e6ff', '#ffbf57'],
+  },
+  {
     id: 'bacteria-bloom',
     title: 'Bacteria Bloom',
     description: 'Seed a petri dish with bacterial strains and watch organic colonies bloom and compete.',
