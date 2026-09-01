@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Ricochet Protocol neon bolt icon">
+  <rect width="256" height="256" rx="36" fill="#05070c"/>
+  <path d="M30 52H226V204H30Z" fill="none" stroke="#17475a" stroke-width="8"/>
+  <path d="M48 178L112 72L184 138L220 72" fill="none" stroke="#25e6ff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="48" cy="178" r="13" fill="#f7c956"/>
+  <path d="M169 121L199 151M199 121L169 151" stroke="#ff3b5c" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="220" cy="72" r="9" fill="#e8fbff"/>
+</svg>
