@@ -25,6 +25,9 @@ export class TouchControls {
 
     const pauseDown = (e) => {
       e.preventDefault();
+      if (this.buttons.pause.setPointerCapture) {
+        try { this.buttons.pause.setPointerCapture(e.pointerId); } catch (_) {}
+      }
       if (this.game.state === 'playing') this.game.pause();
     };
     this.buttons.pause.addEventListener('pointerdown', pauseDown);
@@ -32,26 +35,43 @@ export class TouchControls {
     this._watchDeviceType();
   }
 
-  // Holding a touch button is equivalent to holding the matching key: it adds the
-  // code to game.input.keys on press and removes it on release, so movement/jump
-  // hold-to-repeat and record/reset edge-detection both behave exactly as with a
-  // physical keyboard.
+  // Holding a touch button is equivalent to holding the matching key. Pointer
+  // capture keeps a held control active even when a finger drifts a few pixels
+  // outside the visible button — a common source of dropped mobile input.
   _bindKey(name, code) {
     const el = this.buttons[name];
+    let activePointerId = null;
+
     const press = (e) => {
       e.preventDefault();
+      if (activePointerId !== null) return;
+      activePointerId = e.pointerId;
+      if (el.setPointerCapture) {
+        try { el.setPointerCapture(e.pointerId); } catch (_) {}
+      }
       this.game.input.keys.add(code);
       el.classList.add('pressed');
     };
+
     const release = (e) => {
       if (e) e.preventDefault();
+      if (e && activePointerId !== null && e.pointerId !== activePointerId) return;
+      if (activePointerId !== null && el.releasePointerCapture) {
+        try {
+          if (el.hasPointerCapture && el.hasPointerCapture(activePointerId)) {
+            el.releasePointerCapture(activePointerId);
+          }
+        } catch (_) {}
+      }
+      activePointerId = null;
       this.game.input.keys.delete(code);
       el.classList.remove('pressed');
     };
+
     el.addEventListener('pointerdown', press);
     el.addEventListener('pointerup', release);
     el.addEventListener('pointercancel', release);
-    el.addEventListener('pointerleave', release);
+    el.addEventListener('lostpointercapture', release);
   }
 
   _watchDeviceType() {
