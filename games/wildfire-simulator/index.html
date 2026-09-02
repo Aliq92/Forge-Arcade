@@ -55,33 +55,18 @@
 
   <main id="layout">
 
-    <!-- LEFT PANEL: Tools + Environment -->
     <aside id="panel-left" class="panel">
       <section class="panel-section">
         <h2>Tools</h2>
         <div class="tool-grid" id="tool-grid">
-          <button class="tool-btn active" data-tool="ignite" title="Click to ignite fire">
-            <span class="tool-icon">🔥</span><span>Ignite</span>
-          </button>
-          <button class="tool-btn" data-tool="firebreak" title="Clear a non-burnable strip">
-            <span class="tool-icon">⛏️</span><span>Firebreak</span>
-          </button>
-          <button class="tool-btn" data-tool="water" title="Drop water to douse fire">
-            <span class="tool-icon">💧</span><span>Water Drop</span>
-          </button>
-          <button class="tool-btn" data-tool="clear" title="Remove vegetation fuel">
-            <span class="tool-icon">🌱</span><span>Clear Veg.</span>
-          </button>
-          <button class="tool-btn" data-tool="containment" title="Draw a containment line">
-            <span class="tool-icon">🚧</span><span>Containment</span>
-          </button>
+          <button class="tool-btn active" data-tool="ignite" title="Click to ignite fire"><span class="tool-icon">🔥</span><span>Ignite</span></button>
+          <button class="tool-btn" data-tool="firebreak" title="Clear a non-burnable strip"><span class="tool-icon">⛏️</span><span>Firebreak</span></button>
+          <button class="tool-btn" data-tool="water" title="Drop water to douse fire"><span class="tool-icon">💧</span><span>Water Drop</span></button>
+          <button class="tool-btn" data-tool="clear" title="Remove vegetation fuel"><span class="tool-icon">🌱</span><span>Clear Veg.</span></button>
+          <button class="tool-btn" data-tool="containment" title="Draw a containment line"><span class="tool-icon">🚧</span><span>Containment</span></button>
         </div>
         <div class="tool-options" id="tool-options">
-          <label class="slider-row">
-            <span>Tool Radius</span>
-            <input type="range" id="tool-radius" min="1" max="10" value="3" step="1" />
-            <span class="value-badge" id="tool-radius-val">3</span>
-          </label>
+          <label class="slider-row"><span>Tool Radius</span><input type="range" id="tool-radius" min="1" max="10" value="3" step="1" /><span class="value-badge" id="tool-radius-val">3</span></label>
         </div>
       </section>
 
@@ -95,26 +80,10 @@
           <button class="preset-btn" data-preset="custom">Custom</button>
         </div>
 
-        <label class="slider-row">
-          <span>Dryness</span>
-          <input type="range" id="dryness" min="0" max="100" value="45" />
-          <span class="value-badge" id="dryness-val">45%</span>
-        </label>
-        <label class="slider-row">
-          <span>Moisture</span>
-          <input type="range" id="moisture" min="0" max="100" value="40" />
-          <span class="value-badge" id="moisture-val">40%</span>
-        </label>
-        <label class="slider-row">
-          <span>Temperature</span>
-          <input type="range" id="temperature" min="0" max="100" value="50" />
-          <span class="value-badge" id="temperature-val">50%</span>
-        </label>
-        <label class="slider-row">
-          <span>Wind Strength</span>
-          <input type="range" id="wind-strength" min="0" max="100" value="30" />
-          <span class="value-badge" id="wind-strength-val">30%</span>
-        </label>
+        <label class="slider-row"><span>Dryness</span><input type="range" id="dryness" min="0" max="100" value="45" /><span class="value-badge" id="dryness-val">45%</span></label>
+        <label class="slider-row"><span>Moisture</span><input type="range" id="moisture" min="0" max="100" value="40" /><span class="value-badge" id="moisture-val">40%</span></label>
+        <label class="slider-row"><span>Temperature</span><input type="range" id="temperature" min="0" max="100" value="50" /><span class="value-badge" id="temperature-val">50%</span></label>
+        <label class="slider-row"><span>Wind Strength</span><input type="range" id="wind-strength" min="0" max="100" value="30" /><span class="value-badge" id="wind-strength-val">30%</span></label>
 
         <div class="wind-compass-wrap">
           <span class="group-label">Wind Direction</span>
@@ -125,10 +94,7 @@
               <text x="110" y="64" class="compass-label">E</text>
               <text x="60" y="112" class="compass-label">S</text>
               <text x="10" y="64" class="compass-label">W</text>
-              <g id="wind-arrow">
-                <line x1="60" y1="60" x2="60" y2="20" class="arrow-shaft"/>
-                <polygon points="60,10 52,26 68,26" class="arrow-head"/>
-              </g>
+              <g id="wind-arrow"><line x1="60" y1="60" x2="60" y2="20" class="arrow-shaft"/><polygon points="60,10 52,26 68,26" class="arrow-head"/></g>
               <circle cx="60" cy="60" r="6" class="compass-hub"/>
             </svg>
           </div>
@@ -136,7 +102,6 @@
       </section>
     </aside>
 
-    <!-- CENTER: Canvas -->
     <section id="canvas-wrap">
       <div id="canvas-stage">
         <canvas id="terrain-canvas"></canvas>
@@ -160,19 +125,13 @@
       </div>
 
       <div id="wind-indicator">
-        <svg viewBox="0 0 40 40" width="34" height="34">
-          <g id="wind-indicator-arrow">
-            <line x1="20" y1="20" x2="20" y2="6" class="mini-shaft"/>
-            <polygon points="20,2 15,12 25,12" class="mini-head"/>
-          </g>
-        </svg>
+        <svg viewBox="0 0 40 40" width="34" height="34"><g id="wind-indicator-arrow"><line x1="20" y1="20" x2="20" y2="6" class="mini-shaft"/><polygon points="20,2 15,12 25,12" class="mini-head"/></g></svg>
         <span id="wind-indicator-text">N · 30%</span>
       </div>
 
       <div id="ignition-cursor"></div>
     </section>
 
-    <!-- RIGHT PANEL: Stats + Log -->
     <aside id="panel-right" class="panel">
       <section class="panel-section">
         <h2>Live Statistics</h2>
@@ -188,24 +147,17 @@
         </div>
       </section>
 
-      <section class="panel-section log-section">
-        <h2>Event Log</h2>
-        <div id="event-log"></div>
-      </section>
+      <section class="panel-section log-section"><h2>Event Log</h2><div id="event-log"></div></section>
     </aside>
 
   </main>
 </div>
 
-<!-- Completion summary modal -->
 <div id="summary-modal" class="modal-backdrop hidden">
   <div class="modal">
     <h2>🔥 Fire Complete</h2>
     <div class="modal-grid" id="summary-grid"></div>
-    <div class="modal-actions">
-      <button id="summary-close" class="ctrl-btn">Close</button>
-      <button id="summary-new" class="ctrl-btn primary">New Terrain</button>
-    </div>
+    <div class="modal-actions"><button id="summary-close" class="ctrl-btn">Close</button><button id="summary-new" class="ctrl-btn primary">New Terrain</button></div>
   </div>
 </div>
 
@@ -216,6 +168,7 @@
 <script src="js/particles.js"></script>
 <script src="js/render.js"></script>
 <script src="js/ui.js"></script>
+<script src="touch-guard.js"></script>
 <script src="js/main.js"></script>
 <a href="../../index.html" id="forge-back-link" style="position:fixed;right:12px;bottom:12px;z-index:2147483000;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;font:500 12px/1.2 system-ui,-apple-system,sans-serif;color:#e8e8ec;background:rgba(10,10,14,.55);border:1px solid rgba(255,255,255,.14);border-radius:999px;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:.55;transition:opacity .15s ease;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.55">← Arcade</a></body>
 </html>
