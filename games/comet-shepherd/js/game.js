@@ -66,7 +66,10 @@ export class Game{
     ui.on('close-challenge', () => ui.showScreen('screen-title'));
 
     ui.on('mobile-preview', () => this.togglePreview());
-    ui.on('mobile-burst', () => this._fireEmergency());
+    ui.on('mobile-burst', () => {
+      const aim = this.input.lastAimVector || { dx:this.comet?.vx || 1, dy:this.comet?.vy || 0 };
+      this._fireEmergency(aim);
+    });
     ui.on('toggle-cinematic', () => this.setCinematicMode(!this.cinematicMode));
 
     ui.bindSettingsInputs(this.settings, (s) => {
@@ -364,10 +367,17 @@ export class Game{
     if(this.comet.applyCorrection(dx, dy, strengthFrac)) this.audio.correctionPulse();
   }
 
-  _fireEmergency(){
+  _fireEmergency(aimVector=null){
     const comet = this.comet;
-    const cs = this.renderer.worldToScreen(comet.x, comet.y);
-    const dx = this.input.pointerScreen.x - cs.x, dy = this.input.pointerScreen.y - cs.y;
+    let dx, dy;
+    if(aimVector && Number.isFinite(aimVector.dx) && Number.isFinite(aimVector.dy)){
+      dx = aimVector.dx;
+      dy = aimVector.dy;
+    } else {
+      const cs = this.renderer.worldToScreen(comet.x, comet.y);
+      dx = this.input.pointerScreen.x - cs.x;
+      dy = this.input.pointerScreen.y - cs.y;
+    }
     if(Math.hypot(dx,dy) < 4) return;
     if(comet.applyCorrection(dx, dy, 1, true)){
       this.audio.emergency();

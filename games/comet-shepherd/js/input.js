@@ -7,6 +7,7 @@ export class InputManager{
     this.pointerScreen = { x: window.innerWidth/2, y: window.innerHeight/2 - 100 };
     this.dragging = false;
     this.dragStartScreen = null;
+    this.lastAimVector = null;
     this.keys = { left:false, right:false };
     this.events = [];
     this.enabled = true;
@@ -24,6 +25,11 @@ export class InputManager{
     const endDrag = (e) => {
       if(!this.dragging) return;
       this.dragging = false;
+      const dx = e.clientX - this.dragStartScreen.x;
+      const dy = e.clientY - this.dragStartScreen.y;
+      if(Math.hypot(dx, dy) >= CONFIG.CORRECTION_MIN_DRAG){
+        this.lastAimVector = { dx, dy };
+      }
       this.events.push({ type:'drag_end', start:this.dragStartScreen, end:{x:e.clientX,y:e.clientY} });
       this.dragStartScreen = null;
     };
