@@ -34,7 +34,7 @@ canvas{ position:absolute; inset:0; display:block; }
 #fx-canvas{ z-index:2; pointer-events:none; }
 #minimap-canvas{
   z-index:5;
-  top:auto; left:auto; right:16px; bottom:16px; inset:auto;
+  inset:16px 16px auto auto;
   width:180px; height:180px;
   border-radius:50%;
   border:1px solid var(--panel-border);
@@ -315,7 +315,7 @@ canvas{ position:absolute; inset:0; display:block; }
 @media (max-width:700px){
   .hud-top{ width:150px; }
   .hud-side{ right:150px; top:64px; }
-  #minimap-canvas{ width:120px; height:120px; }
+  #minimap-canvas{ inset:56px 14px auto auto; width:120px; height:120px; }
   /* Centered pause/cinematic buttons collide with the right-anchored HUD stat pills
      once the viewport is phone-width — pin them to the top-right corner instead,
      clear of hud-top on the left, with hud-side (above) pushed down to make room. */
