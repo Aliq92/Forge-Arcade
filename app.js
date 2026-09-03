@@ -127,6 +127,30 @@ const GAMES = [
     category: 'Simulations',
     palette: ['#ff6a3d', '#ffcc55'],
   },
+  {
+    id: 'terrain-flyover',
+    title: 'Terrain Flyover',
+    description: 'Explore endlessly generated low-poly worlds from the air.',
+    category: 'Games',
+    artId: 'terrain-flyover',
+    palette: ['#63c88a', '#5ab6ff'],
+  },
+  {
+    id: 'mandelbrot-explorer',
+    title: 'Mandelbrot Explorer',
+    description: 'Dive through the hidden geometry of an infinite fractal.',
+    category: 'Experiments',
+    artId: 'mandelbrot-explorer',
+    palette: ['#8a5cff', '#41e0c9'],
+  },
+  {
+    id: '3d-maze',
+    title: '3D Maze',
+    description: 'Explore a new procedural maze every run and find the way out.',
+    category: 'Games',
+    artId: '3d-maze',
+    palette: ['#5a86ff', '#c9cfe0'],
+  },
 ];
 
 const CATEGORIES = ['All', 'Featured', 'Games', 'Simulations', 'Experiments'];
@@ -163,6 +187,11 @@ function seedStyle(game) {
 
 function categoryClass(category) {
   return `art-${category.toLowerCase()}`;
+}
+
+function artClasses(game) {
+  const base = categoryClass(game.category);
+  return game.artId ? `${base} art-custom-${game.artId}` : base;
 }
 
 /* ---------- spotlight ---------- */
@@ -325,7 +354,7 @@ function initSpotlightCanvas(canvas) {
 function featuredCardHTML(game) {
   return `
     <a class="f-card" href="games/${game.id}/index.html" data-game="${game.id}" style="${seedStyle(game)}">
-      <div class="f-card-art ${categoryClass(game.category)}" aria-hidden="true"><span class="art-code">${game.title.charAt(0)}</span></div>
+      <div class="f-card-art ${artClasses(game)}" aria-hidden="true"><span class="art-code">${game.title.charAt(0)}</span></div>
       <div class="f-card-body">
         <span class="card-category">${game.category}</span>
         <h3 class="f-card-title">${game.title}</h3>
@@ -346,7 +375,7 @@ function renderFeaturedCollection() {
 function cardHTML(game) {
   return `
     <a class="card" href="games/${game.id}/index.html" data-game="${game.id}" data-category="${game.category}" role="listitem" style="${seedStyle(game)}">
-      <div class="card-art ${categoryClass(game.category)}" aria-hidden="true"><span class="art-code">${game.title.charAt(0)}</span></div>
+      <div class="card-art ${artClasses(game)}" aria-hidden="true"><span class="art-code">${game.title.charAt(0)}</span></div>
       <div class="card-body">
         <span class="card-category">${game.category}</span>
         <h3 class="card-title">${game.title}</h3>

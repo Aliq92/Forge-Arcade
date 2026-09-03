@@ -93,6 +93,12 @@ a { color: inherit; }
 .art-simulations::after { background:repeating-radial-gradient(circle at center,transparent 0 13px,color-mix(in srgb,var(--game-primary) 52%,transparent) 14px 15px); }
 .art-games::after { background:repeating-linear-gradient(90deg,transparent 0 16px,color-mix(in srgb,var(--game-primary) 42%,transparent) 17px 18px); }
 .art-experiments::after { background-image:radial-gradient(color-mix(in srgb,var(--game-secondary) 75%,transparent) 1px,transparent 1.5px); background-size:13px 13px; }
+
+/* Distinct per-build art for new experiences */
+.art-custom-terrain-flyover::after { inset:-10% -10% 0 -10%; opacity:.85; transform:none; background:linear-gradient(180deg,transparent 0%,color-mix(in srgb,var(--game-primary) 62%,transparent) 3%,color-mix(in srgb,var(--game-primary) 62%,transparent) 100%); clip-path:polygon(0% 100%,0% 68%,9% 46%,17% 62%,27% 30%,38% 58%,49% 24%,60% 54%,70% 38%,80% 60%,90% 42%,100% 58%,100% 100%); }
+.art-custom-mandelbrot-explorer::after { inset:0; opacity:.85; transform:none; background:radial-gradient(circle at 40% 52%,color-mix(in srgb,var(--game-primary) 70%,transparent) 0 21%,transparent 21.5%),radial-gradient(circle at 63% 52%,color-mix(in srgb,var(--game-primary) 70%,transparent) 0 10%,transparent 10.5%),radial-gradient(circle at 76% 52%,color-mix(in srgb,var(--game-primary) 70%,transparent) 0 4.5%,transparent 5%),repeating-radial-gradient(circle at 40% 52%,transparent 0 7px,color-mix(in srgb,var(--game-secondary) 55%,transparent) 7px 8px); }
+.art-custom-3d-maze::after { inset:-20%; opacity:.6; background:repeating-linear-gradient(45deg,transparent 0 12px,color-mix(in srgb,var(--game-primary) 46%,transparent) 12px 13px),repeating-linear-gradient(-45deg,transparent 0 12px,color-mix(in srgb,var(--game-secondary) 40%,transparent) 12px 13px); }
+
 .art-code { position:absolute; z-index:2; right:16px; bottom:-20px; color:rgba(255,255,255,.11); font-size:92px; line-height:1; font-weight:900; letter-spacing:-.08em; transition:transform .3s var(--ease),color .3s ease; }
 
 /* Cards */
