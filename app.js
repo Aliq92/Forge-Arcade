@@ -72,6 +72,23 @@ const GAMES = [
     palette: ['#ff6b5f', '#ffd15c'],
   },
   {
+    id: 'impossible-garden',
+    title: 'Impossible Garden',
+    description: 'Plant strange seeds, tend a calm generative garden, and watch impossible forms grow.',
+    category: 'Simulations',
+    featured: true,
+    tags: ['Generative garden', 'Mouse + touch'],
+    palette: ['#c8ccd4', '#8ec4c4'],
+  },
+  {
+    id: 'kaleido-drift',
+    title: 'Kaleido Drift',
+    description: 'Draw into a generative mirror and watch every stroke bloom into luminous symmetry.',
+    category: 'Experiments',
+    tags: ['Generative art', 'Mouse + touch'],
+    palette: ['#66e0ff', '#b45cff'],
+  },
+  {
     id: 'gravity-garden',
     title: 'Gravity Garden',
     description: 'Plant gravity wells and let particles settle into orbits, spirals, and slow drift.',
