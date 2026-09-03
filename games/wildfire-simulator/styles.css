@@ -417,7 +417,7 @@ button {
   .menu-toggle { display: flex; align-items: center; justify-content: center; }
   #topbar { gap: 10px; flex-wrap: wrap; }
   .sim-controls { order: 3; width: 100%; }
-  #layout { position: relative; }
+  #layout { position: relative; overflow-x: hidden; }
   .panel {
     position: absolute;
     top: 0;
