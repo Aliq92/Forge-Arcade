@@ -275,10 +275,18 @@
     const dt = 1 / C.BASE_TICKS_PER_SEC;
     this.simTime += dt;
     this.env.stepRegen(dt);
+    let toRemove = null;
     for (const colony of this.colonies.values()) {
       this.growColony(colony, dt);
       this.decayFading(colony);
+      // Fully dead colonies (no live cells, nothing left fading) leave no trace on
+      // the grid and can be dropped so the colony map doesn't grow without bound
+      // over a long session of painting/erasing.
+      if (colony.cellCount <= 0 && colony.frontier.size === 0 && colony.fading.size === 0) {
+        (toRemove || (toRemove = [])).push(colony.id);
+      }
     }
+    if (toRemove) for (const id of toRemove) this.colonies.delete(id);
   };
 
   Simulation.prototype.eraseAt = function (gx, gy, radius) {

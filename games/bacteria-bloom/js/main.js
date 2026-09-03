@@ -40,7 +40,7 @@
       const dt = Math.min(0.25, (now - lastTime) / 1000);
       lastTime = now;
 
-      if (sim.speedMultiplier > 0) {
+      if (sim.speedMultiplier > 0 && !document.hidden) {
         acc += dt * sim.speedMultiplier;
         let steps = 0;
         while (acc >= tickDt && steps < BB.CONFIG.MAX_TICKS_PER_FRAME) {

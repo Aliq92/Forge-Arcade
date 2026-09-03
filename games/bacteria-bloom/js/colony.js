@@ -36,5 +36,6 @@
 
   BB.Colony = Colony;
   BB.resetColonyIds = function () { nextColonyId = 1; };
+  BB.setNextColonyId = function (n) { nextColonyId = n; };
 
 })(window.BB = window.BB || {});

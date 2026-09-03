@@ -402,7 +402,7 @@ function frame(now) {
   const sim = state.sim;
   if (!sim) return;
 
-  if (state.running && !sim.completed) {
+  if (state.running && !sim.completed && !document.hidden) {
     let acc = (frame._acc || 0) + dtReal * state.speed;
     let steps = 0;
     while (acc >= SIM_STEP && steps < MAX_STEPS_PER_FRAME) {

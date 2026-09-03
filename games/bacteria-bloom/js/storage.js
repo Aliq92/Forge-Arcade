@@ -20,6 +20,7 @@
     const colonies = [...sim.colonies.values()]
       .sort((a, b) => a.id - b.id)
       .map(c => ({
+        id: c.id,
         strainKey: c.strainKey,
         birthTime: c.birthTime,
         mutations: c.mutations,
@@ -76,13 +77,20 @@
     sim.simTime = data.simTime || 0;
     sim.mutationRate = data.mutationRate || 'low';
 
+    let maxColonyId = 0;
     for (const cData of data.colonies) {
       const colony = new BB.Colony(cData.strainKey, 0, cData.birthTime);
+      // Older saves (pre-pruning) had no gaps, so the sequential id assigned above
+      // already matches; newer saves record the real id explicitly since colonies
+      // can now be removed mid-run, leaving gaps.
+      if (cData.id != null) colony.id = cData.id;
       colony.mutations = cData.mutations || [];
       colony.frontier = new Set(cData.frontier);
       colony.fading = new Set(cData.fading);
       sim.colonies.set(colony.id, colony);
+      if (colony.id > maxColonyId) maxColonyId = colony.id;
     }
+    if (maxColonyId > 0) BB.setNextColonyId(maxColonyId + 1);
 
     sim.colonyIdGrid.set(data.grid.colonyIdGrid);
     sim.strainIdxGrid.set(data.grid.strainIdxGrid);
