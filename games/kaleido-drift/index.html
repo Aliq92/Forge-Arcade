@@ -1319,6 +1319,7 @@ function undo() {
 function clearCanvas() {
   actx.clearRect(0, 0, W, H);
   particles.length = 0;
+  for (const bmp of undoStack) { if (bmp.close) bmp.close(); }
   undoStack.length = 0;
   hasContent = false;
   announce('Canvas cleared');

@@ -553,7 +553,7 @@
     if (player.x < pr){ player.x = pr; }
     if (player.x > W-pr){ player.x = W-pr; }
     if (player.y < pr){ player.y = pr; }
-    if (player.y > H-pr){ player.y = pr; }
+    if (player.y > H-pr){ player.y = H-pr; }
 
     // --- npc pass 1: wander target + individual awareness of the player ---
     const detect = CFG.detectionRadius * player.detectionMul;
