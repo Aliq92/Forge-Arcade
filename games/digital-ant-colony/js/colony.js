@@ -18,6 +18,8 @@ class Colony {
     const { width, height } = this.world;
     const fx = nestFracX === undefined ? 0.5 : nestFracX;
     const fy = nestFracY === undefined ? 0.5 : nestFracY;
+    this.nestFracX = fx;
+    this.nestFracY = fy;
     this.nest = { x: width * fx, y: height * fy, radius: CONFIG.colony.nestRadius };
     this.foodGrid = new PheromoneGrid(width, height, CONFIG.pheromone.cellSize, CONFIG.pheromone.max);
     this.homeGrid = new PheromoneGrid(width, height, CONFIG.pheromone.cellSize, CONFIG.pheromone.max);
@@ -99,8 +101,8 @@ class Colony {
   resizeWorld(width, height) {
     this.world.width = width;
     this.world.height = height;
-    this.nest.x = width / 2;
-    this.nest.y = height / 2;
+    this.nest.x = width * (this.nestFracX === undefined ? 0.5 : this.nestFracX);
+    this.nest.y = height * (this.nestFracY === undefined ? 0.5 : this.nestFracY);
     this.foodGrid.reset(width, height, CONFIG.pheromone.cellSize);
     this.homeGrid.reset(width, height, CONFIG.pheromone.cellSize);
     this.dangerGrid.reset(width, height, CONFIG.pheromone.cellSize);

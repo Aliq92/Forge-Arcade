@@ -281,7 +281,16 @@ function frame(now) {
   let delta = (now - lastTime) / 1000;
   lastTime = now;
   if (delta > MAX_FRAME_SECONDS) delta = MAX_FRAME_SECONDS;
-  accumulator += delta;
+  // Only accrue simulation time while a sim screen is active. Otherwise (title,
+  // paused, victory, defeat) the accumulator would silently build up every
+  // animation frame — since the loop below exits immediately without ever
+  // draining it — and unload as a burst of instant catch-up steps the moment
+  // play resumes, freezing the game for as long as the player was idle.
+  if (isSimScreen(gameState.screen)) {
+    accumulator += delta;
+  } else {
+    accumulator = 0;
+  }
 
   while (accumulator >= STEP_SECONDS) {
     const screen = gameState.screen;

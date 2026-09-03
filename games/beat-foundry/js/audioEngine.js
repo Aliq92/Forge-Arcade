@@ -101,10 +101,20 @@ export function createAudioEngine() {
 
   // Per-track buses (gain -> pan -> sumBus), used for mute/solo/volume.
   const trackBuses = {};
-  function getTrackBus(id) {
+  function getTrackBus(id, opts = {}) {
     if (trackBuses[id]) return trackBuses[id];
     const gain = ctx.createGain();
     gain.gain.value = 0.85;
+    if (opts.duck) {
+      // Extra gain stage so the sidechain "duck" envelope (effects.js duckGain)
+      // can pump this bus independently of its user-set volume.
+      const duck = ctx.createGain();
+      duck.gain.value = 1;
+      gain.connect(duck);
+      duck.connect(sumBus);
+      trackBuses[id] = { gain, duck };
+      return trackBuses[id];
+    }
     gain.connect(sumBus);
     trackBuses[id] = { gain };
     return trackBuses[id];

@@ -89,7 +89,14 @@ function drawRevealedTiles(renderer, cameraX, cameraY, cave, revealMap, now) {
   for (const [key, revealedAt] of revealMap) {
     if (typeof key !== 'string' || !key.includes(',')) continue;
     const age = now - revealedAt;
-    if (age > SONAR.revealHoldSeconds) continue;
+    if (age > SONAR.revealHoldSeconds) {
+      // Prune expired tiles instead of merely skipping them: revealMap only
+      // ever grows as the player explores (it's never cleared mid-run), so
+      // without this the per-frame iteration cost keeps climbing over a long
+      // expedition even though most entries are long past their hold time.
+      revealMap.delete(key);
+      continue;
+    }
     const [txStr, tyStr] = key.split(',');
     const tx = Number(txStr);
     const ty = Number(tyStr);

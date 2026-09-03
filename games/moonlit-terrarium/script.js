@@ -456,7 +456,7 @@
 
   function resizeCanvas() {
     const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const w = Math.max(1, rect.width);
     const h = Math.max(1, rect.height);
     canvas.width = Math.round(w * dpr);

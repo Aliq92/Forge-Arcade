@@ -490,6 +490,7 @@
   var brushRadius = 3;
   var painting = false;
   var lastGX = null, lastGY = null;
+  var dirty = true; // set whenever the grid changes so the render loop can skip idle frames
 
   function screenToGrid(clientX, clientY){
     var rect = canvas.getBoundingClientRect();
@@ -519,6 +520,7 @@
         }
       }
     }
+    dirty = true;
   }
 
   function paintLine(gx0,gy0,gx1,gy1){
@@ -640,13 +642,14 @@
   clearBtn.textContent = 'Clear';
   clearBtn.addEventListener('click', function(){
     grid.fill(0); extra.fill(0);
+    dirty = true;
   });
   toolbar.appendChild(clearBtn);
 
   // ---------- main loop ----------
   function loop(){
-    if (running) step();
-    render();
+    if (running){ step(); dirty = true; }
+    if (dirty){ render(); dirty = false; }
     updateHud();
     requestAnimationFrame(loop);
   }

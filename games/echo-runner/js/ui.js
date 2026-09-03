@@ -186,12 +186,17 @@ export class UI {
         ? 'linear-gradient(90deg, rgba(255,140,160,0.5), rgba(255,93,122,0.85))'
         : 'linear-gradient(90deg, rgba(127,227,255,0.35), rgba(127,227,255,0.75))';
 
-      this.el.timelineMarkers.innerHTML = '';
-      for (const echo of g.recorder.echoes) {
-        const m = document.createElement('div');
-        m.className = 'timeline-marker';
-        m.style.left = `${Math.min(100, (echo.inputs.length / 60 / maxSec) * 100)}%`;
-        this.el.timelineMarkers.appendChild(m);
+      // Markers only change when an echo is recorded/cleared, not every frame —
+      // skip the DOM rebuild otherwise (this runs once per rendered frame).
+      if (this._lastMarkerEchoes !== g.recorder.echoes) {
+        this._lastMarkerEchoes = g.recorder.echoes;
+        this.el.timelineMarkers.innerHTML = '';
+        for (const echo of g.recorder.echoes) {
+          const m = document.createElement('div');
+          m.className = 'timeline-marker';
+          m.style.left = `${Math.min(100, (echo.inputs.length / 60 / maxSec) * 100)}%`;
+          this.el.timelineMarkers.appendChild(m);
+        }
       }
     }
 

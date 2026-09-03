@@ -8,6 +8,7 @@ export function createVisualizer(canvas, analyser, reducedMotionFn) {
   const timeData = new Uint8Array(analyser.fftSize);
   let rafId = null;
   let dpr = Math.min(2, window.devicePixelRatio || 1);
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#6ee7c9';
 
   function resize() {
     dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -31,7 +32,6 @@ export function createVisualizer(canvas, analyser, reducedMotionFn) {
     const barCount = 40;
     const step = Math.floor(bufferLength / barCount);
     const barWidth = w / barCount;
-    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#6ee7c9';
 
     ctx2d.fillStyle = accent;
     ctx2d.globalAlpha = reduced ? 0.55 : 0.85;
