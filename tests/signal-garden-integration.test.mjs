@@ -2,9 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const index = fs.readFileSync('index.html', 'utf8');
-const register = fs.readFileSync('signal-garden-register.js', 'utf8');
-const game = fs.readFileSync('games/signal-garden/index.html', 'utf8');
+const readOrEmpty = (path) => fs.existsSync(path) ? fs.readFileSync(path, 'utf8') : '';
+const index = readOrEmpty('index.html');
+const register = readOrEmpty('signal-garden-register.js');
+const game = readOrEmpty('games/signal-garden/index.html');
 
 test('Signal Garden is registered as a Forge Arcade experiment', () => {
   assert.match(index, /signal-garden-register\.js/);
