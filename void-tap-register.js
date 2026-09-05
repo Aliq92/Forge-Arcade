@@ -2,7 +2,7 @@
 
 GAMES.push({
   id: 'void-tap',
-  title: 'VOID TAP',
+  title: 'Void Tap',
   description: 'A strict reaction game where one wrong tap ends the signal.',
   category: 'Games',
   featured: true,
