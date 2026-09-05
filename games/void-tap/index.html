@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>VOID TAP</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+  html, body { width: 100%; height: 100%; background: #000; overflow: hidden; overscroll-behavior: none; font-family: 'Courier New', monospace; color: #cfe8ff; }
+  #app { position: fixed; inset: 0; height: 100dvh; width: 100vw; background: #030405; overflow: hidden; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+  #app::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 3px); z-index: 50; opacity: 0.5; }
+  .screen { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 18px; padding: 24px; }
+  .hidden { display: none !important; }
+  .title { font-size: clamp(2.2rem, 9vw, 3.4rem); letter-spacing: 0.35em; color: #7fe8ff; text-shadow: 0 0 8px rgba(127,232,255,0.6), 0 0 24px rgba(127,232,255,0.25); animation: titlePulse 3.2s ease-in-out infinite; }
+  @keyframes titlePulse { 0%,100% { opacity: 0.85; } 50% { opacity: 1; } }
+  .subtitle { font-size: clamp(0.7rem, 3vw, 0.9rem); letter-spacing: 0.15em; color: #5f7c8c; max-width: 80%; }
+  .best-line { font-size: 0.85rem; color: #4a6472; letter-spacing: 0.1em; }
+  .btn { margin-top: 8px; padding: 16px 46px; font-family: inherit; font-size: 1rem; letter-spacing: 0.3em; color: #061014; background: #7fe8ff; border: none; border-radius: 2px; box-shadow: 0 0 18px rgba(127,232,255,0.55); cursor: pointer; transition: transform 0.08s ease; }
+  .btn:active { transform: scale(0.94); }
+  .gameover-title { font-size: clamp(1.8rem, 8vw, 2.6rem); letter-spacing: 0.3em; color: #ff5c6a; text-shadow: 0 0 10px rgba(255,92,106,0.6); }
+  .go-score { font-size: 1.1rem; color: #cfe8ff; letter-spacing: 0.15em; }
+  .go-best { font-size: 0.85rem; color: #6c8a99; letter-spacing: 0.15em; }
+  .go-hint { margin-top: 10px; font-size: 0.75rem; color: #4a6472; letter-spacing: 0.2em; animation: hintBlink 1.4s steps(2) infinite; }
+  @keyframes hintBlink { 50% { opacity: 0.15; } }
+  #hud { position: absolute; top: calc(14px + env(safe-area-inset-top)); left: 0; right: 0; display: flex; justify-content: space-between; padding: 0 18px; font-size: 0.95rem; letter-spacing: 0.15em; color: #7fe8ff; z-index: 40; pointer-events: none; }
+  #hud span.label { color: #3d5c68; font-size: 0.65rem; display: block; }
+  #muteBtn { position: absolute; bottom: calc(14px + env(safe-area-inset-bottom)); right: 14px; z-index: 45; background: transparent; border: 1px solid #234049; color: #5f7c8c; font-family: inherit; font-size: 0.65rem; letter-spacing: 0.15em; padding: 8px 12px; border-radius: 2px; pointer-events: auto; }
+  #playfield { position: absolute; inset: 0; z-index: 10; }
+  .target { position: absolute; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #d9fbff, #7fe8ff 55%, #1c6b7a 100%); box-shadow: 0 0 14px 4px rgba(127,232,255,0.65), 0 0 36px 10px rgba(127,232,255,0.25); transform: translate(-50%, -50%); will-change: transform, opacity; }
+  .target.fake { background: radial-gradient(circle at 35% 30%, #ffd9e4, #ff8fa8 55%, #6b1c3a 100%); box-shadow: 0 0 14px 4px rgba(255,92,106,0.5), 0 0 30px 8px rgba(255,92,106,0.2); }
+  .bg-geo { position: absolute; inset: 0; z-index: 1; opacity: 0; transition: opacity 0.6s ease; background-image: linear-gradient(rgba(127,232,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(127,232,255,0.05) 1px, transparent 1px); background-size: 48px 48px; }
+  .bg-geo.show { opacity: 1; }
+  #distort { position: absolute; inset: 0; z-index: 30; pointer-events: none; opacity: 0; }
+  #distort.on { opacity: 1; }
+  .glitching #app { animation: none; }
+  .glitch-flash { animation: glitchFlash 0.18s steps(2, end); }
+  @keyframes glitchFlash { 0% { filter: none; } 30% { filter: invert(1) hue-rotate(30deg); } 60% { filter: none; } 100% { filter: none; } }
+  .shake { animation: shakeAnim 0.28s linear; }
+  @keyframes shakeAnim { 0% { transform: translate(0,0); } 20% { transform: translate(-4px, 3px); } 40% { transform: translate(3px, -3px); } 60% { transform: translate(-3px, -2px); } 80% { transform: translate(4px, 2px); } 100% { transform: translate(0,0); } }
+  .glitch-text { animation: textGlitch 0.4s linear; }
+  @keyframes textGlitch { 0% { transform: skewX(0deg); } 25% { transform: skewX(6deg); letter-spacing: 0.3em; } 50% { transform: skewX(-6deg); } 75% { transform: skewX(3deg); } 100% { transform: skewX(0deg); } }
+  #message { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); z-index: 60; font-size: 0.75rem; letter-spacing: 0.3em; color: #ff5c6a; text-shadow: 0 0 10px rgba(255,92,106,0.7); opacity: 0; pointer-events: none; white-space: nowrap; }
+  #message.show { animation: msgFade 1.4s ease; }
+  @keyframes msgFade { 0% { opacity: 0; } 15% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="startScreen" class="screen">
+    <div class="title">VOID TAP</div>
+    <div class="subtitle">"TAP WHAT SHOULDN'T BE THERE."</div>
+    <button class="btn" id="startBtn">START</button>
+    <div class="best-line" id="startBest">Best Score: 00</div>
+  </div>
+  <div id="gameScreen" class="screen hidden" style="justify-content:flex-start; padding:0;">
+    <div id="hud"><div><span class="label">SCORE</span><span id="scoreVal">0</span></div><div style="text-align:right;"><span class="label">BEST</span><span id="bestVal">0</span></div></div>
+    <div class="bg-geo" id="bgGeo"></div><div id="distort"></div><div id="message"></div><div id="playfield"></div>
+  </div>
+  <div id="overScreen" class="screen hidden">
+    <div class="gameover-title">SIGNAL LOST</div><div class="go-score">Score: <span id="finalScore">0</span></div><div class="go-best">Best: <span id="finalBest">0</span></div><div class="go-hint">TAP TO RECONNECT</div>
+  </div>
+  <button id="muteBtn">SOUND: ON</button>
+</div>
+<script>
+(function () {
+  "use strict";
+  const STORAGE_KEY = "voidtap_best";
+  let best = 0;
+  try { const saved = localStorage.getItem(STORAGE_KEY); if (saved !== null) best = parseInt(saved, 10) || 0; } catch (e) {}
+  let state = "start", score = 0, muted = false, targetTimer = null, moveTimer = null, activeTargets = [], spawnToken = 0;
+  const app = document.getElementById("app"), startScreen = document.getElementById("startScreen"), gameScreen = document.getElementById("gameScreen"), overScreen = document.getElementById("overScreen"), startBtn = document.getElementById("startBtn"), startBest = document.getElementById("startBest"), scoreVal = document.getElementById("scoreVal"), bestVal = document.getElementById("bestVal"), finalScore = document.getElementById("finalScore"), finalBest = document.getElementById("finalBest"), playfield = document.getElementById("playfield"), bgGeo = document.getElementById("bgGeo"), distort = document.getElementById("distort"), message = document.getElementById("message"), muteBtn = document.getElementById("muteBtn");
+  function pad(n) { return n < 10 ? "0" + n : "" + n; }
+  function refreshBestDisplays() { startBest.textContent = "Best Score: " + pad(best); bestVal.textContent = pad(best); }
+  refreshBestDisplays();
+  let actx = null;
+  function ensureAudio() { if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; } } if (actx && actx.state === "suspended") actx.resume(); }
+  function tone(freq, duration, type, gainPeak) { if (muted || !actx) return; const osc = actx.createOscillator(), gain = actx.createGain(); osc.type = type || "sine"; osc.frequency.setValueAtTime(freq, actx.currentTime); gain.gain.setValueAtTime(0.0001, actx.currentTime); gain.gain.exponentialRampToValueAtTime(gainPeak || 0.18, actx.currentTime + 0.01); gain.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + duration); osc.connect(gain); gain.connect(actx.destination); osc.start(); osc.stop(actx.currentTime + duration + 0.02); }
+  function playTap() { tone(720, 0.09, "sine", 0.15); }
+  function playMilestone() { tone(180, 0.35, "sawtooth", 0.12); }
+  function playFail() { if (muted || !actx) return; const osc = actx.createOscillator(), gain = actx.createGain(); osc.type = "sawtooth"; osc.frequency.setValueAtTime(300, actx.currentTime); osc.frequency.exponentialRampToValueAtTime(60, actx.currentTime + 0.5); gain.gain.setValueAtTime(0.16, actx.currentTime); gain.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + 0.5); osc.connect(gain); gain.connect(actx.destination); osc.start(); osc.stop(actx.currentTime + 0.55); }
+  let humOsc = null, humGain = null;
+  function startHum() { if (muted || !actx) return; stopHum(); humOsc = actx.createOscillator(); humGain = actx.createGain(); humOsc.type = "sine"; humOsc.frequency.value = 48; humGain.gain.value = 0.025; humOsc.connect(humGain); humGain.connect(actx.destination); humOsc.start(); }
+  function stopHum() { if (humOsc) { try { humOsc.stop(); } catch (e) {} humOsc = null; } humGain = null; }
+  muteBtn.addEventListener("click", function () { muted = !muted; muteBtn.textContent = "SOUND: " + (muted ? "OFF" : "ON"); if (muted) stopHum(); else if (state === "playing") startHum(); });
+  const BASE_DURATION = 1450, MIN_DURATION = 420, DURATION_DROP_PER_POINT = 16;
+  function tierOf(s) { if (s < 10) return 1; if (s < 25) return 2; if (s < 50) return 3; return 4; }
+  function currentDuration(s) { return Math.max(MIN_DURATION, BASE_DURATION - s * DURATION_DROP_PER_POINT); }
+  const MESSAGES = ["YOU SAW THAT.", "TOO SLOW.", "IT MOVED.", "KEEP GOING.", "DO NOT LOOK AWAY."];
+  function maybeShowMessage() { if (Math.random() < 0.12) { message.textContent = MESSAGES[Math.floor(Math.random() * MESSAGES.length)]; message.classList.remove("show"); void message.offsetWidth; message.classList.add("show"); } }
+  function applyTierVisuals(tier) { bgGeo.classList.toggle("show", tier >= 2); distort.classList.toggle("on", tier >= 2); if (tier >= 3 && Math.random() < 0.25) { scoreVal.parentElement.classList.remove("glitch-text"); void scoreVal.offsetWidth; scoreVal.parentElement.classList.add("glitch-text"); } }
+  function maybeGlitchScreen(tier) { if (tier >= 3 && Math.random() < 0.3) { app.classList.remove("glitch-flash"); void app.offsetWidth; app.classList.add("glitch-flash"); } if (tier >= 3 && Math.random() < 0.35) { gameScreen.classList.remove("shake"); void gameScreen.offsetWidth; gameScreen.classList.add("shake"); } }
+  function playfieldRect() { return playfield.getBoundingClientRect(); }
+  function randomPosition(size) { const rect = playfieldRect(), margin = size / 2 + 12, topSafe = 64, bottomSafe = 64, w = Math.max(rect.width - margin * 2, 40), h = Math.max(rect.height - margin * 2 - topSafe - bottomSafe, 40); return { x: margin + Math.random() * w, y: topSafe + margin + Math.random() * h }; }
+  function clearTargets() { activeTargets.forEach(t => t.el.remove()); activeTargets = []; if (targetTimer) { clearTimeout(targetTimer); targetTimer = null; } if (moveTimer) { clearTimeout(moveTimer); moveTimer = null; } }
+  function baseSizeForTier(tier) { let size = 78; if (tier >= 2 && Math.random() < 0.5) size = 58 + Math.random() * 44; if (tier >= 4) size = Math.max(46, size - Math.random() * 18); return Math.round(size); }
+  function makeTargetEl(size, fake) { const el = document.createElement("div"); el.className = "target" + (fake ? " fake" : ""); el.style.width = size + "px"; el.style.height = size + "px"; return el; }
+  function spawnRound() { if (state !== "playing") return; clearTargets(); const myToken = ++spawnToken, tier = tierOf(score), duration = currentDuration(score), size = baseSizeForTier(tier); const realEl = makeTargetEl(size, false), pos = randomPosition(size); realEl.style.left = pos.x + "px"; realEl.style.top = pos.y + "px"; playfield.appendChild(realEl); activeTargets.push({ el: realEl, real: true }); let fakeCount = 0; if (tier === 3 && Math.random() < 0.4) fakeCount = 1; if (tier >= 4) fakeCount = Math.random() < 0.5 ? 2 : 1; for (let i = 0; i < fakeCount; i++) { const fEl = makeTargetEl(size * (0.85 + Math.random() * 0.3), true), fPos = randomPosition(size); fEl.style.left = fPos.x + "px"; fEl.style.top = fPos.y + "px"; playfield.appendChild(fEl); activeTargets.push({ el: fEl, real: false }); fEl.addEventListener("pointerdown", function (ev) { ev.stopPropagation(); onMiss(); }); } realEl.addEventListener("pointerdown", function (ev) { ev.stopPropagation(); onHit(myToken); }); if (tier >= 4 && Math.random() < 0.5) { const delay = duration * (0.3 + Math.random() * 0.3); moveTimer = setTimeout(function () { if (spawnToken !== myToken || state !== "playing") return; const newPos = randomPosition(size); realEl.style.left = newPos.x + "px"; realEl.style.top = newPos.y + "px"; }, delay); } applyTierVisuals(tier); targetTimer = setTimeout(function () { if (spawnToken !== myToken) return; onMiss(); }, duration); }
+  function onHit(token) { if (state !== "playing" || token !== spawnToken) return; score += 1; scoreVal.textContent = pad(score); playTap(); if (score % 10 === 0) playMilestone(); maybeGlitchScreen(tierOf(score)); maybeShowMessage(); spawnRound(); }
+  function onMiss() { if (state !== "playing") return; endGame(); }
+  playfield.addEventListener("pointerdown", function () { if (state === "playing") onMiss(); });
+  function showScreen(name) { startScreen.classList.toggle("hidden", name !== "start"); gameScreen.classList.toggle("hidden", name !== "playing"); overScreen.classList.toggle("hidden", name !== "gameover"); }
+  function startGame() { ensureAudio(); state = "playing"; score = 0; scoreVal.textContent = "00"; bgGeo.classList.remove("show"); distort.classList.remove("on"); showScreen("playing"); startHum(); spawnRound(); }
+  function endGame() { state = "gameover"; clearTargets(); stopHum(); playFail(); if (score > best) { best = score; try { localStorage.setItem(STORAGE_KEY, String(best)); } catch (e) {} } finalScore.textContent = pad(score); finalBest.textContent = pad(best); refreshBestDisplays(); showScreen("gameover"); }
+  startBtn.addEventListener("pointerdown", function (ev) { ev.stopPropagation(); startGame(); });
+  overScreen.addEventListener("pointerdown", function () { startGame(); });
+  document.addEventListener("touchmove", function (e) { e.preventDefault(); }, { passive: false });
+  document.addEventListener("gesturestart", function (e) { e.preventDefault(); });
+  let lastTouchEnd = 0;
+  document.addEventListener("touchend", function (e) { const now = Date.now(); if (now - lastTouchEnd <= 300) e.preventDefault(); lastTouchEnd = now; }, { passive: false });
+  showScreen("start");
+})();
+</script>
+</body>
+</html>
