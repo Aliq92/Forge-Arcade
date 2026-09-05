@@ -20,5 +20,6 @@ test('Signal Garden keeps touch controls comfortably sized on mobile', () => {
 
 test('Signal Garden caps field resolution for smaller devices and reduced motion', () => {
   assert.match(game, /const isCompact = Math\.min\(cssW, cssH\) < 700;/);
-  assert.match(game, /const bufMax = prefs\.reduced \? 120 : \(isCompact \? 150 : 190\);/);
+  assert.match(game, /const reducedMotion = window\.matchMedia && window\.matchMedia\(['"]\(prefers-reduced-motion: reduce\)['"]\)\.matches;/);
+  assert.match(game, /const bufMax = reducedMotion \? 110 : \(isCompact \? 140 : 190\);/);
 });
