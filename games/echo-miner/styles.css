@@ -63,7 +63,7 @@ html, body {
   z-index: 5;
   /* Reserve room for the touch pause button (top-right) so it never
      overlaps the status chip; cleared on desktop, where that button is hidden. */
-  padding-right: 52px;
+  padding-right: 61px;
 }
 
 #hud-top {
@@ -269,8 +269,8 @@ html, body {
 }
 
 .touch-btn {
-  width: 74px;
-  height: 74px;
+  width: 88.8px;
+  height: 88.8px;
   border-radius: 50%;
   border: 2px solid var(--panel-border);
   background: rgba(11, 18, 28, 0.78);
@@ -288,8 +288,8 @@ html, body {
 }
 
 .touch-btn.small {
-  width: 42px;
-  height: 42px;
+  width: 50.4px;
+  height: 50.4px;
   position: absolute;
   top: max(env(safe-area-inset-top), 10px);
   right: max(env(safe-area-inset-right), 10px);

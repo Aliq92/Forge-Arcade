@@ -461,8 +461,8 @@ html, body {
 .touch-right { right: calc(16px + env(safe-area-inset-right, 0px)); }
 .touch-btn {
   pointer-events: all;
-  width: 84px;
-  height: 84px;
+  width: 100.8px;
+  height: 100.8px;
   border-radius: 50%;
   background: rgba(20, 26, 38, 0.62);
   border: 2px solid var(--panel-border);
@@ -476,13 +476,13 @@ html, body {
   box-shadow: 0 2px 10px rgba(0,0,0,0.35);
 }
 .touch-btn:active { background: rgba(100,224,255,0.3); border-color: var(--accent); transform: scale(0.95); }
-.touch-rotate { width: 72px; height: 72px; font-size: 26px; }
+.touch-rotate { width: 86.4px; height: 86.4px; font-size: 26px; }
 .touch-thrust-stack { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.touch-thrust { width: 104px; height: 104px; font-size: 36px; }
-.touch-reverse { width: 56px; height: 56px; font-size: 22px; opacity: 0.85; }
+.touch-thrust { width: 124.8px; height: 124.8px; font-size: 36px; }
+.touch-reverse { width: 67.2px; height: 67.2px; font-size: 22px; opacity: 0.85; }
 .touch-boost {
-  width: 88px;
-  height: 88px;
+  width: 105.6px;
+  height: 105.6px;
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -495,8 +495,8 @@ html, body {
   position: absolute;
   top: calc(14px + env(safe-area-inset-top, 0px));
   right: 14px;
-  width: 46px;
-  height: 46px;
+  width: 55.2px;
+  height: 55.2px;
   font-size: 16px;
   pointer-events: all;
 }
@@ -524,12 +524,12 @@ html, body {
 }
 
 @media (max-width: 420px) {
-  .touch-btn { width: 76px; height: 76px; }
-  .touch-rotate { width: 64px; height: 64px; font-size: 22px; }
-  .touch-thrust { width: 92px; height: 92px; font-size: 32px; }
-  .touch-reverse { width: 48px; height: 48px; font-size: 18px; }
-  .touch-boost { width: 78px; height: 78px; font-size: 13px; }
-  .touch-pause { width: 46px; height: 46px; font-size: 16px; }
+  .touch-btn { width: 91.2px; height: 91.2px; }
+  .touch-rotate { width: 76.8px; height: 76.8px; font-size: 22px; }
+  .touch-thrust { width: 110.4px; height: 110.4px; font-size: 32px; }
+  .touch-reverse { width: 57.6px; height: 57.6px; font-size: 18px; }
+  .touch-boost { width: 93.6px; height: 93.6px; font-size: 13px; }
+  .touch-pause { width: 55.2px; height: 55.2px; font-size: 16px; }
 }
 
 .fps-counter {
@@ -565,3 +565,10 @@ html, body {
 @media (pointer: coarse) {
   .touch-controls.enabled { display: block; }
 }
+
+/* Enlarged flight buttons need separate thumb columns on narrow phones. */
+@media (max-width: 520px) {
+  .touch-left { flex-direction: column; gap: 12px; }
+  .touch-dock-btn { bottom: calc(250px + env(safe-area-inset-bottom, 0px)); }
+}
+.touch-dock-btn { zoom: 1.2; }

@@ -406,7 +406,7 @@ body.touch-mode .hud-actions { display: none; }
 /* Frees the top-right corner for the pause/reset/record buttons instead of letting
    the echo-count chip collide with them there. */
 body.touch-mode .hud-top {
-  max-width: calc(100% - 176px);
+  max-width: calc(100% - 218px);
   justify-content: flex-start;
   gap: 10px 16px;
 }
@@ -455,7 +455,7 @@ body.touch-mode .hud-top {
   gap: 12px;
   pointer-events: auto;
 }
-.touch-btn-small { width: 50px; height: 50px; font-size: 19px; }
+.touch-btn-small { width: 60px; height: 60px; font-size: 19px; }
 .touch-btn-record { color: var(--danger); border-color: rgba(255, 93, 122, 0.45); }
 .touch-btn-record.active {
   background: rgba(255, 93, 122, 0.28);
@@ -476,22 +476,22 @@ body.touch-mode .hud-top {
   gap: 16px;
   pointer-events: auto;
 }
-.touch-btn-move { width: 70px; height: 70px; font-size: 26px; }
+.touch-btn-move { width: 84px; height: 84px; font-size: 26px; }
 
 .touch-actions {
   position: absolute;
   right: calc(env(safe-area-inset-right, 0px) + 18px);
   bottom: calc(env(safe-area-inset-bottom, 0px) + 22px);
-  width: 150px;
-  height: 150px;
+  width: 180px;
+  height: 180px;
   pointer-events: none;
 }
 .touch-btn-jump {
   position: absolute;
   right: 0;
   bottom: 0;
-  width: 88px;
-  height: 88px;
+  width: 105.6px;
+  height: 105.6px;
   font-size: 14px;
   letter-spacing: 1px;
   color: var(--white);
@@ -500,10 +500,10 @@ body.touch-mode .hud-top {
 }
 .touch-btn-interact {
   position: absolute;
-  right: 76px;
-  bottom: 76px;
-  width: 58px;
-  height: 58px;
+  right: 91.2px;
+  bottom: 91.2px;
+  width: 69.6px;
+  height: 69.6px;
   font-size: 18px;
   color: var(--violet);
   border-color: rgba(183, 155, 255, 0.5);
@@ -548,15 +548,15 @@ body.touch-mode .hud-top {
   .timeline-wrap { width: min(360px, 55%); }
   .timeline-label { font-size: 9px; }
 
-  body.touch-mode .hud-top { max-width: calc(100% - 156px); }
+  body.touch-mode .hud-top { max-width: calc(100% - 185px); }
 
   .touch-topbar { top: calc(env(safe-area-inset-top, 0px) + 6px); right: calc(env(safe-area-inset-right, 0px) + 8px); gap: 8px; }
-  .touch-btn-small { width: 44px; height: 44px; font-size: 16px; }
+  .touch-btn-small { width: 52.8px; height: 52.8px; font-size: 16px; }
   .touch-dpad { left: calc(env(safe-area-inset-left, 0px) + 10px); bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); gap: 10px; }
-  .touch-btn-move { width: 54px; height: 54px; font-size: 20px; }
-  .touch-actions { right: calc(env(safe-area-inset-right, 0px) + 10px); bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); width: 118px; height: 118px; }
-  .touch-btn-jump { width: 68px; height: 68px; font-size: 12px; }
-  .touch-btn-interact { width: 46px; height: 46px; right: 60px; bottom: 60px; font-size: 15px; }
+  .touch-btn-move { width: 64.8px; height: 64.8px; font-size: 20px; }
+  .touch-actions { right: calc(env(safe-area-inset-right, 0px) + 10px); bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); width: 141.6px; height: 141.6px; }
+  .touch-btn-jump { width: 81.6px; height: 81.6px; font-size: 12px; }
+  .touch-btn-interact { width: 55.2px; height: 55.2px; right: 72px; bottom: 72px; font-size: 15px; }
 
   .panel { padding: 16px 20px; }
   .panel-title { margin-bottom: 12px; font-size: 17px; }
@@ -574,21 +574,21 @@ body.touch-mode .hud-top {
   .hint-banner { font-size: 10px; padding: 3px 10px; }
   .toast { top: 40px; font-size: 9.5px; }
   .timeline-wrap { width: min(300px, 46%); }
-  .touch-btn-move { width: 48px; height: 48px; }
-  .touch-btn-jump { width: 60px; height: 60px; }
-  .touch-btn-interact { width: 44px; height: 44px; right: 52px; bottom: 52px; }
-  .touch-actions { width: 104px; height: 104px; }
+  .touch-btn-move { width: 57.6px; height: 57.6px; }
+  .touch-btn-jump { width: 72px; height: 72px; }
+  .touch-btn-interact { width: 52.8px; height: 52.8px; right: 62.4px; bottom: 62.4px; }
+  .touch-actions { width: 124.8px; height: 124.8px; }
 }
 
 /* ---- 4. mobile portrait ---- */
 @media (orientation: portrait) and (max-width: 700px) {
   #rotate-hint:not(.hidden) { display: flex; }
 
-  .touch-btn-move { width: 56px; height: 56px; font-size: 20px; }
-  .touch-btn-jump { width: 72px; height: 72px; font-size: 12px; }
-  .touch-btn-interact { width: 48px; height: 48px; right: 62px; bottom: 62px; font-size: 15px; }
-  .touch-actions { width: 128px; height: 128px; }
-  .touch-btn-small { width: 44px; height: 44px; font-size: 16px; }
+  .touch-btn-move { width: 67.2px; height: 67.2px; font-size: 20px; }
+  .touch-btn-jump { width: 86.4px; height: 86.4px; font-size: 12px; }
+  .touch-btn-interact { width: 57.6px; height: 57.6px; right: 74.4px; bottom: 74.4px; font-size: 15px; }
+  .touch-actions { width: 153.6px; height: 153.6px; }
+  .touch-btn-small { width: 52.8px; height: 52.8px; font-size: 16px; }
 
   /* The 16:9 stage letterboxes down to a thin strip in portrait (see #rotate-hint
      above), so there isn't safe vertical room for the timeline/hint/toast without

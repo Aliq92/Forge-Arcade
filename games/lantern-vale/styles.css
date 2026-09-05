@@ -291,9 +291,9 @@ h2 { color: var(--gold); letter-spacing: 2px; margin: 0 0 4px 0; }
 :root {
   --stick-size: clamp(120px, 32vw, 156px);
   --stick-zone-size: clamp(168px, 44vw, 210px);
-  --btn-flare-size: clamp(74px, 20vw, 96px);
-  --btn-interact-size: clamp(62px, 16vw, 78px);
-  --btn-pause-size: clamp(44px, 11vw, 52px);
+  --btn-flare-size: clamp(88.8px, 24vw, 115.2px);
+  --btn-interact-size: clamp(74.4px, 19.2vw, 93.6px);
+  --btn-pause-size: clamp(52.8px, 13.2vw, 62.4px);
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-l: env(safe-area-inset-left, 0px);
   --safe-r: env(safe-area-inset-right, 0px);

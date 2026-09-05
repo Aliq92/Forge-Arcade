@@ -211,7 +211,7 @@ html, body {
 }
 .mobile-action-buttons { position: absolute; right: 18px; bottom: 18px; display: flex; gap: 18px; align-items: flex-end; pointer-events: auto; }
 .round-btn {
-  width: 88px; height: 88px; border-radius: 50%; border: 2px solid var(--ui-border);
+  width: 105.6px; height: 105.6px; border-radius: 50%; border: 2px solid var(--ui-border);
   background: rgba(255,255,255,0.1); color: var(--text-main); font-weight: 700; font-size: 16px;
   box-shadow: 0 2px 14px rgba(0,0,0,0.35);
 }
@@ -232,7 +232,14 @@ html, body {
   .hud-pause-btn { right: 14px; top: 60px; }
   .joystick-zone { width: 168px; height: 168px; }
   .joystick-stick { width: 70px; height: 70px; }
-  .round-btn { width: 76px; height: 76px; font-size: 14px; }
+  .round-btn { width: 91.2px; height: 91.2px; font-size: 14px; }
   .plant-tray { bottom: 114px; }
   .action-hint { bottom: 192px; }
+}
+
+/* Stack action buttons clear of the movement stick on phones. */
+@media (max-width: 560px) {
+  .mobile-action-buttons { flex-direction: column; gap: 12px; }
+  .plant-tray { bottom: 224px; }
+  .action-hint { bottom: 302px; }
 }
