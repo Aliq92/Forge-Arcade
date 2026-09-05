@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>VOID TAP</title>
+<title>Void Tap</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
   html, body { width: 100%; height: 100%; background: #000; overflow: hidden; overscroll-behavior: none; font-family: 'Courier New', monospace; color: #cfe8ff; }
@@ -47,7 +47,7 @@
 <body>
 <div id="app">
   <div id="startScreen" class="screen">
-    <div class="title">VOID TAP</div>
+    <div class="title">Void Tap</div>
     <div class="subtitle">"TAP WHAT SHOULDN'T BE THERE."</div>
     <button class="btn" id="startBtn">START</button>
     <div class="best-line" id="startBest">Best Score: 00</div>
@@ -94,7 +94,7 @@
   function clearTargets() { activeTargets.forEach(t => t.el.remove()); activeTargets = []; if (targetTimer) { clearTimeout(targetTimer); targetTimer = null; } if (moveTimer) { clearTimeout(moveTimer); moveTimer = null; } }
   function baseSizeForTier(tier) { let size = 78; if (tier >= 2 && Math.random() < 0.5) size = 58 + Math.random() * 44; if (tier >= 4) size = Math.max(46, size - Math.random() * 18); return Math.round(size); }
   function makeTargetEl(size, fake) { const el = document.createElement("div"); el.className = "target" + (fake ? " fake" : ""); el.style.width = size + "px"; el.style.height = size + "px"; return el; }
-  function spawnRound() { if (state !== "playing") return; clearTargets(); const myToken = ++spawnToken, tier = tierOf(score), duration = currentDuration(score), size = baseSizeForTier(tier); const realEl = makeTargetEl(size, false), pos = randomPosition(size); realEl.style.left = pos.x + "px"; realEl.style.top = pos.y + "px"; playfield.appendChild(realEl); activeTargets.push({ el: realEl, real: true }); let fakeCount = 0; if (tier === 3 && Math.random() < 0.4) fakeCount = 1; if (tier >= 4) fakeCount = Math.random() < 0.5 ? 2 : 1; for (let i = 0; i < fakeCount; i++) { const fEl = makeTargetEl(size * (0.85 + Math.random() * 0.3), true), fPos = randomPosition(size); fEl.style.left = fPos.x + "px"; fEl.style.top = fPos.y + "px"; playfield.appendChild(fEl); activeTargets.push({ el: fEl, real: false }); fEl.addEventListener("pointerdown", function (ev) { ev.stopPropagation(); onMiss(); }); } realEl.addEventListener("pointerdown", function (ev) { ev.stopPropagation(); onHit(myToken); }); if (tier >= 4 && Math.random() < 0.5) { const delay = duration * (0.3 + Math.random() * 0.3); moveTimer = setTimeout(function () { if (spawnToken !== myToken || state !== "playing") return; const newPos = randomPosition(size); realEl.style.left = newPos.x + "px"; realEl.style.top = newPos.y + "px"; }, delay); } applyTierVisuals(tier); targetTimer = setTimeout(function () { if (spawnToken !== myToken) return; onMiss(); }, duration); }
+  function spawnRound() { if (state !== "playing") return; clearTargets(); const myToken = ++spawnToken, tier = tierOf(score), duration = currentDuration(score), size = baseSizeForTier(tier), realEl = makeTargetEl(size, false), pos = randomPosition(size); realEl.style.left = pos.x + "px"; realEl.style.top = pos.y + "px"; playfield.appendChild(realEl); activeTargets.push({ el: realEl, real: true }); let fakeCount = 0; if (tier === 3 && Math.random() < 0.4) fakeCount = 1; if (tier >= 4) fakeCount = Math.random() < 0.5 ? 2 : 1; for (let i = 0; i < fakeCount; i++) { const fEl = makeTargetEl(size * (0.85 + Math.random() * 0.3), true), fPos = randomPosition(size); fEl.style.left = fPos.x + "px"; fEl.style.top = fPos.y + "px"; playfield.appendChild(fEl); activeTargets.push({ el: fEl, real: false }); fEl.addEventListener("pointerdown", function (ev) { ev.stopPropagation(); onMiss(); }); } realEl.addEventListener("pointerdown", function (ev) { ev.stopPropagation(); onHit(myToken); }); if (tier >= 4 && Math.random() < 0.5) { const delay = duration * (0.3 + Math.random() * 0.3); moveTimer = setTimeout(function () { if (spawnToken !== myToken || state !== "playing") return; const newPos = randomPosition(size); realEl.style.left = newPos.x + "px"; realEl.style.top = newPos.y + "px"; }, delay); } applyTierVisuals(tier); targetTimer = setTimeout(function () { if (spawnToken !== myToken) return; onMiss(); }, duration); }
   function onHit(token) { if (state !== "playing" || token !== spawnToken) return; score += 1; scoreVal.textContent = pad(score); playTap(); if (score % 10 === 0) playMilestone(); maybeGlitchScreen(tierOf(score)); maybeShowMessage(); spawnRound(); }
   function onMiss() { if (state !== "playing") return; endGame(); }
   playfield.addEventListener("pointerdown", function () { if (state === "playing") onMiss(); });
