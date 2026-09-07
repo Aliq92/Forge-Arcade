@@ -429,38 +429,67 @@ function activateCube(c, camZ){
    EXPLOSIONS
    ============================================================ */
 const explosions = [];
+const shardTransform = new THREE.Object3D();
+const shipBefore = new THREE.Vector3();
+const shipAfter = new THREE.Vector3();
+const shipTravel = new THREE.Vector3();
+const impactOffset = new THREE.Vector3();
+function shipHitsCube(pos){
+  shipTravel.subVectors(shipAfter, shipBefore);
+  impactOffset.subVectors(pos, shipBefore);
+  const t = clamp(impactOffset.dot(shipTravel) / Math.max(shipTravel.lengthSq(), 0.000001), 0, 1);
+  impactOffset.addScaledVector(shipTravel, -t);
+  return impactOffset.lengthSq() <= CUBE_HIT_R*CUBE_HIT_R;
+}
 function spawnExplosion(pos, color){
-  const n = IS_SMALL ? 22 : 36;
-  const positions = new Float32Array(n*3);
+  const n = IS_SMALL ? 40 : 64;
+  const positions = [];
   const velocities = [];
+  const rotations = [];
+  const palette = [color, 0x5fd8ff, 0xff526f, 0xffb35c, 0x9dff8f, 0xb782ff, 0xff66d9];
+  const geo = new THREE.BoxGeometry(1,1,1);
+  const mat = new THREE.MeshBasicMaterial({ transparent:true, opacity:1, depthWrite:false, fog:false });
+  const pts = new THREE.InstancedMesh(geo, mat, n);
+  pts.frustumCulled = false;
   for(let i=0;i<n;i++){
-    positions[i*3+0]=pos.x; positions[i*3+1]=pos.y; positions[i*3+2]=pos.z;
-    const dir = new THREE.Vector3((Math.random()-0.5),(Math.random()-0.5),(Math.random()-0.5)*0.6+0.3).normalize();
-    const spd = 3+Math.random()*7;
+    positions.push(new THREE.Vector3((Math.random()-0.5)*0.9, (Math.random()-0.5)*0.9, (Math.random()-0.5)*0.9));
+    const dir = new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, (Math.random()-0.5)*0.4).normalize();
+    const spd = 2+Math.random()*5;
     velocities.push(dir.multiplyScalar(spd));
+    rotations.push(new THREE.Vector3(Math.random()*6, Math.random()*6, Math.random()*6));
+    shardTransform.position.copy(positions[i]);
+    shardTransform.rotation.set(rotations[i].x, rotations[i].y, rotations[i].z);
+    shardTransform.scale.setScalar(i%4===0 ? 0.22 : 0.09);
+    shardTransform.updateMatrix();
+    pts.setMatrixAt(i, shardTransform.matrix);
+    pts.setColorAt(i, new THREE.Color(palette[i%palette.length]));
   }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(positions,3));
-  const mat = new THREE.PointsMaterial({ color:color, size:0.22, transparent:true, opacity:1, sizeAttenuation:true, depthWrite:false });
-  const pts = new THREE.Points(geo, mat);
+  pts.position.copy(pos);
   scene.add(pts);
-  explosions.push({ pts, geo, mat, velocities, life:1.0 });
+  explosions.push({ pts, geo, mat, positions, velocities, rotations, life:1.0 });
 }
 function updateExplosions(dt){
   for(let i=explosions.length-1;i>=0;i--){
     const e = explosions[i];
     e.life -= dt*0.9;
-    const arr = e.geo.attributes.position.array;
+    // Carry debris with the flight so the smash remains ahead of the camera.
+    e.pts.position.z -= (state==='playing' ? curSpeed : 3)*dt;
     for(let j=0;j<e.velocities.length;j++){
-      arr[j*3+0]+=e.velocities[j].x*dt;
-      arr[j*3+1]+=e.velocities[j].y*dt;
-      arr[j*3+2]+=e.velocities[j].z*dt;
-      e.velocities[j].multiplyScalar(0.98);
+      e.positions[j].addScaledVector(e.velocities[j], dt);
+      e.velocities[j].multiplyScalar(Math.exp(-2*dt));
+      const r = e.rotations[j];
+      r.x += dt*4; r.y += dt*3;
+      shardTransform.position.copy(e.positions[j]);
+      shardTransform.rotation.set(r.x, r.y, r.z);
+      shardTransform.scale.setScalar((j%4===0 ? 0.22 : 0.09)*Math.max(0, e.life));
+      shardTransform.updateMatrix();
+      e.pts.setMatrixAt(j, shardTransform.matrix);
     }
-    e.geo.attributes.position.needsUpdate = true;
+    e.pts.instanceMatrix.needsUpdate = true;
     e.mat.opacity = Math.max(0, e.life);
     if(e.life<=0){
       scene.remove(e.pts);
+      e.pts.dispose();
       e.geo.dispose(); e.mat.dispose();
       explosions.splice(i,1);
     }
@@ -566,7 +595,7 @@ function resetWorld(){
   elapsed = 0; gatesPassed = 0; perfectGates = 0; cubesDestroyed = 0; combo = 1;
   gates.forEach((g,i)=>{ placeGate(g, -FAR_GATE - i*150); });
   cubes.forEach(c=>{ c.state='idle'; c.timer = 2+Math.random()*4; c.mesh.visible=false; });
-  for(let i=explosions.length-1;i>=0;i--){ scene.remove(explosions[i].pts); explosions[i].geo.dispose(); explosions[i].mat.dispose(); explosions.splice(i,1); }
+  for(let i=explosions.length-1;i>=0;i--){ scene.remove(explosions[i].pts); explosions[i].pts.dispose(); explosions[i].geo.dispose(); explosions[i].mat.dispose(); explosions.splice(i,1); }
 }
 
 function startGame(){
@@ -646,6 +675,7 @@ function animate(){
   const dt = Math.min(clock.getDelta(), 0.06);
 
   if(state === 'playing'){
+    ship.getWorldPosition(shipBefore);
     elapsed += dt;
     updateSector(elapsed);
 
@@ -738,6 +768,7 @@ function animate(){
     });
 
     // cubes
+    ship.getWorldPosition(shipAfter);
     cubes.forEach(c=>{
       if(c.state === 'idle'){
         c.timer -= dt;
@@ -745,18 +776,14 @@ function animate(){
       } else if(c.state === 'active'){
         c.mesh.rotation.x += c.rx*dt;
         c.mesh.rotation.y += c.ry*dt;
-        if(!c.checked && camera.position.z <= c.mesh.position.z){
+        if(!c.checked && shipHitsCube(c.mesh.position)){
           c.checked = true;
-          const dx = camera.position.x - c.mesh.position.x;
-          const dy = camera.position.y - c.mesh.position.y;
-          const dist = Math.sqrt(dx*dx+dy*dy);
-          if(dist <= CUBE_HIT_R){
-            cubesDestroyed++; combo++;
-            spawnExplosion(c.mesh.position, c.mesh.userData.color);
-            c.mesh.visible = false;
-            c.state = 'idle';
-            c.timer = 3 + Math.random()*5;
-          }
+          cubesDestroyed++; combo++;
+          spawnExplosion(c.mesh.position, c.mesh.userData.color);
+          showFlash('SMASH', true);
+          c.mesh.visible = false;
+          c.state = 'idle';
+          c.timer = 3 + Math.random()*5;
         }
         if(c.mesh.position.z > camera.position.z + BEHIND_BUF){
           c.mesh.visible = false;
