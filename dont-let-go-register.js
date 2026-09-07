@@ -24,17 +24,23 @@ render('All');
   style.textContent = `
     .hero-mark{position:relative}
     #memory-dream-trigger{
-      position:absolute; right:7%; bottom:9%; z-index:6;
-      width:15px; height:15px; min-width:0; min-height:0; padding:0;
+      position:absolute; right:1%; bottom:3%; z-index:8;
+      width:48px; height:48px; min-width:0; min-height:0; padding:0;
       border:0; border-radius:50%; cursor:pointer; appearance:none;
-      background:radial-gradient(circle at 36% 32%,rgba(255,236,191,.82) 0 12%,rgba(226,112,58,.48) 16% 38%,rgba(226,112,58,.08) 58%,transparent 72%);
-      box-shadow:0 0 9px rgba(226,112,58,.18);
-      opacity:.34; transform:scale(.86); transition:opacity .22s ease,transform .22s ease,filter .22s ease;
+      background:transparent; opacity:1;
       -webkit-tap-highlight-color:transparent;
+      touch-action:manipulation;
     }
-    #memory-dream-trigger:hover{opacity:.52;transform:scale(.94)}
+    #memory-dream-trigger::after{
+      content:''; position:absolute; left:50%; top:50%; width:15px; height:15px;
+      transform:translate(-50%,-50%) scale(.86); border-radius:50%;
+      background:radial-gradient(circle at 36% 32%,rgba(255,236,191,.9) 0 12%,rgba(226,112,58,.54) 16% 38%,rgba(226,112,58,.09) 58%,transparent 72%);
+      box-shadow:0 0 10px rgba(226,112,58,.2); opacity:.42;
+      transition:opacity .22s ease,transform .22s ease,filter .22s ease;
+    }
+    #memory-dream-trigger:hover::after{opacity:.62;transform:translate(-50%,-50%) scale(.96)}
     #memory-dream-trigger:focus{outline:none}
-    #memory-dream-trigger.memory-pulse{animation:memoryEmberPulse .34s ease}
+    #memory-dream-trigger.memory-pulse::after{animation:memoryEmberPulse .34s ease}
     #memory-dream-transition{
       position:fixed; inset:0; z-index:9999; pointer-events:none; opacity:0;
       background:#030506; transition:opacity .58s ease;
@@ -46,9 +52,10 @@ render('All');
     }
     #memory-dream-transition.active{opacity:1}
     #memory-dream-transition.glitch::before{animation:memoryGlitch .42s steps(2,end)}
-    @keyframes memoryEmberPulse{0%,100%{filter:none}45%{filter:brightness(1.8);transform:scale(1.12)}}
+    @keyframes memoryEmberPulse{0%,100%{filter:none;transform:translate(-50%,-50%) scale(.86)}45%{filter:brightness(2);transform:translate(-50%,-50%) scale(1.16)}}
     @keyframes memoryGlitch{0%{opacity:0;transform:translateX(0)}25%{opacity:.8;transform:translateX(7px)}50%{opacity:.2;transform:translateX(-8px)}75%{opacity:.7;transform:translateX(3px)}100%{opacity:0;transform:translateX(0)}}
-    @media (prefers-reduced-motion:reduce){#memory-dream-trigger.memory-pulse{animation:none}#memory-dream-transition.glitch::before{animation:none}}
+    @media (max-width:700px){#memory-dream-trigger{right:-2%;bottom:0}}
+    @media (prefers-reduced-motion:reduce){#memory-dream-trigger.memory-pulse::after{animation:none}#memory-dream-transition.glitch::before{animation:none}}
   `;
   document.head.appendChild(style);
 
@@ -57,7 +64,6 @@ render('All');
   ember.type = 'button';
   ember.tabIndex = -1;
   ember.setAttribute('aria-label', '');
-  ember.setAttribute('aria-hidden', 'true');
   ember.title = '';
   host.appendChild(ember);
 
@@ -87,17 +93,16 @@ render('All');
     }, 610);
   }
 
-  ember.addEventListener('click', (event) => {
+  function interact(event) {
     event.preventDefault();
     event.stopPropagation();
     if (locked) return;
     interactions += 1;
     pulse();
     clearTimeout(resetTimer);
-    if (interactions >= 3) {
-      openHallway();
-    } else {
-      resetTimer = window.setTimeout(() => { interactions = 0; }, 5000);
-    }
-  });
+    if (interactions >= 3) openHallway();
+    else resetTimer = window.setTimeout(() => { interactions = 0; }, 6000);
+  }
+
+  ember.addEventListener('click', interact);
 })();
