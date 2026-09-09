@@ -1,0 +1,279 @@
+:root{
+  --ink:#e8f3f7;
+  --dim: rgba(232,243,247,0.6);
+  --panel-bg: rgba(6,14,22,0.55);
+  --panel-border: rgba(160,220,240,0.16);
+  --accent: #7fd8e6;
+  --accent-soft: rgba(127,216,230,0.35);
+  --danger: #e69a9a;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+*{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body{
+  margin:0; padding:0; width:100%; height:100%;
+  background:#02060a;
+  overflow:hidden;
+  touch-action:none;
+  -webkit-user-select:none; user-select:none;
+}
+
+#reef-canvas{
+  position:fixed; inset:0;
+  width:100%; height:100%;
+  display:block;
+  touch-action:none;
+  cursor: crosshair;
+}
+
+#ui-layer{
+  position:fixed; inset:0;
+  pointer-events:none;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  z-index:5;
+}
+
+#ui-layer.zen #topbar,
+#ui-layer.zen #bottombar{
+  opacity:0;
+  transform: translateY(-6px);
+  pointer-events:none;
+}
+#ui-layer.zen #btn-restore{
+  opacity:1;
+  pointer-events:auto;
+}
+
+/* ---------- Top bar ---------- */
+#topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  padding: max(14px, env(safe-area-inset-top)) 16px 0 16px;
+  transition: opacity .6s ease, transform .6s ease;
+}
+#title-block{ pointer-events:none; }
+#title{
+  margin:0;
+  font-size: 15px;
+  letter-spacing: 0.22em;
+  font-weight: 600;
+  color: var(--ink);
+  text-shadow: 0 0 12px rgba(127,216,230,0.35);
+}
+#subtitle{
+  margin: 3px 0 0 0;
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  color: var(--dim);
+  font-weight: 400;
+}
+#mood-label{
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  color: var(--dim);
+  opacity: .8;
+  text-align:right;
+  padding-top:2px;
+  white-space:nowrap;
+}
+
+/* ---------- Hint / event banner ---------- */
+.hint{
+  position:absolute;
+  top:44%;
+  left:50%;
+  transform: translate(-50%,-50%);
+  color: var(--dim);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  opacity: 0.85;
+  transition: opacity 1.4s ease;
+  text-align:center;
+  pointer-events:none;
+}
+.hint.gone{ opacity:0; }
+
+#event-banner{
+  position:absolute;
+  top: 18%;
+  left:50%;
+  transform: translate(-50%,0);
+  color: var(--accent);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  opacity:0;
+  text-shadow: 0 0 14px rgba(127,216,230,0.6);
+  transition: opacity 1.2s ease, transform 1.2s ease;
+  pointer-events:none;
+  text-align:center;
+  white-space:nowrap;
+}
+#event-banner.show{ opacity:1; transform: translate(-50%,6px); }
+
+/* ---------- Inspect panel ---------- */
+#inspect-panel{
+  position:absolute;
+  top:14%;
+  right:14px;
+  max-width: 190px;
+  background: var(--panel-bg);
+  border:1px solid var(--panel-border);
+  border-radius:10px;
+  padding:10px 12px;
+  backdrop-filter: blur(6px);
+  transition: opacity .4s ease;
+  pointer-events:none;
+}
+#inspect-panel.hidden{ opacity:0; }
+#inspect-name{
+  font-size:11px; letter-spacing:.12em; color:var(--ink); font-weight:600;
+}
+#inspect-detail{
+  font-size:10px; color:var(--dim); margin-top:4px; line-height:1.5;
+}
+
+/* ---------- Bottom bar ---------- */
+#bottombar{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding: 10px 12px max(12px, env(safe-area-inset-bottom)) 12px;
+  transition: opacity .6s ease, transform .6s ease;
+  pointer-events:auto;
+}
+
+#species-row{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding: 4px 2px;
+  -webkit-overflow-scrolling: touch;
+  justify-content:center;
+}
+#species-row::-webkit-scrollbar{ display:none; }
+
+.species-btn{
+  flex: 0 0 auto;
+  width:52px; height:52px;
+  border-radius:14px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  display:flex; align-items:center; justify-content:center;
+  padding:0;
+  position:relative;
+  color: var(--dim);
+}
+.species-btn svg{ width:26px; height:26px; }
+.species-btn.selected{
+  border-color: var(--accent);
+  box-shadow: 0 0 14px var(--accent-soft);
+  background: rgba(127,216,230,0.12);
+  color: var(--accent);
+}
+.species-btn .locked-dot{
+  position:absolute; bottom:5px; right:5px;
+  width:5px; height:5px; border-radius:50%;
+  background: var(--accent); opacity:.7;
+}
+
+#action-row{
+  display:flex;
+  gap:8px;
+  justify-content:center;
+}
+.action-btn{
+  flex:1;
+  max-width:120px;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  background: var(--panel-bg);
+  border:1px solid var(--panel-border);
+  border-radius:12px;
+  padding:8px 4px;
+  color: var(--dim);
+  font-size:9px;
+  letter-spacing:.08em;
+}
+.action-btn svg{
+  width:18px; height:18px;
+  fill:none; stroke:currentColor; stroke-width:1.6;
+  stroke-linecap:round; stroke-linejoin:round;
+}
+.action-btn.active{
+  color: var(--ink);
+  border-color: var(--accent);
+  box-shadow: 0 0 12px var(--accent-soft);
+}
+.action-btn:disabled{ opacity:.35; }
+#btn-remove svg{ stroke: var(--danger); }
+#btn-clear svg{ stroke: var(--danger); }
+
+#mini-row{
+  display:flex;
+  gap:8px;
+  justify-content:center;
+}
+.mini-btn{
+  width:36px; height:36px;
+  border-radius:10px;
+  background: rgba(6,14,22,0.4);
+  border: 1px solid var(--panel-border);
+  display:flex; align-items:center; justify-content:center;
+  color: var(--dim);
+}
+.mini-btn svg{
+  width:16px; height:16px;
+  fill:none; stroke:currentColor; stroke-width:1.6;
+  stroke-linecap:round; stroke-linejoin:round;
+}
+.mini-btn[aria-pressed="true"]{
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 10px var(--accent-soft);
+}
+
+/* generic buttons */
+button{
+  -webkit-appearance:none;
+  appearance:none;
+  background:none;
+  border:none;
+  cursor:pointer;
+  font-family:inherit;
+}
+
+#btn-restore{
+  position:absolute;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left:50%;
+  transform: translateX(-50%);
+  width:38px; height:38px;
+  border-radius:50%;
+  background: rgba(6,14,22,0.5);
+  border:1px solid var(--panel-border);
+  color: var(--accent);
+  opacity:0;
+  transition: opacity .5s ease;
+}
+#btn-restore svg{
+  width:16px; height:16px;
+  fill:none; stroke:currentColor; stroke-width:1.6;
+}
+.hidden{ display:none !important; }
+
+@media (min-width: 720px){
+  #title{ font-size:18px; }
+  #subtitle{ font-size:10.5px; }
+  #bottombar{ align-items:center; }
+  #species-row, #action-row{ justify-content:center; }
+  .action-btn{ font-size:10px; }
+}
+
+@media (orientation: landscape) and (max-height: 480px){
+  #bottombar{ padding-bottom:6px; gap:5px; }
+  .species-btn{ width:42px; height:42px; }
+  .action-btn{ padding:5px 3px; }
+}
