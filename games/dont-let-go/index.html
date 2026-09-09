@@ -25,7 +25,7 @@
     user-select:none;
   }
   #stage{position:fixed; inset:0;}
-  canvas#gl{position:absolute; inset:0; display:block; touch-action:none;}
+  canvas#gl{position:absolute; inset:0; display:block; touch-action:none; transition:filter .9s ease;}
 
   .num{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
 
@@ -165,12 +165,12 @@ const CORRIDOR_Y   = 4.6;
 const BEHIND_BUF   = 8;
 
 const SECTORS = [
-  { name:'THE VOID',     t:0,   speed:16, fog:0x05070c, star:0x9fd2ff, amb:0x1a2436, key:0x335577 },
-  { name:'LOW ORBIT',    t:18,  speed:22, fog:0x061226, star:0xa9e2ff, amb:0x1c2c46, key:0x3d6f9c },
-  { name:'NEBULA DRIFT', t:42,  speed:29, fog:0x180d30, star:0xe0c2ff, amb:0x2a1c40, key:0x7a4fbf },
-  { name:'SOLAR EDGE',   t:70,  speed:37, fog:0x2c1206, star:0xffd8a8, amb:0x3a2010, key:0xd97a3a },
-  { name:'SINGULARITY',  t:104, speed:47, fog:0x020308, star:0xffffff, amb:0x141420, key:0x8fa7ff },
-  { name:'HYPERSPACE',   t:146, speed:60, fog:0x000000, star:0xffffff, amb:0x0a0a10, key:0xbfe6ff }
+  { name:'THE VOID',     t:0,   speed:16, fog:0x05070c, star:0x9fd2ff, amb:0x1a2436, key:0x335577, fogD:0.0090, neb:0x42658a, nebOp:0.08, planetOp:0.12, streak:0x6f8daa, streakOp:0.16, starOp:0.68, drift:0.03, warp:0.62, nose:0.75, filter:'saturate(.78) contrast(1.08) brightness(.90)' },
+  { name:'LOW ORBIT',    t:18,  speed:22, fog:0x061226, star:0xa9e2ff, amb:0x1c2c46, key:0x3d6f9c, fogD:0.0068, neb:0x4d9cff, nebOp:0.20, planetOp:0.60, streak:0x9edcff, streakOp:0.30, starOp:0.90, drift:0.07, warp:0.80, nose:0.95, filter:'saturate(1.08) contrast(1.05) brightness(1.00)' },
+  { name:'NEBULA DRIFT', t:42,  speed:29, fog:0x180d30, star:0xe0c2ff, amb:0x2a1c40, key:0x7a4fbf, fogD:0.0058, neb:0xbd73ff, nebOp:0.68, planetOp:0.32, streak:0xe2c2ff, streakOp:0.32, starOp:0.92, drift:0.22, warp:0.88, nose:1.05, filter:'saturate(1.28) contrast(1.03) brightness(1.02)' },
+  { name:'SOLAR EDGE',   t:70,  speed:37, fog:0x2c1206, star:0xffd8a8, amb:0x3a2010, key:0xd97a3a, fogD:0.0062, neb:0xff7a36, nebOp:0.38, planetOp:0.72, streak:0xffc37d, streakOp:0.40, starOp:0.94, drift:0.12, warp:0.98, nose:1.20, filter:'saturate(1.16) contrast(1.08) brightness(1.04) sepia(.08)' },
+  { name:'SINGULARITY',  t:104, speed:47, fog:0x020308, star:0xffffff, amb:0x141420, key:0x8fa7ff, fogD:0.0120, neb:0x4b4f8f, nebOp:0.07, planetOp:0.06, streak:0xaebfff, streakOp:0.58, starOp:1.00, drift:0.04, warp:1.16, nose:1.35, filter:'saturate(.72) contrast(1.24) brightness(.80)' },
+  { name:'HYPERSPACE',   t:146, speed:60, fog:0x000000, star:0xffffff, amb:0x0a0a10, key:0xbfe6ff, fogD:0.0035, neb:0xaee8ff, nebOp:0.02, planetOp:0.00, streak:0xe8f7ff, streakOp:0.92, starOp:1.00, drift:0.00, warp:1.72, nose:1.55, filter:'saturate(.58) contrast(1.34) brightness(1.08)' }
 ];
 
 const RANKS = [
@@ -193,7 +193,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 const scene = new THREE.Scene();
 const bgColor = new THREE.Color(SECTORS[0].fog);
 scene.background = bgColor;
-scene.fog = new THREE.FogExp2(SECTORS[0].fog, 0.0075);
+scene.fog = new THREE.FogExp2(SECTORS[0].fog, SECTORS[0].fogD);
 
 const camera = new THREE.PerspectiveCamera(72, window.innerWidth/window.innerHeight, 0.05, 620);
 camera.position.set(0,0,0);
@@ -266,7 +266,7 @@ function makeStarField(count, spread, size, farDist){
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(positions,3));
-  const mat = new THREE.PointsMaterial({ color:SECTORS[0].star, size:size, sizeAttenuation:true, transparent:true, opacity:0.9, depthWrite:false });
+  const mat = new THREE.PointsMaterial({ color:SECTORS[0].star, size:size, sizeAttenuation:true, transparent:true, opacity:SECTORS[0].starOp, depthWrite:false });
   const pts = new THREE.Points(geo, mat);
   scene.add(pts);
   return { pts, geo, mat, count, spread, farDist };
@@ -291,7 +291,7 @@ function recycleField(field, camZ){
 
 /* ---- warp streaks (instanced thin boxes aligned to Z) ---- */
 const streakGeo = new THREE.BoxGeometry(0.045, 0.045, 1);
-const streakMat = new THREE.MeshBasicMaterial({ color:0xcfe9ff, transparent:true, opacity:0.55 });
+const streakMat = new THREE.MeshBasicMaterial({ color:SECTORS[0].streak, transparent:true, opacity:SECTORS[0].streakOp });
 const streaks = new THREE.InstancedMesh(streakGeo, streakMat, STREAK_COUNT);
 scene.add(streaks);
 const streakData = [];
@@ -326,14 +326,16 @@ function makeCloudTexture(hex){
   ctx.fillRect(0,0,128,128);
   return new THREE.CanvasTexture(c);
 }
-const nebulaTex = makeCloudTexture(0x8fbfff);
+const nebulaTex = makeCloudTexture(0xffffff);
 const NEB_COUNT = IS_SMALL ? 4 : 7;
 const nebulae = [];
 for(let i=0;i<NEB_COUNT;i++){
-  const mat = new THREE.SpriteMaterial({ map:nebulaTex, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, opacity:0.5 });
+  const mat = new THREE.SpriteMaterial({ map:nebulaTex, color:SECTORS[0].neb, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, opacity:SECTORS[0].nebOp });
   const spr = new THREE.Sprite(mat);
   const scale = 40 + Math.random()*70;
   spr.scale.set(scale, scale, 1);
+  spr.userData.baseScale = scale;
+  spr.userData.phase = Math.random()*Math.PI*2;
   spr.position.set((Math.random()-0.5)*90, (Math.random()-0.5)*50, -200 - Math.random()*500);
   scene.add(spr);
   nebulae.push(spr);
@@ -343,7 +345,7 @@ const PLANET_COUNT = 3;
 const planets = [];
 for(let i=0;i<PLANET_COUNT;i++){
   const geo = new THREE.IcosahedronGeometry(14 + Math.random()*10, 1);
-  const mat = new THREE.MeshBasicMaterial({ color:new THREE.Color().setHSL(Math.random(), 0.35, 0.4), transparent:true, opacity:0.65 });
+  const mat = new THREE.MeshBasicMaterial({ color:new THREE.Color().setHSL(Math.random(), 0.35, 0.4), transparent:true, opacity:SECTORS[0].planetOp });
   const p = new THREE.Mesh(geo, mat);
   p.position.set((Math.random()-0.5)*160, (Math.random()-0.5)*70, -400 - i*260);
   scene.add(p);
@@ -593,6 +595,7 @@ function resetWorld(){
   camera.position.set(0,0,0);
   steerTargetX = 0; steerTargetY = 0; steerVelX = 0; steerVelY = 0;
   elapsed = 0; gatesPassed = 0; perfectGates = 0; cubesDestroyed = 0; combo = 1;
+  activeSectorIndex = -1;
   gates.forEach((g,i)=>{ placeGate(g, -FAR_GATE - i*150); });
   cubes.forEach(c=>{ c.state='idle'; c.timer = 2+Math.random()*4; c.mesh.visible=false; });
   for(let i=explosions.length-1;i>=0;i--){ scene.remove(explosions[i].pts); explosions[i].pts.dispose(); explosions[i].geo.dispose(); explosions[i].mat.dispose(); explosions.splice(i,1); }
@@ -639,8 +642,19 @@ const curFog = new THREE.Color(SECTORS[0].fog);
 const curStar = new THREE.Color(SECTORS[0].star);
 const curAmb = new THREE.Color(SECTORS[0].amb);
 const curKey = new THREE.Color(SECTORS[0].key);
+const curNeb = new THREE.Color(SECTORS[0].neb);
+const curStreak = new THREE.Color(SECTORS[0].streak);
 let curSpeed = SECTORS[0].speed;
 let curSectorName = SECTORS[0].name;
+let curFogDensity = SECTORS[0].fogD;
+let curNebOpacity = SECTORS[0].nebOp;
+let curPlanetOpacity = SECTORS[0].planetOp;
+let curStreakOpacity = SECTORS[0].streakOp;
+let curStarOpacity = SECTORS[0].starOp;
+let curDrift = SECTORS[0].drift;
+let curWarp = SECTORS[0].warp;
+let curNose = SECTORS[0].nose;
+let activeSectorIndex = -1;
 
 function updateSector(t){
   let i = 0;
@@ -650,19 +664,43 @@ function updateSector(t){
   const span = Math.max(1, next.t - cur.t);
   const frac = next===cur ? 0 : clamp((t - cur.t)/span, 0, 1);
 
+  if(i !== activeSectorIndex){
+    if(state === 'playing' && activeSectorIndex >= 0) showFlash('SECTOR // ' + cur.name);
+    activeSectorIndex = i;
+    canvas.style.filter = cur.filter;
+  }
+
   curFog.copy(new THREE.Color(cur.fog)).lerp(new THREE.Color(next.fog), frac);
   curStar.copy(new THREE.Color(cur.star)).lerp(new THREE.Color(next.star), frac);
   curAmb.copy(new THREE.Color(cur.amb)).lerp(new THREE.Color(next.amb), frac);
   curKey.copy(new THREE.Color(cur.key)).lerp(new THREE.Color(next.key), frac);
+  curNeb.copy(new THREE.Color(cur.neb)).lerp(new THREE.Color(next.neb), frac);
+  curStreak.copy(new THREE.Color(cur.streak)).lerp(new THREE.Color(next.streak), frac);
   curSpeed = cur.speed + (next.speed-cur.speed)*frac;
+  curFogDensity = cur.fogD + (next.fogD-cur.fogD)*frac;
+  curNebOpacity = cur.nebOp + (next.nebOp-cur.nebOp)*frac;
+  curPlanetOpacity = cur.planetOp + (next.planetOp-cur.planetOp)*frac;
+  curStreakOpacity = cur.streakOp + (next.streakOp-cur.streakOp)*frac;
+  curStarOpacity = cur.starOp + (next.starOp-cur.starOp)*frac;
+  curDrift = cur.drift + (next.drift-cur.drift)*frac;
+  curWarp = cur.warp + (next.warp-cur.warp)*frac;
+  curNose = cur.nose + (next.nose-cur.nose)*frac;
   curSectorName = cur.name;
 
   scene.background.copy(curFog);
   scene.fog.color.copy(curFog);
+  scene.fog.density = curFogDensity;
   ambLight.color.copy(curAmb);
   keyLight.color.copy(curKey);
+  noseLight.intensity = curNose;
   starsNear.mat.color.copy(curStar);
   starsFar.mat.color.copy(curStar);
+  starsNear.mat.opacity = curStarOpacity;
+  starsFar.mat.opacity = curStarOpacity*0.82;
+  streakMat.color.copy(curStreak);
+  streakMat.opacity = curStreakOpacity;
+  nebulae.forEach(n=>{ n.material.color.copy(curNeb); n.material.opacity = curNebOpacity; });
+  planets.forEach(p=>{ p.material.opacity = curPlanetOpacity; });
 }
 
 /* ============================================================
@@ -715,7 +753,7 @@ function animate(){
     recycleField(starsFar, camera.position.z);
     for(let i=0;i<STREAK_COUNT;i++){
       const d = streakData[i];
-      d.len = 1 + curSpeed*0.55;
+      d.len = (1 + curSpeed*0.55) * curWarp;
       if(d.z > camera.position.z + BEHIND_BUF){
         const r = 6+Math.random()*26, a = Math.random()*Math.PI*2;
         d.x = Math.cos(a)*r; d.y = Math.sin(a)*r;
@@ -725,15 +763,23 @@ function animate(){
     }
     streaks.instanceMatrix.needsUpdate = true;
 
-    // nebulae recycle
-    nebulae.forEach(n=>{
+    // nebulae recycle + sector-specific environmental motion
+    nebulae.forEach((n,idx)=>{
+      const phase = n.userData.phase + elapsed*(0.10 + curDrift*0.18);
+      const breathe = 1 + Math.sin(phase)*curDrift*0.035;
+      const scale = n.userData.baseScale*breathe;
+      n.scale.set(scale, scale, 1);
+      n.position.x += Math.sin(phase*0.7 + idx)*curDrift*dt*1.2;
+      n.position.y += Math.cos(phase*0.6 + idx)*curDrift*dt*0.7;
+      n.material.rotation += curDrift*dt*0.025*(idx%2 ? 1 : -1);
       if(n.position.z > camera.position.z + 40){
         n.position.set((Math.random()-0.5)*90, (Math.random()-0.5)*50, camera.position.z - (400+Math.random()*400));
       }
     });
     // planets recycle
-    planets.forEach(p=>{
-      p.rotation.y += dt*0.02;
+    planets.forEach((p,idx)=>{
+      p.rotation.y += dt*(0.02 + curDrift*0.035);
+      p.rotation.x += dt*curDrift*0.006*(idx%2 ? 1 : -1);
       if(p.position.z > camera.position.z + 60){
         p.position.set((Math.random()-0.5)*160, (Math.random()-0.5)*70, camera.position.z - (500+Math.random()*400));
       }
