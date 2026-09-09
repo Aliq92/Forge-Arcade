@@ -8,75 +8,28 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
 <canvas id="reef-canvas"></canvas>
-
 <div id="ui-layer">
-
-  <div id="topbar">
-    <div id="title-block">
-      <h1 id="title">IMPOSSIBLE REEF</h1>
-      <p id="subtitle">GROW WHAT SHOULD NOT EXIST</p>
-    </div>
-    <div id="mood-label" aria-hidden="true"></div>
-  </div>
-
-  <div id="hint" class="hint">PLANT A SPORE</div>
-  <div id="event-banner" aria-hidden="true"></div>
-
-  <div id="inspect-panel" class="hidden">
-    <div id="inspect-name">—</div>
-    <div id="inspect-detail">—</div>
-  </div>
-
+  <div id="topbar"><div id="title-block"><h1 id="title">IMPOSSIBLE REEF</h1><p id="subtitle">GROW WHAT SHOULD NOT EXIST</p></div><div id="mood-label" aria-hidden="true"></div></div>
+  <div id="hint" class="hint">PLANT A SPORE</div><div id="event-banner" aria-hidden="true"></div>
+  <div id="inspect-panel" class="hidden"><div id="inspect-name">—</div><div id="inspect-detail">—</div></div>
   <div id="bottombar">
-
-    <div id="species-row" role="listbox" aria-label="Reef species">
-      <!-- species buttons injected by JS -->
-    </div>
-
+    <div id="species-row" role="listbox" aria-label="Reef species"></div>
     <div id="action-row">
-      <button class="action-btn" id="btn-nurture" title="Nurture selected organism">
-        <svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9.2C.4 8 2 4 6 4c2.4 0 4 1.4 6 4 2-2.6 3.6-4 6-4 4 0 5.6 4 4 7.8-2.5 4.6-10 9.2-10 9.2z"/></svg>
-        <span>Nurture</span>
-      </button>
-      <button class="action-btn" id="btn-remove" title="Remove selected organism">
-        <svg viewBox="0 0 24 24"><path d="M6 7h12M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0l1 13a1 1 0 001 1h6a1 1 0 001-1l1-13"/></svg>
-        <span>Remove</span>
-      </button>
-      <button class="action-btn" id="btn-clear" title="Clear the whole reef">
-        <svg viewBox="0 0 24 24"><path d="M4 4l16 16M20 4L4 20"/></svg>
-        <span>Clear</span>
-      </button>
-      <button class="action-btn" id="btn-hideui" title="Hide interface / Zen mode">
-        <svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
-        <span>Zen</span>
-      </button>
+      <button class="action-btn" id="btn-nurture" title="Nurture selected organism"><span>Nurture</span></button>
+      <button class="action-btn" id="btn-remove" title="Remove selected organism"><span>Remove</span></button>
+      <button class="action-btn" id="btn-clear" title="Clear the whole reef"><span>Clear</span></button>
+      <button class="action-btn" id="btn-hideui" title="Hide interface / Zen mode"><span>Zen</span></button>
     </div>
-
     <div id="mini-row">
-      <button class="mini-btn" id="btn-sound" title="Toggle sound" aria-pressed="false">
-        <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 5V4L8 9H4z"/></svg>
-      </button>
-      <button class="mini-btn" id="btn-motion" title="Toggle reduced motion" aria-pressed="false">
-        <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-      </button>
-      <button class="mini-btn" id="btn-autogrow" title="Toggle auto grow" aria-pressed="false">
-        <svg viewBox="0 0 24 24"><path d="M12 22c5-3 8-7 8-12a8 8 0 10-16 0c0 5 3 9 8 12z"/></svg>
-      </button>
-      <button class="mini-btn" id="btn-save-image" title="Save reef as image">
-        <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 19h16"/></svg>
-      </button>
+      <button class="mini-btn" id="btn-sound" title="Toggle sound" aria-pressed="false">♪</button>
+      <button class="mini-btn" id="btn-motion" title="Toggle reduced motion" aria-pressed="false">≈</button>
+      <button class="mini-btn" id="btn-autogrow" title="Toggle auto grow" aria-pressed="false">+</button>
+      <button class="mini-btn" id="btn-save-image" title="Save reef as image">↓</button>
     </div>
-
   </div>
-
-  <button id="btn-restore" class="hidden" title="Restore controls">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>
-  </button>
-
+  <button id="btn-restore" class="hidden" title="Restore controls">○</button>
 </div>
-
-<script src="script.js"></script>
+<script src="loader.js"></script>
 </body>
 </html>
