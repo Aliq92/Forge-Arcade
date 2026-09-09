@@ -1,1 +1,0 @@
-Promise.all(['script.part00','script.part01','script.part02'].map(path=>fetch(path).then(r=>{if(!r.ok)throw new Error(`Failed to load ${path}`);return r.text()}))).then(parts=>{(0,eval)(parts.join(''))}).catch(err=>{console.error('Impossible Reef failed to load',err);const hint=document.getElementById('hint');if(hint)hint.textContent='REEF FAILED TO LOAD'});
