@@ -252,6 +252,18 @@ trail.rotation.x = -Math.PI/2;
 trail.position.set(0, -0.02, 1.35);
 ship.add(trail);
 
+const underNeonMat = new THREE.MeshBasicMaterial({ color:0x39ff88, transparent:true, opacity:0.95, blending:THREE.AdditiveBlending, depthWrite:false });
+const underNeon = new THREE.Mesh(new THREE.BoxGeometry(0.92,0.024,0.18), underNeonMat);
+underNeon.position.set(0,-0.075,0.18);
+ship.add(underNeon);
+
+const underGlowMat = new THREE.SpriteMaterial({ map:makeCloudTexture(0x39ff88), transparent:true, opacity:0.58, blending:THREE.AdditiveBlending, depthWrite:false, depthTest:false });
+const underGlow = new THREE.Sprite(underGlowMat);
+underGlow.scale.set(1.35,0.36,1);
+underGlow.position.set(0,-0.14,0.16);
+underGlow.renderOrder = 3;
+ship.add(underGlow);
+
 /* ============================================================
    STARFIELD
    ============================================================ */
