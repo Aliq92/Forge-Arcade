@@ -5,6 +5,7 @@
     GRID_W, GRID_H, PRESETS, dirToCompass, SIM_STEP, MAX_STEPS_PER_FRAME,
     generateTerrain, FireSim, SmokeSystem, Renderer, NATIVE_W, NATIVE_H,
     el, setActive, renderStats, updateWindDisplay, logEvent, clearLog, showSummary, hideSummary,
+    positionCanvasStage,
   } = WF;
 
 function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
@@ -60,7 +61,7 @@ function computeFitScale() {
 
 function applyCameraTransform() {
   const total = state.camera.fitScale * state.camera.zoom;
-  el.canvasStage.style.transform = `translate(${state.camera.panX}px, ${state.camera.panY}px) scale(${total})`;
+  positionCanvasStage(el.canvasStage, total, state.camera.panX, state.camera.panY);
 }
 
 window.addEventListener('resize', () => { computeFitScale(); applyCameraTransform(); });
