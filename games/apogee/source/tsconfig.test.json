@@ -1,0 +1,1 @@
+{"extends":"./tsconfig.json","compilerOptions":{"module":"NodeNext","moduleResolution":"NodeNext","noEmit":false,"outDir":".test","types":["node"]},"include":["src/simulation.ts","src/progression.ts","tests/*.ts"]}

@@ -2,8 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = new URL('..', import.meta.url).pathname;
+const root = fileURLToPath(new URL('..', import.meta.url));
 const appSource = readFileSync(join(root, 'app.js'), 'utf8');
 const arcadeIndex = readFileSync(join(root, 'index.html'), 'utf8');
 const gameRoot = join(root, 'games', 'echo-miner');
@@ -36,7 +37,7 @@ test('Echo Miner runtime is self-contained under games/echo-miner', () => {
 
   const gameIndex = readFileSync(join(gameRoot, 'index.html'), 'utf8');
   assert.match(gameIndex, /<script type="module" src="src\/main\.mjs"><\/script>/);
-  assert.match(gameIndex, /<link rel="stylesheet" href="styles\.css"\s*\/?>/);
+  assert.match(gameIndex, /<link rel="stylesheet" href="styles\.css(?:\?[^"\s]+)?"\s*\/?>/);
 });
 
 test('Forge Arcade cache-busts the launcher containing Echo Miner', () => {
