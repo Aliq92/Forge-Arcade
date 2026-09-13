@@ -3,11 +3,11 @@
 GAMES.push({
   id: 'apogee',
   title: 'Apogee',
-  description: 'Time stage separations, climb through the frontier, and upgrade a rocket built to go farther every run.',
+  description: 'Master stage timing, upgrade your rocket, then pilot through deep space to dodge comets and push for a higher apogee.',
   category: 'Games',
   featured: true,
-  tags: ['Stage timing', 'Touch + keyboard'],
-  palette: ['#d66b3d', '#83d392'],
+  tags: ['Stage timing', 'Deep-space piloting', 'Progression'],
+  palette: ['#62f5db', '#ffbd4a'],
 });
 
 heroStatus.textContent = `${GAMES.length} playable experiments`;
