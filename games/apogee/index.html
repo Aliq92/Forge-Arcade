@@ -1,35 +1,117 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Apogee — Forge Arcade</title>
-<meta name="theme-color" content="#090b10" />
-<style>
-:root{color-scheme:dark;--bg:#090b10;--panel:rgba(18,22,29,.92);--line:rgba(255,255,255,.12);--fg:#f2f4f7;--muted:#98a1ad;--accent:#d56a3b;--good:#7ed28d}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:Inter,system-ui,sans-serif;color:var(--fg)}canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}.ui{position:absolute;inset:0;pointer-events:none}.panel{pointer-events:auto;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.38);backdrop-filter:blur(14px)}.btn{border:0;border-radius:12px;min-height:44px;padding:0 16px;font-weight:800;background:var(--fg);color:#11141a;cursor:pointer}.btn.alt{background:#252a33;color:var(--fg);border:1px solid var(--line)}.btn:disabled{opacity:.35;cursor:not-allowed}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-variant-numeric:tabular-nums}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.22em;color:var(--muted);font-weight:800}.title{position:absolute;inset:0;display:flex;align-items:center;padding:48px;background:linear-gradient(90deg,rgba(9,11,16,.82),rgba(9,11,16,.08) 70%)}.title>div{pointer-events:auto;max-width:460px}.title h1{font-size:clamp(58px,8vw,92px);line-height:.9;letter-spacing:-.055em;margin:10px 0 0}.title p{color:var(--muted);line-height:1.6;max-width:410px}.title .btn{margin-top:22px}.hangar{position:absolute;inset:0;padding:max(18px,env(safe-area-inset-top)) 20px max(18px,env(safe-area-inset-bottom));display:flex;flex-direction:column;justify-content:space-between}.top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.top h2{margin:4px 0 0;font-size:28px}.credits{pointer-events:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 13px}.credits:before{content:'◆';color:var(--accent);margin-right:7px;font-size:9px}.shop{width:min(430px,100%);margin-left:auto;padding:12px}.row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:11px;border:1px solid var(--line);border-radius:12px;background:#10141a;margin-bottom:8px}.row strong{display:block;font-size:14px}.row small{color:var(--muted)}.shop .btn{width:100%;margin-top:3px}.back{position:absolute;left:16px;bottom:max(16px,env(safe-area-inset-bottom));pointer-events:auto;color:var(--muted);text-decoration:none;font-size:11px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:rgba(9,11,16,.6)}.hud{position:absolute;inset:0}.hudtop{display:flex;justify-content:space-between;padding:max(16px,env(safe-area-inset-top)) 16px 0}.card{background:rgba(16,20,26,.82);border:1px solid var(--line);border-radius:12px;padding:9px 11px;backdrop-filter:blur(10px)}.label{font-size:9px;letter-spacing:.17em;text-transform:uppercase;color:var(--muted)}.value{font-size:19px;margin-top:2px}.pause{pointer-events:auto;width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:rgba(16,20,26,.85);color:var(--fg);font-weight:900;cursor:pointer}.burn{position:absolute;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(360px,calc(100% - 32px));padding:10px 12px;background:rgba(16,20,26,.85);border:1px solid var(--line);border-radius:13px}.burnhead{display:flex;justify-content:space-between;color:var(--muted);font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;margin-bottom:7px}.track{height:9px;position:relative;background:#07090d;border-radius:999px;overflow:hidden}.fill{height:100%;background:#e6e9ee;width:100%}.zone{position:absolute;inset-block:0;left:4.8%;width:7.7%;background:rgba(126,210,141,.28);border-inline:1px solid var(--good)}.count{position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(72px,14vw,126px);font-weight:900}.rating{position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(42px,8vw,70px);font-weight:900;text-shadow:0 8px 25px #000}.tap{position:absolute;inset:0;pointer-events:auto;background:transparent;border:0;cursor:pointer}.modalwrap{position:absolute;inset:0;display:grid;place-items:center;padding:18px;background:rgba(4,6,9,.68);backdrop-filter:blur(5px)}.modal{width:min(420px,100%);padding:22px}.modal h2{font-size:30px;margin:6px 0}.big{font-size:48px;letter-spacing:-.04em}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:18px}.stat{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.stat>div{background:#0d1117;padding:11px;border-radius:11px}.stat small{display:block;color:var(--muted);margin-bottom:3px}@media(max-width:700px){.title{align-items:flex-end;padding:24px 18px max(28px,env(safe-area-inset-bottom));background:linear-gradient(0deg,rgba(9,11,16,.9),rgba(9,11,16,.05) 72%)}.title h1{font-size:60px}.title .btn{width:100%}.hangar{padding-inline:14px}.shop{margin-left:0}.modalwrap{align-items:end;padding-bottom:max(14px,env(safe-area-inset-bottom))}.actions{grid-template-columns:1fr}.back{top:max(72px,env(safe-area-inset-top));bottom:auto}}
-</style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#05070d" />
+<title>APOGEE // Forge Arcade</title>
+<link rel="stylesheet" href="./styles.css?v=20260914-final" />
 </head>
 <body>
-<canvas id="c"></canvas><div id="ui" class="ui"></div>
-<script>
-'use strict';
-const C=document.getElementById('c'),X=C.getContext('2d'),U=document.getElementById('ui');
-const KEY='forge-apogee-v1', COST={stage:[0,0,0,90,220,480,980,2100,4400],engine:[70,160,340,720,1500],fuel:[60,140,300,640,1350]}, PLANETS=[['Waystation',26],['Luna',78],['Ares',168],['Solis',300],['Zeus',490],['Aurora',760],['Apex',1180]];
-let S=load(),screen=S.seen?'hangar':'title',mode='hangar',alt=0,vy=0,burn=1,count=0,last=0,raf=0,rating='',ratingT=0,maxAlt=0,runCoins=0,stage=S.stages,stars=[];
-function load(){try{return Object.assign({coins:40,stages:2,engine:0,fuel:0,best:0,seen:false},JSON.parse(localStorage.getItem(KEY)||'{}'))}catch{return{coins:40,stages:2,engine:0,fuel:0,best:0,seen:false}}}function save(){localStorage.setItem(KEY,JSON.stringify(S))}function fmt(n){return n<1?(n*1000|0)+' m':n<10?n.toFixed(2)+' km':n<100?n.toFixed(1)+' km':Math.floor(n)+' km'}function credits(n){return Math.floor(n).toLocaleString()}
-function resize(){let d=Math.min(devicePixelRatio||1,2);C.width=innerWidth*d;C.height=innerHeight*d;X.setTransform(d,0,0,d,0,0)}addEventListener('resize',resize);resize();for(let i=0;i<120;i++)stars.push([Math.random(),Math.random(),Math.random()*1.6+.3]);
-function sky(){let t=Math.min(1,alt/40),r=16*(1-t)+4*t,g=25*(1-t)+7*t,b=38*(1-t)+14*t;return`rgb(${r|0},${g|0},${b|0})`}function draw(){let w=innerWidth,h=innerHeight;X.setTransform(devicePixelRatio||1,0,0,devicePixelRatio||1,0,0);X.fillStyle=sky();X.fillRect(0,0,w,h);let a=Math.min(1,Math.max(0,(alt-8)/30));X.globalAlpha=.15+.65*a;X.fillStyle='#fff';for(const s of stars){X.beginPath();X.arc(s[0]*w,s[1]*h,s[2],0,7);X.fill()}X.globalAlpha=1;let groundY=h*.78+Math.min(90,alt*2.5);if(alt<28){X.fillStyle='#111820';X.fillRect(0,groundY,w,h-groundY);X.fillStyle='#222b34';X.fillRect(w/2-55,groundY-8,110,8)}let scale=Math.max(.58,1-Math.min(.38,alt/220)),cx=w/2,base=Math.min(h*.72,h*.55+alt*.35),seg=46*scale,rw=28*scale;for(let i=0;i<stage;i++){let y=base-i*seg;X.fillStyle=['#aeb5bf','#c7ccd3','#d8dce2'][i%3];X.fillRect(cx-rw/2,y-seg+2,rw,seg-3);X.fillStyle=i%2?'#2d3642':'#bf6038';X.fillRect(cx-rw/2,y-seg*.42,rw,5*scale)}let top=base-stage*seg;X.fillStyle='#e8ebef';X.beginPath();X.moveTo(cx-rw/2,top+20*scale);X.lineTo(cx,top-18*scale);X.lineTo(cx+rw/2,top+20*scale);X.closePath();X.fill();X.fillStyle='#27303a';X.beginPath();X.arc(cx,top+7*scale,5*scale,0,7);X.fill();if(mode==='flight'&&stage>0){let fh=(20+32*(1-burn))*scale;X.fillStyle='#ffb45d';X.beginPath();X.moveTo(cx-rw*.25,base);X.lineTo(cx,base+fh);X.lineTo(cx+rw*.25,base);X.fill();X.fillStyle='#fff2a4';X.beginPath();X.moveTo(cx-rw*.12,base);X.lineTo(cx,base+fh*.55);X.lineTo(cx+rw*.12,base);X.fill()}if(alt>16){for(let i=0;i<PLANETS.length;i++){let p=PLANETS[i],dy=(p[1]-alt)*1.6;if(Math.abs(dy)<h*.6){let x=i%2?w*.17:w*.83,y=h*.35-dy;X.strokeStyle='rgba(255,255,255,.14)';X.beginPath();X.arc(x,y,18+i*3,0,7);X.stroke();X.fillStyle='rgba(220,228,240,.5)';X.font='11px ui-monospace';X.fillText(p[0]+' · '+p[1]+' km',x-45,y+38)}}} }
-function physics(dt){if(mode==='count'){count-=dt;if(count<=0){mode='flight';burn=1;vy=22+S.engine*4;count=0}}else if(mode==='flight'){let thrust=(31+S.engine*4)*(stage?1:0),grav=9.8;vy+=(thrust-grav)*dt;alt=Math.max(0,alt+vy*dt);maxAlt=Math.max(maxAlt,alt);burn-=dt/(2.25+S.fuel*.2);if(burn<=0&&stage>0){mode='explode';rating='BREAKUP';ratingT=1.2;vy=-10}}else if(mode==='coast'){vy-=9.8*dt;alt=Math.max(0,alt+vy*dt);maxAlt=Math.max(maxAlt,alt);if(vy<=0||alt<=0)finish()}else if(mode==='explode'){vy-=12*dt;alt=Math.max(0,alt+vy*dt);maxAlt=Math.max(maxAlt,alt);if(ratingT<=0)finish()}ratingT=Math.max(0,ratingT-dt)}
-function loop(t){let dt=Math.min(.05,(t-last)/1000||0);last=t;if(screen==='flight')physics(dt);draw();if(screen==='flight')hud();raf=requestAnimationFrame(loop)}raf=requestAnimationFrame(loop);
-function detach(){if(screen!=='flight'||mode!=='flight'||stage<=0)return;let f=Math.max(0,burn),r=f<=.048?'IMPOSSIBLE':f<=.125?'PERFECT':f<=.22?'GREAT':f<=.38?'GOOD':'OK',bonus={IMPOSSIBLE:78,PERFECT:42,GREAT:26,GOOD:14,OK:6}[r],cash={IMPOSSIBLE:55,PERFECT:20,GREAT:9,GOOD:3,OK:0}[r];vy+=bonus;runCoins+=cash;rating=r;ratingT=.7;stage--;burn=1;if(stage<=0)mode='coast';hud()}
-function launch(){screen='flight';mode='count';count=3;alt=0;maxAlt=0;vy=0;burn=1;runCoins=0;rating='';ratingT=0;stage=S.stages;U.innerHTML='';hud()}function finish(){let heightCoins=Math.floor(maxAlt/7);runCoins+=heightCoins;S.coins+=runCoins;let record=maxAlt>S.best;S.best=Math.max(S.best,maxAlt);save();screen='results';mode='results';U.innerHTML=`<div class="modalwrap"><section class="panel modal"><div class="eyebrow">${rating==='BREAKUP'?'Breakup':'Apogee'}</div><div class="big mono">${fmt(maxAlt)}</div>${record?'<div style="color:#e49a78">New record</div>':''}<div class="stat"><div><small>Credits</small><strong class="mono">◆ ${credits(runCoins)}</strong></div><div><small>Stages</small><strong class="mono">${S.stages}</strong></div></div><div class="actions"><button class="btn" id="again">Launch again</button><button class="btn alt" id="home">Hangar</button></div></section></div>`;document.getElementById('again').onclick=launch;document.getElementById('home').onclick=hangar}
-function title(){U.innerHTML=`<div class="title"><div><div class="eyebrow">Stage fire</div><h1>Apogee</h1><p>Stages burn from the bottom. Tap when the flame reaches the green band. Separate cleanly, climb higher, and upgrade the next rocket.</p>${S.best?`<div class="mono" style="color:#e49a78">Best ${fmt(S.best)}</div>`:''}<button class="btn" id="enter">Enter hangar</button><a class="back" href="../../index.html">← Forge Arcade</a></div></div>`;document.getElementById('enter').onclick=hangar}
-function row(name,value,cost,id,max){return`<div class="row"><div><strong>${name}</strong><small class="mono">${value}</small></div>${max?'<span class="eyebrow">MAX</span>':`<button class="btn alt" data-buy="${id}" ${S.coins<cost?'disabled':''}>◆ ${credits(cost)}</button>`}</div>`}
-function hangar(){screen='hangar';mode='hangar';S.seen=true;save();let sc=S.stages>=8?0:COST.stage[S.stages+1],ec=COST.engine[S.engine],fc=COST.fuel[S.fuel];U.innerHTML=`<div class="hangar"><header class="top"><div><div class="eyebrow">Hangar</div><h2>Apogee</h2></div><div class="credits mono">${credits(S.coins)}</div></header><section class="panel shop">${row('Stages',S.stages+' / 8',sc,'stage',S.stages>=8)}${row('Engines','Level '+(S.engine+1),ec||0,'engine',!ec)}${row('Fuel','Level '+(S.fuel+1),fc||0,'fuel',!fc)}<button class="btn" id="go">Launch</button>${S.best?`<div class="mono" style="text-align:center;color:var(--muted);font-size:11px;margin-top:8px">Best ${fmt(S.best)}</div>`:''}</section><a class="back" href="../../index.html">← Forge Arcade</a></div>`;document.getElementById('go').onclick=launch;U.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>buy(b.dataset.buy))}
-function buy(k){let cost;if(k==='stage'){cost=COST.stage[S.stages+1];if(!cost)return;S.stages++}else if(k==='engine'){cost=COST.engine[S.engine];if(cost==null)return;S.engine++}else{cost=COST.fuel[S.fuel];if(cost==null)return;S.fuel++}if(S.coins<cost){if(k==='stage')S.stages--;else if(k==='engine')S.engine--;else S.fuel--;return}S.coins-=cost;save();hangar()}
-function hud(){if(screen!=='flight')return;let pct=Math.max(0,Math.min(100,burn*100)),cnt=Math.ceil(count);U.innerHTML=`<button class="tap" id="tap" aria-label="Detach stage"></button><div class="hud"><div class="hudtop"><div class="card"><div class="label">Altitude</div><div class="value mono">${fmt(maxAlt)}</div></div><button class="pause" id="pause">Ⅱ</button></div>${mode==='count'&&cnt>0?`<div class="count mono">${Math.min(3,cnt)}</div>`:''}${mode==='flight'?`<div class="burn"><div class="burnhead"><span>Stage burn</span><span>Tap · Space</span></div><div class="track"><div class="fill" style="width:${pct}%"></div><div class="zone"></div></div></div>`:''}${ratingT>0?`<div class="rating">${rating}</div>`:''}</div>`;document.getElementById('tap').onpointerdown=e=>{e.preventDefault();detach()};document.getElementById('pause').onclick=e=>{e.stopPropagation();pause()}}
-function pause(){if(screen!=='flight')return;screen='paused';U.innerHTML=`<div class="modalwrap"><section class="panel modal"><div class="eyebrow">Flight hold</div><h2>Paused</h2><div class="actions"><button class="btn" id="resume">Resume</button><button class="btn alt" id="abort">Abort to hangar</button></div></section></div>`;document.getElementById('resume').onclick=()=>{screen='flight';hud()};document.getElementById('abort').onclick=hangar}
-addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='Enter'){e.preventDefault();if(screen==='flight')detach();else if(screen==='title')hangar();else if(screen==='hangar'||screen==='results')launch()}if(e.code==='Escape'){if(screen==='flight')pause();else if(screen==='paused'){screen='flight';hud()}}});window.__gameTest={getMode:()=>screen,getAltitudeKm:()=>maxAlt,getCoins:()=>S.coins,launch, tap:detach};screen==='title'?title():hangar();
-</script>
+<canvas id="gameCanvas"></canvas>
+<div id="ui">
+  <div class="brand-chip"><span class="brand-mark"></span><b>FORGE ARCADE</b><span>// APOGEE</span><span class="version">FINAL</span></div>
+  <button id="audioBtn" class="audio-btn clickable" aria-label="Toggle audio">♪</button>
+
+  <div id="hud">
+    <div class="hud-top">
+      <div class="hud-stat"><div class="hud-label">BEST</div><div id="hudBest" class="hud-value">0 KM</div></div>
+      <div class="hud-stat right"><div class="hud-label">CREDITS</div><div id="hudCredits" class="hud-value">0</div></div>
+    </div>
+    <div id="zoneChip" class="zone-chip">LOW ATMOSPHERE</div>
+    <div class="alt-wrap"><div class="alt-label">ALTITUDE</div><div id="altitude" class="alt-value">0</div><div class="alt-unit">KM</div></div>
+    <div id="chainChip" class="chain-chip">CHAIN ×1</div>
+    <div id="stageChip" class="stage-chip">STAGE 1 / 2</div>
+    <div id="fuelShell" class="fuel-shell"><div id="fuelFill" class="fuel-fill"></div><div class="fuel-zone-perfect"></div><div class="fuel-zone-great"></div></div>
+    <div id="tapHint" class="tap-hint">TAP TO SEPARATE • TEAL = PERFECT</div>
+  </div>
+
+  <div id="menu" class="screen transition">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="eyebrow">FORGE FLIGHT PROGRAM</div>
+        <div class="title">APOGEE</div>
+        <div class="subtitle">Push the stack higher. Separate late. Upgrade the machine. Chase the next atmosphere.</div>
+      </div>
+      <div class="menu-body">
+        <div class="stat-row">
+          <div class="mini"><div class="k">RANK</div><div id="rankText" class="v cyan">CADET</div></div>
+          <div class="mini"><div class="k">BEST</div><div id="menuBest" class="v">0 KM</div></div>
+          <div class="mini"><div class="k">CREDITS</div><div id="menuCredits" class="v amber">0</div></div>
+        </div>
+
+        <div class="mission">
+          <div class="mission-top"><div><div class="section-label" style="margin:0 0 2px">NEXT MILESTONE</div><div id="milestoneName" class="mission-name">Reach 25 KM</div></div><div id="milestoneReward" class="reward">+100</div></div>
+          <div class="progress"><div id="milestoneProgress" style="width:0%"></div></div>
+        </div>
+
+        <div class="mission">
+          <div class="mission-top"><div><div class="section-label" style="margin:0 0 2px">NEXT RANK</div><div id="nextRankName" class="mission-name">STRIDER</div></div><div id="rankProgressText" class="reward">0 / 1,500 XP</div></div>
+          <div class="progress"><div id="rankProgress" style="width:0%"></div></div>
+        </div>
+
+        <div class="contracts">
+          <div class="contracts-head">
+            <div><div class="contracts-title">DAILY CONTRACTS</div><div id="dailyDate" class="contracts-date">TODAY</div></div>
+            <div id="dailyStatus" class="contracts-status">0 / 3 CLEARED</div>
+          </div>
+          <div id="dailyList" class="contract-list"></div>
+        </div>
+
+        <div class="cosmetics">
+          <div class="cosmetics-head"><div class="cosmetics-title">HANGAR COSMETICS</div><div id="cosmeticsEquipped" class="cosmetics-equipped">FORGE / ION</div></div>
+          <div class="cosmetic-label">ROCKET LIVERY</div>
+          <div id="liveryList" class="cosmetic-list"></div>
+          <div class="cosmetic-label">EXHAUST TRAIL</div>
+          <div id="trailList" class="cosmetic-list"></div>
+        </div>
+
+        <div class="section-label">GARAGE UPGRADES</div>
+        <div class="upgrades">
+          <div class="upgrade"><div><div class="upgrade-title">BOOSTER CORE</div><div class="upgrade-desc">More thrust during burn and stronger separation boosts.</div><div id="engineLevel" class="upgrade-level">LVL 1</div></div><button id="engineBuy" class="buy clickable">75</button></div>
+          <div class="upgrade"><div><div class="upgrade-title">FUEL CELL</div><div class="upgrade-desc">Longer timing window before each stage burns out.</div><div id="fuelLevel" class="upgrade-level">LVL 1</div></div><button id="fuelBuy" class="buy clickable">70</button></div>
+          <div class="upgrade"><div><div class="upgrade-title">STACK FRAME</div><div class="upgrade-desc">Adds another playable rocket stage for longer runs.</div><div id="stagesLevel" class="upgrade-level">LVL 1</div></div><button id="stagesBuy" class="buy clickable">220</button></div>
+        </div>
+
+        <button id="launchBtn" class="launch-btn clickable">LAUNCH RUN</button>
+        <div class="secondary-actions">
+          <button id="restartBtn" class="secondary-btn danger clickable">RESTART CAREER</button>
+        </div>
+        <div class="menu-foot"><span id="lifetimeText">0 KM lifetime flight</span><span class="muted-note">Local save • restart clears all upgrades</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="results" class="screen transition hidden faded">
+    <div class="result-panel">
+      <div class="result-top"><div class="result-kicker">FLIGHT REPORT</div><div id="resultTitle" class="result-title">APOGEE</div><div id="resultAlt" class="result-alt">0</div><div class="result-unit">KM REACHED</div></div>
+      <div id="unlockBanner" class="unlock hidden"></div>
+      <div class="result-grid">
+        <div class="result-card"><div class="k">BEST</div><div id="resultBest" class="v">0 KM</div></div>
+        <div class="result-card"><div class="k">PERFECTS</div><div id="resultPerfects" class="v">0</div></div>
+        <div class="result-card"><div class="k">MAX CHAIN</div><div id="resultChain" class="v">×0</div></div>
+        <div class="result-card"><div class="k">RANK XP</div><div id="resultXP" class="v">+0</div></div>
+      </div>
+      <div class="result-breakdown">
+        <div class="break-line"><span>Altitude payout</span><b id="payoutAlt">+0</b></div>
+        <div class="break-line"><span>Separation bonus</span><b id="payoutSep">+0</b></div>
+        <div class="break-line"><span>Milestone bonus</span><b id="payoutMilestone">+0</b></div>
+        <div class="break-line"><span>Daily contracts</span><b id="payoutDaily">+0</b></div>
+        <div class="break-line total"><span>TOTAL CREDITS</span><b id="payoutTotal">+0</b></div>
+      </div>
+      <button id="continueBtn" class="continue-btn clickable">RETURN TO GARAGE</button>
+      <div style="padding:0 14px 16px">
+        <button id="restartBtnResults" class="secondary-btn danger clickable">CLEAR UPGRADES &amp; START OVER</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <div id="flash"></div>
+  <div id="test-status">IDLE</div>
+</div>
+<script src="./js/core.js?v=20260914-final"></script>
+<script src="./js/flight.js?v=20260914-final"></script>
+<script src="./js/render.js?v=20260914-final"></script>
 </body>
 </html>
