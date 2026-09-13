@@ -13,6 +13,7 @@ function drawRocket(y){
     const isBase=i===0;
     const isActive=state===STATE.FLIGHT&&i===0&&flight.activeStage>1;
 
+    // main cylinder body
     const bodyGrad=ctx.createLinearGradient(-half,0,half,0);
     bodyGrad.addColorStop(0,liv.body[0]);
     bodyGrad.addColorStop(.22,liv.body[1]);
@@ -22,11 +23,13 @@ function drawRocket(y){
     ctx.fillStyle=bodyGrad;
     ctx.fillRect(-half,sy-sh+1,bodyW,sh-2);
 
+    // rounded shoulder hint
     ctx.fillStyle='rgba(255,255,255,.26)';
     ctx.fillRect(-half+2,sy-sh+3,4,sh-8);
     ctx.fillStyle='rgba(35,45,65,.28)';
     ctx.fillRect(half-5,sy-sh+3,3,sh-8);
 
+    // interstage ring
     const ringGrad=ctx.createLinearGradient(-half-3,0,half+3,0);
     ringGrad.addColorStop(0,'#1c2432');
     ringGrad.addColorStop(.5,'#38455d');
@@ -36,12 +39,14 @@ function drawRocket(y){
     ctx.fillStyle='#0f1724';
     ctx.fillRect(-half,sy-sh+7,bodyW,2);
 
+    // accent stripe and tiny vents
     ctx.fillStyle=isBase?liv.fin:liv.accent;
     ctx.fillRect(-3,sy-sh+10,6,7);
     ctx.fillStyle='#cad4e3';
     ctx.fillRect(-8,sy-sh+20,16,2);
     ctx.fillRect(-8,sy-sh+24,16,1);
 
+    // active scorch fill
     if(isActive&&flight.maxFuel>0){
       const r=clamp(flight.fuel/flight.maxFuel,0,1);
       const sc=sh*(1-r);
@@ -56,6 +61,7 @@ function drawRocket(y){
       }
     }
 
+    // fins + engine bell on base stage
     if(isBase){
       const finGrad=ctx.createLinearGradient(0,sy-12,0,sy+4);
       finGrad.addColorStop(0,liv.fin);
@@ -76,6 +82,7 @@ function drawRocket(y){
     }
 
     if(isTop){
+      // nose cone
       const cone=ctx.createLinearGradient(-half,0,half,0);
       cone.addColorStop(0,liv.body[0]);
       cone.addColorStop(.5,liv.body[1]);
@@ -87,6 +94,7 @@ function drawRocket(y){
       ctx.lineTo(half,sy-sh);
       ctx.closePath();ctx.fill();
 
+      // cockpit glass
       const glass=ctx.createRadialGradient(-1,sy-sh-8,1,0,sy-sh-8,7);
       glass.addColorStop(0,'#b8fff1');
       glass.addColorStop(1,liv.glass);
@@ -95,6 +103,7 @@ function drawRocket(y){
       ctx.fillStyle='rgba(255,255,255,.65)';
       ctx.beginPath();ctx.arc(-1.3,sy-sh-9.5,1.2,0,Math.PI*2);ctx.fill();
 
+      // capsule shoulder ring
       ctx.fillStyle='#2a3449';
       ctx.fillRect(-half-1,sy-sh,bodyW+2,3);
     }
@@ -124,6 +133,7 @@ function drawRocket(y){
     ctx.beginPath();
     ctx.moveTo(-4,6);ctx.quadraticCurveTo(-1,len*.22,0,len*.6);ctx.quadraticCurveTo(1,len*.22,4,6);ctx.closePath();ctx.fill();
 
+    // side plasma flickers
     ctx.globalAlpha=.4;
     ctx.fillStyle=trail.plasma;
     ctx.beginPath();ctx.moveTo(-5,8);ctx.lineTo(-12,18+Math.random()*6);ctx.lineTo(-3,14);ctx.closePath();ctx.fill();
