@@ -21,7 +21,7 @@ function update(dt){
     if(flight.vel>1200&&Math.random()<adt*24)flight.speedLines.push({x:Math.random()*W,y:-50,len:50+Math.random()*130,s:flight.vel*(.7+Math.random()*.5)});
   }
   for(let i=flight.debris.length-1;i>=0;i--){const d=flight.debris[i];d.vy-=145*dt;d.worldY+=d.vy*dt;d.rot+=d.rv*dt;d.x+=(d.vx||0)*dt;d.vx=(d.vx||0)*Math.exp(-dt*.7);if(flight.alt-d.worldY>H*3||Math.abs(d.x)>W)flight.debris.splice(i,1)}
-  for(let i=flight.particles.length-1;i>=0;i--){const p=flight.particles[i];p.x+=p.vx*dt*60;p.y+=p.vy*dt*60;p.life-=dt*1.35;if(p.life<=0)flight.particles.splice(i,1)}
+  for(let i=flight.particles.length-1;i>=0;i--){const p=flight.particles[i];p.vy+=(p.gravity||0)*dt*60;p.x+=p.vx*dt*60;p.y+=p.vy*dt*60;p.rot=(p.rot||0)+(p.rotV||0)*dt*60;p.life-=dt*1.35;if(p.life<=0)flight.particles.splice(i,1)}
   for(let i=flight.texts.length-1;i>=0;i--){const tt=flight.texts[i];tt.y+=70*dt;tt.life-=dt*1.15;if(tt.life<=0)flight.texts.splice(i,1)}
   for(let i=flight.shockwaves.length-1;i>=0;i--){const s=flight.shockwaves[i];s.r+=850*dt;s.a-=dt*2.2;if(s.a<=0)flight.shockwaves.splice(i,1)}
   for(let i=flight.speedLines.length-1;i>=0;i--){const l=flight.speedLines[i];l.y+=l.s*dt;if(l.y>H+250)flight.speedLines.splice(i,1)}
