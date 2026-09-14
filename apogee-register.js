@@ -3,7 +3,7 @@
 GAMES.push({
   id: 'apogee',
   title: 'Apogee',
-  description: 'Master stage timing, upgrade your rocket, then pilot through deep space to dodge comets and push for a higher apogee.',
+  description: 'Master stage timing, upgrade your rocket, then pilot through deep space to dodge glowing anomalies and push for a higher apogee.',
   category: 'Games',
   featured: true,
   tags: ['Stage timing', 'Deep-space piloting', 'Progression'],
