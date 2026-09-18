@@ -374,26 +374,103 @@ export class Renderer{
     ctx.restore();
   }
 
+  drawSpaceChicken(chicken){
+    if(!chicken || !chicken.active) return;
+    const ctx=this.ctx;
+    const s=this.worldToScreen(chicken.x,chicken.y);
+    const r=Math.max(7,chicken.radius*this.camera.zoom);
+    if(s.x<-r*3||s.x>this.w+r*3||s.y<-r*3||s.y>this.h+r*3) return;
+
+    const dir=Math.atan2(chicken.vy,chicken.vx);
+    const flap=Math.sin(chicken.flap||0)*0.35;
+    ctx.save();
+    ctx.translate(s.x,s.y);
+    ctx.rotate(dir);
+
+    // tiny bubble helmet / space glow
+    ctx.strokeStyle='rgba(150,235,255,0.42)';
+    ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(0,0,r*1.35,0,TAU); ctx.stroke();
+
+    // legs
+    ctx.strokeStyle='#f2c35b'; ctx.lineWidth=Math.max(1,r*0.12);
+    ctx.beginPath();
+    ctx.moveTo(-r*0.15,r*0.55); ctx.lineTo(-r*0.2,r*0.95);
+    ctx.moveTo(r*0.15,r*0.55); ctx.lineTo(r*0.25,r*0.95);
+    ctx.stroke();
+
+    // body
+    ctx.fillStyle='#f5f3ea';
+    ctx.beginPath(); ctx.ellipse(-r*0.08,0,r*0.78,r*0.56,0,0,TAU); ctx.fill();
+
+    // wing flap
+    ctx.save();
+    ctx.rotate(flap);
+    ctx.fillStyle='#d9e4ef';
+    ctx.beginPath(); ctx.ellipse(-r*0.2,r*0.05,r*0.48,r*0.22,-0.25,0,TAU); ctx.fill();
+    ctx.restore();
+
+    // head
+    ctx.fillStyle='#fffaf0';
+    ctx.beginPath(); ctx.arc(r*0.52,-r*0.28,r*0.36,0,TAU); ctx.fill();
+
+    // comb
+    ctx.fillStyle='#ff5c6a';
+    ctx.beginPath();
+    ctx.arc(r*0.35,-r*0.62,r*0.12,0,TAU);
+    ctx.arc(r*0.55,-r*0.66,r*0.13,0,TAU);
+    ctx.fill();
+
+    // beak
+    ctx.fillStyle='#ffbf4f';
+    ctx.beginPath(); ctx.moveTo(r*0.82,-r*0.3); ctx.lineTo(r*1.18,-r*0.18); ctx.lineTo(r*0.82,-r*0.05); ctx.closePath(); ctx.fill();
+
+    // eye
+    ctx.fillStyle='#111521';
+    ctx.beginPath(); ctx.arc(r*0.62,-r*0.36,Math.max(1,r*0.07),0,TAU); ctx.fill();
+    ctx.restore();
+  }
+
   drawTrajectory(pts, reducedMotion){
     if(!pts || pts.length < 2) return;
     const ctx = this.ctx;
-    ctx.save();
     const n = pts.length;
-    const step = reducedMotion ? 3 : 1;
-    for(let i=0; i<n; i+=step){
-      const p = pts[i];
-      const s = this.worldToScreen(p.x, p.y);
-      if(s.x < -20 || s.x > this.w+20 || s.y < -20 || s.y > this.h+20) continue;
-      const t = i / n;
-      const alpha = (1 - t) * 0.55;
-      const size = p.danger ? 2.4 : 1.6;
-      ctx.fillStyle = p.danger ? `rgba(255,120,90,${alpha})` : `rgba(150,225,255,${alpha})`;
-      ctx.beginPath(); ctx.arc(s.x, s.y, size, 0, TAU); ctx.fill();
+    const stride = reducedMotion ? 3 : 1;
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // Readable near-term arc first; uncertainty becomes dashed/fainter farther out.
+    for(let pass=0; pass<2; pass++){
+      ctx.beginPath();
+      let drawing = false;
+      for(let i=0; i<n; i+=stride){
+        const t = i / Math.max(1,n-1);
+        const near = t <= 0.56;
+        if((pass===0) !== near) continue;
+        const p = pts[i], s = this.worldToScreen(p.x,p.y);
+        if(!drawing){ ctx.moveTo(s.x,s.y); drawing=true; }
+        else ctx.lineTo(s.x,s.y);
+      }
+      ctx.setLineDash(pass===0 ? [] : [5,7]);
+      ctx.strokeStyle = pass===0 ? 'rgba(165,235,255,0.62)' : 'rgba(165,235,255,0.28)';
+      ctx.lineWidth = pass===0 ? 1.8 : 1.2;
+      ctx.stroke();
     }
+    ctx.setLineDash([]);
+
+    for(let i=0; i<n; i+=Math.max(2,stride*2)){
+      const p=pts[i], s=this.worldToScreen(p.x,p.y);
+      if(s.x < -20 || s.x > this.w+20 || s.y < -20 || s.y > this.h+20) continue;
+      const t=i/n, alpha=(1-t)*(p.danger?0.72:0.34);
+      ctx.fillStyle=p.danger ? `rgba(255,112,82,${alpha})` : `rgba(205,245,255,${alpha})`;
+      ctx.beginPath(); ctx.arc(s.x,s.y,p.danger?2.5:1.35,0,TAU); ctx.fill();
+    }
+
     if(pts.collided){
       const last = pts[pts.length-1];
       const s = this.worldToScreen(last.x, last.y);
-      ctx.strokeStyle = 'rgba(255,90,70,0.8)';
+      ctx.strokeStyle = 'rgba(255,90,70,0.9)';
       ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(s.x, s.y, 10, 0, TAU); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(s.x-6,s.y-6); ctx.lineTo(s.x+6,s.y+6);
