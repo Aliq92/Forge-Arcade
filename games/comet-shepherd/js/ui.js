@@ -15,8 +15,6 @@ export class UI{
     this.barIce = $('#bar-ice');
     this.barHeat = $('#bar-heat');
     this.barEnergy = $('#bar-energy');
-    this.barFlow = $('#bar-flow');
-    this.flowLabel = $('#flow-label');
     this.heatLabel = $('#heat-label');
     this.statStardust = $('#stat-stardust');
     this.statSystem = $('#stat-system');
@@ -54,16 +52,10 @@ export class UI{
     this.cinematicBtn.classList.toggle('hidden', !v);
   }
 
-  updateHUD(comet, systemNumber, stardust, previewOn, flow=0){
+  updateHUD(comet, systemNumber, stardust, previewOn){
     this.barIce.style.width = clamp(comet.ice / comet.maxIce, 0, 1) * 100 + '%';
     this.barHeat.style.width = clamp(comet.heat / comet.maxHeat, 0, 1) * 100 + '%';
     this.barEnergy.style.width = clamp(comet.energy / comet.maxEnergy, 0, 1) * 100 + '%';
-    if(this.barFlow) this.barFlow.style.width = clamp(flow / 100, 0, 1) * 100 + '%';
-    if(this.flowLabel){
-      const fl = flow >= 80 ? 'LOCKED' : flow >= 55 ? 'HIGH' : flow >= 30 ? 'STEADY' : 'CALM';
-      this.flowLabel.textContent = fl;
-      this.flowLabel.style.color = flow >= 80 ? '#fff3a6' : flow >= 55 ? '#c9f4ff' : 'var(--cyan)';
-    }
     const label = comet.heatLabel;
     this.heatLabel.textContent = label;
     this.heatLabel.style.color = label==='CRITICAL' ? 'var(--warn-red)' : label==='HOT' ? 'var(--warn-amber)' : label==='WARM' ? '#ffdd8a' : 'var(--cyan)';
