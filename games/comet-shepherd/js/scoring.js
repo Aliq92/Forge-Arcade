@@ -13,10 +13,8 @@ export function computeScoreBreakdown(stats, comet, stardust){
   const timeBonus = Math.round((stats.timeSurvived || 0) * cfg.TIME_MULT);
   const stabilityFrac = comet.maxIce > 0 ? clamp01(comet.ice / comet.maxIce) : 0;
   const stabilityBonus = Math.round(stabilityFrac * 100 * cfg.STABILITY_MULT);
-  const avgFlow = stats.flowTime > 0 ? Math.max(0, Math.min(100, stats.flowIntegral / stats.flowTime)) : 0;
-  const flowBonus = Math.round(avgFlow * cfg.FLOW_MULT);
 
-  const total = arrivalPts + nearMissPts + slingshotPts + resourcePts + timeBonus + stabilityBonus + flowBonus;
+  const total = arrivalPts + nearMissPts + slingshotPts + resourcePts + timeBonus + stabilityBonus;
 
   const perSystem = systemsCrossed > 0 ? total / systemsCrossed : total;
   let rank = 'C';
@@ -32,7 +30,6 @@ export function computeScoreBreakdown(stats, comet, stardust){
     ['RESOURCES', '+' + resourcePts],
     ['TIME BONUS', '+' + timeBonus],
     ['STABILITY (' + Math.round(stabilityFrac*100) + '%)', '+' + stabilityBonus],
-    ['FLOW (' + Math.round(avgFlow) + '% avg)', '+' + flowBonus],
     ['TOTAL SCORE', total],
     ['RANK', rank],
   ];
