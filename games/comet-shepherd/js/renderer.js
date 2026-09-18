@@ -374,6 +374,63 @@ export class Renderer{
     ctx.restore();
   }
 
+  drawSpaceChicken(chicken){
+    if(!chicken || !chicken.active) return;
+    const ctx=this.ctx;
+    const s=this.worldToScreen(chicken.x,chicken.y);
+    const r=Math.max(7,chicken.radius*this.camera.zoom);
+    if(s.x<-r*3||s.x>this.w+r*3||s.y<-r*3||s.y>this.h+r*3) return;
+
+    const dir=Math.atan2(chicken.vy,chicken.vx);
+    const flap=Math.sin(chicken.flap||0)*0.35;
+    ctx.save();
+    ctx.translate(s.x,s.y);
+    ctx.rotate(dir);
+
+    // tiny bubble helmet / space glow
+    ctx.strokeStyle='rgba(150,235,255,0.42)';
+    ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(0,0,r*1.35,0,TAU); ctx.stroke();
+
+    // legs
+    ctx.strokeStyle='#f2c35b'; ctx.lineWidth=Math.max(1,r*0.12);
+    ctx.beginPath();
+    ctx.moveTo(-r*0.15,r*0.55); ctx.lineTo(-r*0.2,r*0.95);
+    ctx.moveTo(r*0.15,r*0.55); ctx.lineTo(r*0.25,r*0.95);
+    ctx.stroke();
+
+    // body
+    ctx.fillStyle='#f5f3ea';
+    ctx.beginPath(); ctx.ellipse(-r*0.08,0,r*0.78,r*0.56,0,0,TAU); ctx.fill();
+
+    // wing flap
+    ctx.save();
+    ctx.rotate(flap);
+    ctx.fillStyle='#d9e4ef';
+    ctx.beginPath(); ctx.ellipse(-r*0.2,r*0.05,r*0.48,r*0.22,-0.25,0,TAU); ctx.fill();
+    ctx.restore();
+
+    // head
+    ctx.fillStyle='#fffaf0';
+    ctx.beginPath(); ctx.arc(r*0.52,-r*0.28,r*0.36,0,TAU); ctx.fill();
+
+    // comb
+    ctx.fillStyle='#ff5c6a';
+    ctx.beginPath();
+    ctx.arc(r*0.35,-r*0.62,r*0.12,0,TAU);
+    ctx.arc(r*0.55,-r*0.66,r*0.13,0,TAU);
+    ctx.fill();
+
+    // beak
+    ctx.fillStyle='#ffbf4f';
+    ctx.beginPath(); ctx.moveTo(r*0.82,-r*0.3); ctx.lineTo(r*1.18,-r*0.18); ctx.lineTo(r*0.82,-r*0.05); ctx.closePath(); ctx.fill();
+
+    // eye
+    ctx.fillStyle='#111521';
+    ctx.beginPath(); ctx.arc(r*0.62,-r*0.36,Math.max(1,r*0.07),0,TAU); ctx.fill();
+    ctx.restore();
+  }
+
   drawTrajectory(pts, reducedMotion){
     if(!pts || pts.length < 2) return;
     const ctx = this.ctx;
