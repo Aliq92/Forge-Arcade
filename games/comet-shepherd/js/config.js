@@ -29,6 +29,20 @@ export const CONFIG = {
 
   ENERGY_REGEN_PER_SEC: 3.2,
 
+  // Flow rewards long, clean arcs and gravity play while making brute-force correction
+  // less efficient. It is a skill/readability system, not a second health bar.
+  FLOW: {
+    start: 20,
+    smoothDelay: 1.35,
+    smoothGainPerSec: 0.72,
+    idleDecayPerSec: 0.18,
+    nudgeCost: 2.5,
+    correctionCost: 9,
+    emergencyCost: 18,
+    encounterGain: { close: 7, bold: 13, daring: 20, assist: 10, perfect: 28 },
+    gateGain: 12,
+  },
+
   HEAT_COLD_MAX: 25,
   HEAT_WARM_MAX: 50,
   HEAT_HOT_MAX: 80,
@@ -78,6 +92,7 @@ export const CONFIG = {
     RESOURCE_MULT: 2,
     TIME_MULT: 2,
     STABILITY_MULT: 3,
+    FLOW_MULT: 8,
     RANK_PER_SYSTEM: { B: 900, A: 1700, S: 2600 },
   },
 };
