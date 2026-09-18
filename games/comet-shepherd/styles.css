@@ -196,6 +196,11 @@ canvas{ position:absolute; inset:0; display:block; }
 .bar.ice .bar-fill{ background:linear-gradient(90deg,#5fd0ff,#c9f4ff); }
 .bar.heat .bar-fill{ background:linear-gradient(90deg,#ffd166,#ff5a4e); }
 .bar.energy .bar-fill{ background:linear-gradient(90deg,#8a7cff,#c9a4ff); }
+.bar.flow .bar-fill{
+  background:linear-gradient(90deg,#4ecdc4,#8fe9ff 55%,#fff0a6);
+  box-shadow:0 0 10px rgba(143,233,255,0.35);
+}
+.flow-group .bar-label span{ transition:color 0.2s ease; }
 
 .hud-side{
   position:absolute; top:14px; right:210px;
