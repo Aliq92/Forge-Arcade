@@ -9,6 +9,7 @@ import { updateResources, RESOURCE_TYPES } from './resources.js';
 import { makeUpgradeState, applyUpgradeEffects, rollUpgradeChoices, UPGRADE_META } from './upgrades.js';
 import { ParticleSystem } from './particles.js';
 import { computeScoreBreakdown } from './scoring.js';
+import { createSpaceChicken, updateSpaceChicken, hitSpaceChicken } from './spaceChicken.js';
 
 const PARTICLE_DENSITY = { low:0.4, medium:0.75, high:1.15 };
 
@@ -66,10 +67,7 @@ export class Game{
     ui.on('close-challenge', () => ui.showScreen('screen-title'));
 
     ui.on('mobile-preview', () => this.togglePreview());
-    ui.on('mobile-burst', () => {
-      const aim = this.input.lastAimVector || { dx:this.comet?.vx || 1, dy:this.comet?.vy || 0 };
-      this._fireEmergency(aim);
-    });
+    ui.on('mobile-burst', () => this._fireEmergency(this._burstAimVector()));
     ui.on('toggle-cinematic', () => this.setCinematicMode(!this.cinematicMode));
 
     ui.bindSettingsInputs(this.settings, (s) => {
@@ -132,6 +130,7 @@ export class Game{
     this.previewOn = this.settings.previewDefault !== false;
     this.flow = CONFIG.FLOW.start;
     this.flowSmoothTimer = 0;
+    this.burstTrajectoryTimer = 0;
     this.stats = {
       gravityAssists:0, resourcesCollected:0, closestSolarPass: Infinity, timeSurvived:0,
       nearMisses:0, nearMissScore:0, resourcePoints:0, systemsCrossed:0,
@@ -141,6 +140,7 @@ export class Game{
     this.comet = new Comet(startSys.spawn.x, startSys.spawn.y, startSys.vel.x, startSys.vel.y);
     applyUpgradeEffects(this.comet, this.upgradeState);
     this.system = startSys;
+    this.spaceChicken = createSpaceChicken(this.system);
     this.particles.clear();
     this.ui.setHudVisible(true);
     this.ui.setSeedDisplay(this.isChallengeRun ? this.seedBase : null);
@@ -164,6 +164,7 @@ export class Game{
     this.comet.invulnTimer = 1.2;
     this.assistTrack = new Map();
     this.starTrack = null;
+    this.spaceChicken = createSpaceChicken(this.system);
     this.particles.clear();
   }
 
@@ -262,11 +263,13 @@ export class Game{
   _updatePlaying(dt){
     const comet = this.comet, system = this.system;
     this.stats.timeSurvived += dt;
+    this.burstTrajectoryTimer = Math.max(0, (this.burstTrajectoryTimer||0) - dt);
 
     this._handleDiscreteInput();
     this._handleContinuousInput(dt);
 
     updateOrbits(system, dt);
+    updateSpaceChicken(this.spaceChicken, system, dt);
     for(const belt of system.belts) updateAsteroidBelt(belt, system.star, dt);
     const flareEvents = system.flare.update(dt);
     if(flareEvents.justWarned) this.audio.flareWarning();
@@ -350,7 +353,7 @@ export class Game{
     this._queuedInputEvents = [];
     for(const e of events){
       if(e.type === 'toggle_preview'){ this.togglePreview(); }
-      else if(e.type === 'emergency'){ this._fireEmergency(); }
+      else if(e.type === 'emergency'){ this._fireEmergency(this._burstAimVector()); }
       else if(e.type === 'drag_end'){ this._applyDragCorrection(e); }
       else if(e.type === 'toggle_cinematic'){ this.setCinematicMode(!this.cinematicMode); }
     }
@@ -374,22 +377,27 @@ export class Game{
     }
   }
 
+  _burstAimVector(){
+    // Burst must use the same direction the player is actively aiming. A live drag wins,
+    // then the last deliberate aim, then current momentum as a safe deterministic fallback.
+    const drag=this.input.dragVector();
+    if(drag && drag.dist >= CONFIG.CORRECTION_MIN_DRAG) return {dx:drag.dx,dy:drag.dy};
+    const last=this.input.lastAimVector;
+    if(last && Math.hypot(last.dx,last.dy)>=CONFIG.CORRECTION_MIN_DRAG) return {dx:last.dx,dy:last.dy};
+    return {dx:this.comet?.vx || 1,dy:this.comet?.vy || 0};
+  }
+
   _fireEmergency(aimVector=null){
-    const comet = this.comet;
-    let dx, dy;
-    if(aimVector && Number.isFinite(aimVector.dx) && Number.isFinite(aimVector.dy)){
-      dx = aimVector.dx;
-      dy = aimVector.dy;
-    } else {
-      const cs = this.renderer.worldToScreen(comet.x, comet.y);
-      dx = this.input.pointerScreen.x - cs.x;
-      dy = this.input.pointerScreen.y - cs.y;
-    }
-    if(Math.hypot(dx,dy) < 4) return;
-    if(comet.applyCorrection(dx, dy, 1, true)){
+    const comet=this.comet;
+    const aim=aimVector || this._burstAimVector();
+    const dx=aim.dx, dy=aim.dy;
+    if(!Number.isFinite(dx)||!Number.isFinite(dy)||Math.hypot(dx,dy)<4) return;
+    if(comet.applyCorrection(dx,dy,1,true)){
       this.audio.emergency();
-      this.renderer.addShake(this.screenShakeOn ? 8 : 0);
+      this.renderer.addShake(this.screenShakeOn?8:0);
       this._breakFlow(CONFIG.FLOW.emergencyCost);
+      // Force the actual post-burst path on screen briefly, even when normal preview is off.
+      this.burstTrajectoryTimer=1.15;
     }
   }
 
@@ -443,6 +451,15 @@ export class Game{
         break;
       }
     }
+    if(hitSpaceChicken(this.spaceChicken, comet)){
+      const s=this.renderer.worldToScreen(this.spaceChicken.x,this.spaceChicken.y);
+      this.renderer.addShake(this.screenShakeOn?24:0);
+      this.audio.impact(1.15);
+      setTimeout(()=>this.audio.assistChime(),70);
+      this.ui.showFeedback('SPACE CHICKEN!',s.x,s.y-26);
+      this._confettiBurst(this.spaceChicken.x,this.spaceChicken.y);
+    }
+
     const hitAsteroid = findAsteroidCollision(system.belts, comet);
     if(hitAsteroid){
       const relSpeed = comet.speed;
@@ -631,6 +648,23 @@ export class Game{
       });
     }
   }
+  _confettiBurst(x,y){
+    const colors=['255,86,120','255,208,80','105,225,255','155,110,255','100,240,150','255,255,255'];
+    const n=this.particles.spawnBudget(110);
+    for(let i=0;i<n;i++){
+      const ang=Math.random()*Math.PI*2;
+      const spd=90+Math.random()*260;
+      this.particles.spawn({
+        x,y,
+        vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,
+        life:0.8+Math.random()*1.1,
+        size:1.8+Math.random()*3.8,sizeEnd:0.4,
+        color:colors[i%colors.length],
+        alpha:0.96,drag:0.965,glow:i%3===0,
+      });
+    }
+  }
+
   _burstParticles(x, y, color, count, speedMult){
     const n = this.particles.spawnBudget(count);
     for(let i=0;i<n;i++){
@@ -783,7 +817,7 @@ export class Game{
 
     if(this.state === 'playing'){
       const dragVec = this.input.dragging ? this.input.dragVector() : null;
-      const showPreview = this.previewOn || !!dragVec;
+      const showPreview = this.previewOn || !!dragVec || this.burstTrajectoryTimer > 0;
       if(showPreview){
         let pending = null;
         if(dragVec && dragVec.dist > CONFIG.CORRECTION_MIN_DRAG){
@@ -800,6 +834,7 @@ export class Game{
       }
     }
 
+    if(useRun) r.drawSpaceChicken(this.spaceChicken);
     r.drawComet(activeComet);
 
     if(this.state === 'gate-transition'){
@@ -812,7 +847,7 @@ export class Game{
     r.endFrame();
 
     if(this.state==='playing' || this.state==='paused' || this.state==='gate-transition'){
-      this.minimap.draw(this.system, this.comet);
+      this.minimap.draw(this.system, this.comet, this.spaceChicken);
     }
 
     if(this.settings.fps){
