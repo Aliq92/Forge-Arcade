@@ -9,7 +9,7 @@ export const CONFIG = {
 
   COMET_START_RADIUS: 9,
   COMET_START_ICE: 100,
-  COMET_START_ENERGY: 100,
+  COMET_START_ENERGY: 150,
   COMET_START_COLLECT_RADIUS: 58,
   COMET_MASS: 1,
 
@@ -27,7 +27,7 @@ export const CONFIG = {
   EMERGENCY_ENERGY_COST: 62,
   EMERGENCY_COOLDOWN: 6.5,
 
-  ENERGY_REGEN_PER_SEC: 3.2,
+  ENERGY_REGEN_PER_SEC: 4.5,
 
   // Flow rewards long, clean arcs and gravity play while making brute-force correction
   // less efficient. It is a skill/readability system, not a second health bar.
