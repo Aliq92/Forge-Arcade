@@ -128,13 +128,10 @@ export class Game{
     this.assistTrack = new Map();
     this.starTrack = null;
     this.previewOn = this.settings.previewDefault !== false;
-    this.flow = CONFIG.FLOW.start;
-    this.flowSmoothTimer = 0;
     this.burstTrajectoryTimer = 0;
     this.stats = {
       gravityAssists:0, resourcesCollected:0, closestSolarPass: Infinity, timeSurvived:0,
       nearMisses:0, nearMissScore:0, resourcePoints:0, systemsCrossed:0,
-      flowIntegral:0, flowTime:0, peakFlow:this.flow,
     };
     const startSys = generateSystem(1, this.seedBase + '-1');
     this.comet = new Comet(startSys.spawn.x, startSys.spawn.y, startSys.vel.x, startSys.vel.y);
@@ -300,7 +297,6 @@ export class Game{
     const heatInput = this._heatInputAt(distToStar, system.star.radius) + checkFlareHeat(system.flare, system.star, comet);
     const coldSpace = distToStar > system.star.heatRadius * 1.1;
     comet.update(dt, heatInput, coldSpace);
-    this._updateFlow(dt);
 
     this._emitTailParticles(dt);
     this._emitFragmentParticles(dt);
@@ -315,9 +311,9 @@ export class Game{
     }
 
     this._updateWarnings(distToStar);
-    this.audio.setHumIntensity(clamp(comet.heat/100*0.55 + this.flow/100*0.45,0,1));
+    this.audio.setHumIntensity(clamp(comet.heat/100,0,1));
 
-    this.ui.updateHUD(comet, this.systemNumber, this.stardust, this.previewOn || !!this.input.dragging, this.flow);
+    this.ui.updateHUD(comet, this.systemNumber, this.stardust, this.previewOn || !!this.input.dragging);
   }
 
   _physicsSubstep(bodies, dt){
@@ -360,9 +356,9 @@ export class Game{
   }
   _handleContinuousInput(dt){
     if(this.input.keys.left){
-      if(this.comet.applyNudge(-1, 0)){ this.audio.nudge(); this._breakFlow(CONFIG.FLOW.nudgeCost); }
+      if(this.comet.applyNudge(-1, 0)) this.audio.nudge();
     } else if(this.input.keys.right){
-      if(this.comet.applyNudge(1, 0)){ this.audio.nudge(); this._breakFlow(CONFIG.FLOW.nudgeCost); }
+      if(this.comet.applyNudge(1, 0)) this.audio.nudge();
     }
   }
 
@@ -371,10 +367,7 @@ export class Game{
     const d = Math.hypot(dx, dy);
     if(d < CONFIG.CORRECTION_MIN_DRAG) return;
     const strengthFrac = clamp((d - CONFIG.CORRECTION_MIN_DRAG) / (CONFIG.CORRECTION_MAX_DRAG - CONFIG.CORRECTION_MIN_DRAG), 0.08, 1);
-    if(this.comet.applyCorrection(dx, dy, strengthFrac)){
-      this.audio.correctionPulse();
-      this._breakFlow(CONFIG.FLOW.correctionCost * strengthFrac);
-    }
+    if(this.comet.applyCorrection(dx, dy, strengthFrac)) this.audio.correctionPulse();
   }
 
   _burstAimVector(){
@@ -395,30 +388,9 @@ export class Game{
     if(comet.applyCorrection(dx,dy,1,true)){
       this.audio.emergency();
       this.renderer.addShake(this.screenShakeOn?8:0);
-      this._breakFlow(CONFIG.FLOW.emergencyCost);
       // Force the actual post-burst path on screen briefly, even when normal preview is off.
       this.burstTrajectoryTimer=1.15;
     }
-  }
-
-  _breakFlow(amount){
-    this.flow = clamp(this.flow - amount, 0, 100);
-    this.flowSmoothTimer = 0;
-  }
-
-  _addFlow(amount){
-    this.flow = clamp(this.flow + amount, 0, 100);
-    this.stats.peakFlow = Math.max(this.stats.peakFlow || 0, this.flow);
-  }
-
-  _updateFlow(dt){
-    this.flowSmoothTimer += dt;
-    const cfg = CONFIG.FLOW;
-    const delta = this.flowSmoothTimer >= cfg.smoothDelay ? cfg.smoothGainPerSec : -cfg.idleDecayPerSec;
-    this.flow = clamp(this.flow + delta * dt, 0, 100);
-    this.stats.flowIntegral += this.flow * dt;
-    this.stats.flowTime += dt;
-    this.stats.peakFlow = Math.max(this.stats.peakFlow || 0, this.flow);
   }
 
   // ---------------- Collisions ----------------
@@ -545,14 +517,12 @@ export class Game{
       this.stardust += nm.stardust.perfect;
       comet.heal(nm.iceHeal.perfect);
       if(comet.slingshotMasteryLevel > 0) comet.restoreEnergy(comet.slingshotMasteryLevel*8);
-      this._addFlow(nm && CONFIG.FLOW.encounterGain.perfect);
     } else if(isSlingshot){
       const pct = Math.round(deltaPct*100);
       label = meaningfulSpeed ? (deltaPct >= 0 ? `SLINGSHOT +${pct}%` : `GRAVITY BRAKE ${pct}%`) : 'GRAVITY ASSIST';
       this.stats.gravityAssists++;
       this.stats.nearMissScore += nm.score.assist;
       if(comet.slingshotMasteryLevel > 0) comet.restoreEnergy(comet.slingshotMasteryLevel*8);
-      this._addFlow(CONFIG.FLOW.encounterGain.assist);
     } else if(rank){
       const labels = { close: 'CLOSE PASS', bold: 'BOLD PASS', daring: 'DARING PASS' };
       label = labels[rank] + (kind === 'star' ? ' (SOLAR)' : '');
@@ -560,7 +530,6 @@ export class Game{
       this.stats.nearMissScore += nm.score[rank];
       this.stardust += nm.stardust[rank];
       if(rank === 'daring'){ comet.heal(nm.iceHeal.daring); }
-      this._addFlow(CONFIG.FLOW.encounterGain[rank] || 0);
     }
 
     if(label){
@@ -717,7 +686,6 @@ export class Game{
     this.audio.gateActivate();
     this._burstParticles(this.system.gate.x, this.system.gate.y, '180,240,255', 50, 2.2);
     this.gateTransitionTimer = 0;
-    this._addFlow(CONFIG.FLOW.gateGain);
     this.stats.systemsCrossed = (this.stats.systemsCrossed||0) + 1;
     this.ui.fadeToBlack(() => {
       if(this.systemNumber === CONFIG.MILESTONE_SYSTEM && !this.milestoneShown){
@@ -763,7 +731,6 @@ export class Game{
       ['SYSTEMS CROSSED', this.stats.systemsCrossed||0],
       ['DISTANCE TRAVELLED', formatDistance(this.comet.distanceTravelled)],
       ['GRAVITY ASSISTS', this.stats.gravityAssists],
-      ['FLOW PEAK', Math.round(this.stats.peakFlow||0) + '%'],
       ['STARDUST COLLECTED', formatNumber(this.stardust)],
       ['RESOURCES COLLECTED', this.stats.resourcesCollected],
       ['MAXIMUM SPEED', Math.round(this.comet.maxSpeed) + ' u/s'],
