@@ -364,13 +364,13 @@ META[GRAVEL]     = {solid:true, hard:1.05, color:'#7d7d72', dark:'#65655c', name
 META[STONE]      = {solid:true, hard:1.55, color:'#5c5c5c', dark:'#484848', name:'Stone', loose:true};
 META[BEDROCK]    = {solid:true, hard:3.1,  color:'#33333a', dark:'#26262b', name:'Bedrock'};
 META[WALL]       = {solid:true, hard:Infinity, color:'#101014', dark:'#0a0a0d', name:'Boundary'};
-META[COPPER]     = {solid:true, hard:0.95, color:'#c97a3d', dark:'#a3612f', name:'Copper Ore', sell:6, cargo:true};
-META[SILVER]     = {solid:true, hard:1.25, color:'#c9d0d6', dark:'#a3aab0', name:'Silver Ore', sell:16, cargo:true};
-META[GOLD]       = {solid:true, hard:1.65, color:'#e0b83b', dark:'#b7942d', name:'Gold Ore', sell:42, cargo:true};
-META[GEM]        = {solid:true, hard:2.05, color:'#6fd1c9', dark:'#54a89f', name:'Gem Cluster', sell:110, cargo:true};
-META[FRAG1]      = {solid:true, hard:1.75, color:'#b28df0', dark:'#8c68c4', name:'Fragment Alpha', fragment:1};
-META[FRAG2]      = {solid:true, hard:1.75, color:'#b28df0', dark:'#8c68c4', name:'Fragment Beta', fragment:2};
-META[FRAG3]      = {solid:true, hard:1.75, color:'#b28df0', dark:'#8c68c4', name:'Fragment Gamma', fragment:3};
+META[COPPER]     = {solid:true, hard:0.95, color:'#c97a3d', dark:'#a3612f', name:'Copper Ore', sell:12, cargo:true};
+META[SILVER]     = {solid:true, hard:1.25, color:'#c9d0d6', dark:'#a3aab0', name:'Silver Ore', sell:30, cargo:true};
+META[GOLD]       = {solid:true, hard:1.65, color:'#e0b83b', dark:'#b7942d', name:'Gold Ore', sell:80, cargo:true};
+META[GEM]        = {solid:true, hard:2.05, color:'#6fd1c9', dark:'#54a89f', name:'Gem Cluster', sell:200, cargo:true};
+META[FRAG1]      = {solid:true, hard:1.75, color:'#b28df0', dark:'#8c68c4', name:'Fragment Alpha', fragment:1, reward:250};
+META[FRAG2]      = {solid:true, hard:1.75, color:'#b28df0', dark:'#8c68c4', name:'Fragment Beta', fragment:2, reward:400};
+META[FRAG3]      = {solid:true, hard:1.75, color:'#b28df0', dark:'#8c68c4', name:'Fragment Gamma', fragment:3, reward:650};
 META[TRINKET_A]  = {solid:true, hard:1.35, color:'#d97ad9', dark:'#ad5fad', name:'Old Trinket', sell:55, cargo:true};
 META[TRINKET_B]  = {solid:true, hard:1.35, color:'#e0713f', dark:'#b25a30', name:'Rusty Trinket', sell:70, cargo:true};
 META[RUBBLE]     = {solid:true, hard:0.35, color:'#4a463e', dark:'#3a372f', name:'Rubble'};
@@ -691,10 +691,12 @@ var Player = {
     var m = META[t];
     if(m.fragment){
       this.fragments[m.fragment] = true;
+      var reward = m.reward || 0;
+      this.credits += reward;
       delete World.cracking[World.key(tileC,tileR)];
     World.set(tileC,tileR,AIR);
       Audio.fragment();
-      Game.toast('Fragment recovered! ('+this.fragmentCount()+'/3)');
+      Game.toast('Fragment recovered! +'+reward+' cr ('+this.fragmentCount()+'/3)');
       Game.spawnSparkle(tileC,tileR,'#b28df0');
       return true;
     }
