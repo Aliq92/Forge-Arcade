@@ -17,6 +17,8 @@
         const prismaticSignal = document.getElementById('prismatic-signal');
         const evoText = document.getElementById('evo-text');
         const audioBtn = document.getElementById('audio-toggle');
+        const cinematicBtn = document.getElementById('cinematic-toggle');
+        const cinematicLabel = document.getElementById('cinematic-label');
         const iconMuted = document.getElementById('icon-muted');
         const iconUnmuted = document.getElementById('icon-unmuted');
         const abilityDash = document.getElementById('ability-dash');
@@ -63,6 +65,45 @@
                 initAudio();
             }
         });
+
+        function getFullscreenElement() {
+            return document.fullscreenElement || document.webkitFullscreenElement || null;
+        }
+
+        async function toggleCinematicMode() {
+            const root = document.documentElement;
+            const isFullscreen = !!getFullscreenElement();
+            try {
+                if (!isFullscreen) {
+                    const request = root.requestFullscreen || root.webkitRequestFullscreen;
+                    if (request) await request.call(root);
+                    document.body.classList.add('cinematic-mode');
+                } else {
+                    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+                    if (exit) await exit.call(document);
+                    document.body.classList.remove('cinematic-mode');
+                }
+            } catch (err) {
+                document.body.classList.toggle('cinematic-mode');
+            }
+            updateCinematicButton();
+        }
+
+        function updateCinematicButton() {
+            const active = !!getFullscreenElement() || document.body.classList.contains('cinematic-mode');
+            cinematicBtn.setAttribute('aria-label', active ? 'Exit cinematic fullscreen' : 'Enter cinematic fullscreen');
+            cinematicLabel.textContent = active ? 'EXIT CINEMA' : 'CINEMATIC';
+            cinematicBtn.classList.toggle('active', active);
+            setTimeout(resizeCanvas, 80);
+        }
+
+        cinematicBtn.addEventListener('click', toggleCinematicMode);
+        document.addEventListener('fullscreenchange', () => {
+            if (!getFullscreenElement()) document.body.classList.remove('cinematic-mode');
+            else document.body.classList.add('cinematic-mode');
+            updateCinematicButton();
+        });
+        document.addEventListener('webkitfullscreenchange', updateCinematicButton);
 
         function playSound(type, pitch = 400, duration = 0.1) {
             if (!isAudioEnabled || !audioCtx) return;
