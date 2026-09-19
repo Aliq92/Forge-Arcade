@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Drift: Courier</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #020204;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+            color: #e8faff;
+            touch-action: none; /* Prevent zooming/scrolling on mobile */
+        }
+
+        #game-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Neon Glow Utilities */
+        .neon-text-cyan {
+            color: #00ffff;
+            text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 20px #00ffff;
+        }
+        
+        .neon-text-magenta {
+            color: #ff00ff;
+            text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff, 0 0 20px #ff00ff;
+        }
+
+        .neon-text-yellow {
+            color: #ffff00;
+            text-shadow: 0 0 5px #ffff00, 0 0 10px #ffff00;
+        }
+
+        .neon-box-cyan {
+            border: 2px solid #00ffff;
+            box-shadow: 0 0 10px #00ffff, inset 0 0 10px #00ffff;
+            background: rgba(0, 255, 255, 0.1);
+        }
+
+        .neon-box-magenta {
+            border: 2px solid #ff00ff;
+            box-shadow: 0 0 10px #ff00ff, inset 0 0 10px #ff00ff;
+            background: rgba(255, 0, 255, 0.1);
+            transition: all 0.2s;
+        }
+
+        .neon-box-magenta:hover {
+            background: rgba(255, 0, 255, 0.3);
+            box-shadow: 0 0 20px #ff00ff, inset 0 0 20px #ff00ff;
+        }
+
+        /* UI Overlays */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Let clicks pass through to canvas/buttons */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            box-sizing: border-box;
+        }
+
+        .pointer-events-auto {
+            pointer-events: auto;
+        }
+
+        /* Mobile Controls — one thumb per side */
+        #mobile-controls {
+            display: none;
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 28;
+        }
+
+        @media (max-width: 980px), (pointer: coarse) {
+            #mobile-controls { display: block; }
+        }
+
+        .control-btn {
+            position: absolute;
+            bottom: max(20px, env(safe-area-inset-bottom));
+            width: clamp(68px, 10vw, 92px);
+            height: clamp(68px, 10vw, 92px);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(28px, 5vw, 42px);
+            font-weight: 900;
+            user-select: none;
+            pointer-events: auto;
+            opacity: .78;
+            color: #d9ffff;
+            background:
+                linear-gradient(145deg, rgba(16,20,23,.94), rgba(0,0,0,.94)),
+                repeating-linear-gradient(135deg, rgba(255,255,255,.03) 0 1px, transparent 1px 5px);
+            border: 1px solid rgba(124,246,255,.65);
+            box-shadow:
+                inset 0 0 0 1px rgba(255,255,255,.04),
+                inset 0 0 24px rgba(0,255,255,.07),
+                0 0 22px rgba(0,255,255,.10),
+                0 10px 28px rgba(0,0,0,.55);
+            clip-path: polygon(12% 0, 88% 0, 100% 12%, 100% 88%, 88% 100%, 12% 100%, 0 88%, 0 12%);
+            -webkit-tap-highlight-color: transparent;
+        }
+        #btn-left { left: max(20px, env(safe-area-inset-left)); }
+        #btn-right { right: max(20px, env(safe-area-inset-right)); }
+        .control-btn:active {
+            opacity: 1;
+            transform: scale(.96);
+            background: linear-gradient(145deg, rgba(7,45,48,.95), rgba(0,0,0,.96));
+            box-shadow: inset 0 0 28px rgba(0,255,255,.18), 0 0 26px rgba(0,255,255,.22);
+        }
+
+        #forge-frame {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 20;
+            border: 6px solid rgba(3,3,4,.98);
+            box-shadow:
+                inset 0 0 0 1px rgba(255,255,255,.05),
+                inset 0 0 130px rgba(0,0,0,.9);
+        }
+        #forge-frame:before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 1px, transparent 1px 4px),
+                repeating-linear-gradient(97deg, transparent 0 73px, rgba(255,255,255,.012) 74px 75px),
+                radial-gradient(circle at 18% 16%, rgba(0,255,255,.035), transparent 22%),
+                radial-gradient(circle at 82% 78%, rgba(255,0,90,.03), transparent 26%);
+            mix-blend-mode: screen;
+            opacity: .85;
+        }
+        #forge-frame:after {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            border: 1px solid rgba(255,255,255,.06);
+            box-shadow: inset 0 0 60px rgba(0,0,0,.82);
+        }
+
+        #hud {
+            height: 72px;
+            align-items: stretch;
+            gap: 10px;
+        }
+        .forge-hud {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background:
+                linear-gradient(180deg, rgba(10,11,12,.98), rgba(0,0,0,.92)),
+                repeating-linear-gradient(135deg, rgba(255,255,255,.022) 0 1px, transparent 1px 6px);
+            border: 1px solid rgba(255,255,255,.09);
+            border-top: 2px solid rgba(0,255,255,.42);
+            box-shadow: 0 8px 28px rgba(0,0,0,.58), inset 0 0 28px rgba(255,255,255,.018);
+            padding: 7px 16px 5px;
+            min-width: min(28vw, 310px);
+            clip-path: polygon(0 0, 92% 0, 100% 32%, 100% 100%, 8% 100%, 0 68%);
+        }
+        .forge-hud.right { align-items: flex-end; text-align: right; }
+        .hud-main { font-size: clamp(16px, 2.2vw, 28px); line-height: 1; font-weight: 900; letter-spacing: .04em; }
+        .hud-sub { margin-top: 5px; font-size: 8px; letter-spacing: .22em; color: rgba(255,255,255,.35); }
+
+        .forge-title-block {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+            background: linear-gradient(180deg, rgba(8,8,9,.95), rgba(0,0,0,.8));
+            border-top: 1px solid rgba(255,255,255,.08);
+            border-bottom: 1px solid rgba(255,255,255,.07);
+            clip-path: polygon(7% 0, 93% 0, 100% 32%, 96% 100%, 4% 100%, 0 32%);
+        }
+        .forge-game-title {
+            white-space: nowrap;
+            font-size: clamp(13px, 2.25vw, 27px);
+            font-weight: 950;
+            font-style: italic;
+            letter-spacing: -.04em;
+            color: #f2f2f2;
+            text-shadow: 0 2px 0 #000, 0 0 16px rgba(255,255,255,.12);
+        }
+        .forge-game-title span { color: #ff2d9a; text-shadow: 0 0 12px rgba(255,45,154,.35); }
+        .forge-center-title {
+            position: static;
+            transform: none;
+            margin-top: 2px;
+            font-size: 8px;
+            letter-spacing: .48em;
+            font-weight: 900;
+            color: rgba(255,255,255,.48);
+        }
+        .forge-center-title b { color: #7ef7ff; }
+
+        #fullscreen-btn {
+            position: absolute;
+            right: 16px;
+            bottom: 16px;
+            z-index: 31;
+            pointer-events: auto;
+            width: 42px;
+            height: 42px;
+            border: 1px solid rgba(255,255,255,.20);
+            color: #dff;
+            background: rgba(0,0,0,.78);
+            border-radius: 4px;
+            font-size: 20px;
+            box-shadow: inset 0 0 16px rgba(0,255,255,.06), 0 8px 24px rgba(0,0,0,.45);
+        }
+        @media (max-width: 980px), (pointer: coarse) {
+            #fullscreen-btn { bottom: 112px; right: 20px; }
+        }
+
+        .menu-panel {
+            position: relative;
+            background:
+                linear-gradient(180deg, rgba(8,8,10,.97), rgba(0,0,0,.93)),
+                repeating-linear-gradient(135deg, rgba(255,255,255,.018) 0 1px, transparent 1px 5px);
+            border: 1px solid rgba(255,255,255,.08);
+            border-top: 2px solid rgba(0,255,255,.48);
+            box-shadow: 0 22px 70px rgba(0,0,0,.76), inset 0 0 46px rgba(0,255,255,.02);
+            padding: 34px 36px;
+            max-width: 620px;
+            clip-path: polygon(3% 0, 97% 0, 100% 7%, 100% 93%, 97% 100%, 3% 100%, 0 93%, 0 7%);
+        }
+        .menu-panel:before {
+            content: '///';
+            position: absolute;
+            right: 18px;
+            top: 12px;
+            color: rgba(0,255,255,.35);
+            letter-spacing: 4px;
+        }
+
+        @media (max-width: 640px) {
+            #ui-layer { padding: .45rem; }
+            #hud { height: 58px; gap: 5px; }
+            .forge-hud { min-width: 92px; padding: 6px 8px 4px; }
+            .hud-main { font-size: 14px; }
+            .hud-sub { display: none; }
+            .forge-game-title { font-size: 11px; }
+            .forge-center-title { font-size: 6px; letter-spacing: .32em; }
+            .menu-panel { padding: 28px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="game-canvas"></canvas>
+    <div id="forge-frame"></div>
+    <button id="fullscreen-btn" aria-label="Toggle fullscreen">⛶</button>
+
+    <div id="ui-layer">
+        <!-- HUD -->
+        <div id="hud" class="w-full flex justify-between hidden pointer-events-none">
+            <div class="forge-hud">
+                <div class="hud-main neon-text-cyan">DATA: <span id="score">0</span> TB</div>
+                <div class="hud-sub">COURIER PROTOCOL // LIVE</div>
+            </div>
+            <div class="forge-title-block">
+                <div class="forge-game-title">NEON DRIFT: <span>COURIER</span></div>
+                <div class="forge-center-title"><b>FORGE</b> ARCADE</div>
+            </div>
+            <div class="forge-hud right">
+                <div class="hud-main neon-text-cyan">SPD: <span id="speed">0</span></div>
+                <div class="hud-sub">ROUTES CHANGE // KEEP MOVING</div>
+            </div>
+        </div>
+
+        <!-- Mobile Controls: deliberately split for thumb steering -->
+        <div id="mobile-controls">
+            <button id="btn-left" class="control-btn" aria-label="Turn left">&#9664;</button>
+            <button id="btn-right" class="control-btn" aria-label="Turn right">&#9654;</button>
+        </div>
+    </div>
+
+    <!-- Main Menu -->
+    <div id="main-menu" class="absolute inset-0 flex items-center justify-center bg-black/85 backdrop-blur-sm z-50 pointer-events-auto px-4">
+        <div class="menu-panel text-center">
+            <div class="text-[10px] tracking-[.5em] text-gray-500 mb-4">FORGE ARCADE // NIGHT ROUTE</div>
+            <h1 class="text-5xl md:text-7xl font-black mb-1 neon-text-cyan text-center tracking-tighter">NEON DRIFT</h1>
+            <h2 class="text-2xl md:text-3xl font-bold mb-7 neon-text-magenta tracking-widest uppercase">Courier</h2>
+            <p class="text-gray-300 max-w-md text-center mb-8 px-2 font-sans mx-auto">
+                Deliver the data packages. Dodge security drones and traffic. Survive the neon grid.
+                <br><br><span class="text-yellow-400">Controls:</span> Arrow Keys / A & D / Left Thumb + Right Thumb
+            </p>
+            <button id="start-btn" class="px-8 py-4 text-xl font-bold neon-text-magenta neon-box-magenta uppercase tracking-widest rounded-lg">Initialize Run</button>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="game-over" class="absolute inset-0 flex flex-col items-center justify-center bg-black/90 backdrop-blur-md z-50 hidden pointer-events-auto">
+        <h1 class="text-6xl font-black mb-4 text-red-500" style="text-shadow: 0 0 20px red;">CONNECTION LOST</h1>
+        <div class="text-2xl mb-8 neon-text-cyan text-center">
+            Total Data Delivered:<br>
+            <span id="final-score" class="text-4xl font-bold">0</span> TB
+        </div>
+        <button id="restart-btn" class="px-8 py-4 text-xl font-bold neon-text-cyan neon-box-cyan uppercase tracking-widest rounded-lg">
+            Reboot System
+        </button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // UI Elements
+        const mainMenu = document.getElementById('main-menu');
+        const gameOverScreen = document.getElementById('game-over');
+        const hud = document.getElementById('hud');
+        const scoreEl = document.getElementById('score');
+        const speedEl = document.getElementById('speed');
+        const finalScoreEl = document.getElementById('final-score');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+
+        // Game State
+        let gameState = 'MENU'; // MENU, PLAYING, GAMEOVER
+        let score = 0;
+        let baseSpeed = 3.5; // Decreased starting speed for better control
+        let speedMultiplier = 1;
+        let gameLoopId;
+        let lastTime = 0;
+        let frameCount = 0;
+
+        // Entities
+        let player;
+        let obstacles = [];
+        let particles = [];
+        let roadLines = [];
+        let dataPackages = [];
+
+        // Input State
+        const keys = {
+            ArrowLeft: false,
+            ArrowRight: false,
+            a: false,
+            d: false
+        };
+
+        function getRoadMargin() {
+            // Enough room for industrial side structures while keeping the actual road very wide.
+            if (canvas.width < 700) return Math.max(8, canvas.width * 0.025);
+            return Math.max(42, Math.min(96, canvas.width * 0.075));
+        }
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            // Recalculate center
+            if(player && gameState !== 'PLAYING') {
+                player.x = canvas.width / 2;
+                player.y = canvas.height - 150;
+            }
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        window.addEventListener('keydown', (e) => {
+            if (keys.hasOwnProperty(e.key)) keys[e.key] = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (keys.hasOwnProperty(e.key)) keys[e.key] = false;
+        });
+
+        // Touch Controls
+        const btnLeft = document.getElementById('btn-left');
+        const btnRight = document.getElementById('btn-right');
+
+        const handleTouchStart = (key) => (e) => {
+            e.preventDefault();
+            keys[key] = true;
+        };
+        const handleTouchEnd = (key) => (e) => {
+            e.preventDefault();
+            keys[key] = false;
+        };
+
+        btnLeft.addEventListener('touchstart', handleTouchStart('ArrowLeft'));
+        btnLeft.addEventListener('touchend', handleTouchEnd('ArrowLeft'));
+        btnRight.addEventListener('touchstart', handleTouchStart('ArrowRight'));
+        btnRight.addEventListener('touchend', handleTouchEnd('ArrowRight'));
+        
+        // Mouse fallback for touch buttons testing on desktop
+        btnLeft.addEventListener('mousedown', handleTouchStart('ArrowLeft'));
+        btnLeft.addEventListener('mouseup', handleTouchEnd('ArrowLeft'));
+        btnRight.addEventListener('mousedown', handleTouchStart('ArrowRight'));
+        btnRight.addEventListener('mouseup', handleTouchEnd('ArrowRight'));
+
+        class Player {
+            constructor() {
+                this.width = 36;
+                this.height = 58;
+                this.x = canvas.width / 2;
+                this.y = canvas.height - 150;
+                this.vx = 0;
+                this.maxSpeed = 12;
+                this.acceleration = 0.85; // Reduced by 15% for better control
+                this.friction = 0.92; // Drift feel
+                this.color = '#00ffff';
+                this.tilt = 0; // Visual rotation for drifting
+            }
+
+            update() {
+                // Input handling
+                if (keys.ArrowLeft || keys.a) {
+                    this.vx -= this.acceleration;
+                    this.tilt = Math.max(this.tilt - 0.0625, -0.3); // Tilt left (increased visual tilt sensitivity)
+                } else if (keys.ArrowRight || keys.d) {
+                    this.vx += this.acceleration;
+                    this.tilt = Math.min(this.tilt + 0.0625, 0.3); // Tilt right (increased visual tilt sensitivity)
+                } else {
+                    // Recover tilt
+                    this.tilt *= 0.8;
+                }
+
+                // Apply physics
+                this.vx *= this.friction;
+                this.x += this.vx;
+
+                // Boundary collision (bounce)
+                const roadMargin = getRoadMargin(); // Forge-wide play field
+                if (this.x < roadMargin + this.width/2) {
+                    this.x = roadMargin + this.width/2;
+                    this.vx = -this.vx * 0.5; // Bounce off wall
+                    createParticles(this.x, this.y, '#ffff00', 5); // Sparks
+                }
+                if (this.x > canvas.width - roadMargin - this.width/2) {
+                    this.x = canvas.width - roadMargin - this.width/2;
+                    this.vx = -this.vx * 0.5;
+                    createParticles(this.x, this.y, '#ffff00', 5);
+                }
+
+                // Engine Trail
+                if (Math.random() > 0.3) {
+                    particles.push(new Particle(
+                        this.x - Math.sin(this.tilt) * 20, 
+                        this.y + this.height/2, 
+                        this.color, 
+                        true // is trail
+                    ));
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.tilt);
+
+                // Neon glow
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.color;
+
+                ctx.fillStyle = '#020204';
+                ctx.strokeStyle = this.color;
+                
+                // Connector wings between pods and fuselage
+                ctx.beginPath();
+                ctx.moveTo(-this.width/4, 0);
+                ctx.lineTo(this.width/4, 0);
+                ctx.lineWidth = 4;
+                ctx.stroke();
+
+                // Left Engine Pod
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.rect(-this.width/2, -this.height/4, this.width/5, this.height * 0.75);
+                ctx.fill();
+                ctx.stroke();
+
+                // Right Engine Pod
+                ctx.beginPath();
+                ctx.rect(this.width/2 - this.width/5, -this.height/4, this.width/5, this.height * 0.75);
+                ctx.fill();
+                ctx.stroke();
+
+                // Center Fuselage
+                ctx.beginPath();
+                ctx.moveTo(0, -this.height/2); // Sharp nose
+                ctx.lineTo(this.width/3.5, this.height/8);
+                ctx.lineTo(this.width/6, this.height/2);
+                ctx.lineTo(-this.width/6, this.height/2);
+                ctx.lineTo(-this.width/3.5, this.height/8);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // Cockpit glowing core
+                ctx.beginPath();
+                ctx.arc(0, 0, 4, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = '#00ffff';
+                ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        class Obstacle {
+            constructor() {
+                const roadMargin = getRoadMargin(); // Forge-wide play field
+                const roadWidth = canvas.width - (roadMargin * 2);
+                
+                this.type = Math.random() > 0.5 ? 'drone' : 'blockade';
+                this.width = this.type === 'drone' ? 50 : 60 + Math.random() * 40;
+                this.height = this.type === 'drone' ? 60 : 40;
+                this.x = roadMargin + this.width/2 + Math.random() * (roadWidth - this.width);
+                this.y = -100;
+                // Drones move faster and look aggressive. Blockades are static relative to road.
+                this.speedOffset = this.type === 'drone' ? (Math.random() * 5) + 1 : 0; 
+                this.color = this.type === 'drone' ? '#ff3300' : '#ff0033'; // Nasty reds/oranges
+            }
+
+            update(currentScrollSpeed) {
+                this.y += currentScrollSpeed + this.speedOffset;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.color;
+
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 3;
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.15)'; // Reddish tint
+
+                if (this.type === 'drone') {
+                    // Nasty spiked drone shape
+                    ctx.beginPath();
+                    ctx.moveTo(0, -this.height/2); // Needle nose
+                    ctx.lineTo(this.width/2, -this.height/4); // Right wing tip
+                    ctx.lineTo(this.width/3, this.height/3); // Right barb
+                    ctx.lineTo(0, this.height/2); // Center tail
+                    ctx.lineTo(-this.width/3, this.height/3); // Left barb
+                    ctx.lineTo(-this.width/2, -this.height/4); // Left wing tip
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                    
+                    // Engine glow
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 6, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ff9900';
+                    ctx.fill();
+                } else {
+                    // Blockade with spikes
+                    ctx.fillRect(-this.width/2, -this.height/2, this.width, this.height);
+                    ctx.strokeRect(-this.width/2, -this.height/2, this.width, this.height);
+                    
+                    // Nasty Spikes on the front (bottom edge facing player)
+                    ctx.beginPath();
+                    const numSpikes = Math.floor(this.width / 15);
+                    const spikeWidth = this.width / numSpikes;
+                    for(let i = 0; i < numSpikes; i++) {
+                        let startX = -this.width/2 + (spikeWidth * i);
+                        ctx.moveTo(startX, this.height/2);
+                        ctx.lineTo(startX + spikeWidth/2, this.height/2 + 25); // Spike extending down
+                        ctx.lineTo(startX + spikeWidth, this.height/2);
+                    }
+                    ctx.stroke();
+                    
+                    // Warning stripe
+                    ctx.beginPath();
+                    ctx.moveTo(-this.width/2 + 10, -this.height/2 + 10);
+                    ctx.lineTo(this.width/2 - 10, this.height/2 - 10);
+                    ctx.strokeStyle = '#ff0000';
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            }
+        }
+
+        class DataPackage {
+            constructor() {
+                const roadMargin = getRoadMargin(); // Forge-wide play field
+                const roadWidth = canvas.width - (roadMargin * 2);
+                this.size = 20;
+                this.x = roadMargin + this.size + Math.random() * (roadWidth - this.size*2);
+                this.y = -50;
+                
+                // Randomly select from a palette of neon colors
+                const colors = ['#00ff00', '#00ffff', '#ffff00', '#ff00ff', '#ff8800', '#0088ff'];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.rotation = 0;
+            }
+
+            update(currentScrollSpeed) {
+                this.y += currentScrollSpeed;
+                this.rotation += 0.05;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.rect(-this.size/2, -this.size/2, this.size, this.size);
+                ctx.stroke();
+                
+                // Inner core
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(-this.size/4, -this.size/4, this.size/2, this.size/2);
+
+                ctx.restore();
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color, isTrail = false, isConfetti = false) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.isConfetti = isConfetti;
+                this.size = isConfetti ? Math.random() * 5 + 3 : Math.random() * 3 + 1;
+                
+                if (isConfetti) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 12 + 4;
+                    this.vx = Math.cos(angle) * speed;
+                    this.vy = Math.sin(angle) * speed - 5; // pop upwards initially
+                    this.life = 1.0;
+                    this.decay = Math.random() * 0.01 + 0.005; // slower decay
+                } else if (isTrail) {
+                    this.vx = (Math.random() - 0.5) * 0.5;
+                    this.vy = Math.random() * 5 + 5; // move down relative to player
+                    this.life = 1.0;
+                    this.decay = Math.random() * 0.05 + 0.02;
+                } else {
+                    // Explosion
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 8 + 2;
+                    this.vx = Math.cos(angle) * speed;
+                    this.vy = Math.sin(angle) * speed;
+                    this.life = 1.0;
+                    this.decay = Math.random() * 0.02 + 0.01;
+                }
+            }
+
+            update() {
+                if (this.isConfetti) {
+                    this.vy += 0.3; // Gravity effect for confetti
+                    this.vx *= 0.95; // Air resistance
+                    this.x += Math.sin(this.life * 20) * 2; // Fluttering effect
+                }
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.decay;
+            }
+
+            draw() {
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+                ctx.shadowBlur = 0; // reset
+            }
+        }
+
+        function createParticles(x, y, color, count) {
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(x, y, color, false));
+            }
+        }
+
+        function drawEnvironment(currentSpeed) {
+            const roadMargin = getRoadMargin();
+            const roadLeft = roadMargin;
+            const roadRight = canvas.width - roadMargin;
+            const roadWidth = roadRight - roadLeft;
+            const topHudClear = canvas.width < 640 ? 58 : 72;
+
+            // Outer void / city canyon.
+            ctx.fillStyle = '#010203';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Side industrial masses. They scroll subtly to sell forward motion.
+            const sideW = roadMargin;
+            const panelH = 118;
+            const scroll = (frameCount * currentSpeed * .42) % panelH;
+            for (let side = 0; side < 2; side++) {
+                const x0 = side === 0 ? 0 : canvas.width - sideW;
+                const x1 = side === 0 ? sideW : canvas.width;
+                const grad = ctx.createLinearGradient(x0, 0, x1, 0);
+                if (side === 0) {
+                    grad.addColorStop(0, '#020203'); grad.addColorStop(1, '#0b1013');
+                } else {
+                    grad.addColorStop(0, '#0b1013'); grad.addColorStop(1, '#020203');
+                }
+                ctx.fillStyle = grad;
+                ctx.fillRect(x0, 0, sideW, canvas.height);
+
+                for (let y = -panelH + scroll; y < canvas.height + panelH; y += panelH) {
+                    ctx.fillStyle = 'rgba(255,255,255,.025)';
+                    ctx.fillRect(x0 + 8, y + 8, Math.max(0, sideW - 16), panelH - 18);
+                    ctx.strokeStyle = 'rgba(125,240,255,.08)';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(x0 + 8.5, y + 8.5, Math.max(0, sideW - 17), panelH - 19);
+                    // Red utility lights.
+                    const lx = side === 0 ? x1 - 12 : x0 + 12;
+                    ctx.fillStyle = 'rgba(255,45,45,.9)';
+                    ctx.shadowBlur = 8; ctx.shadowColor = '#ff3030';
+                    ctx.fillRect(lx - 2, y + 26, 4, 11);
+                    ctx.shadowBlur = 0;
+                    // Small cyan strip.
+                    ctx.fillStyle = 'rgba(0,235,255,.45)';
+                    ctx.fillRect(side === 0 ? x1 - 5 : x0 + 2, y + 64, 3, 28);
+                }
+            }
+
+            // Road bed: black, wet and slightly brighter in the center.
+            const roadGrad = ctx.createLinearGradient(roadLeft, 0, roadRight, 0);
+            roadGrad.addColorStop(0, '#050708');
+            roadGrad.addColorStop(.08, '#0b1012');
+            roadGrad.addColorStop(.5, '#111518');
+            roadGrad.addColorStop(.92, '#0b1012');
+            roadGrad.addColorStop(1, '#050708');
+            ctx.fillStyle = roadGrad;
+            ctx.fillRect(roadLeft, 0, roadWidth, canvas.height);
+
+            // Wet-road/grunge streaks.
+            ctx.save();
+            ctx.globalAlpha = .42;
+            for (let i = 0; i < 40; i++) {
+                const laneSeed = (i * 137) % 1000 / 1000;
+                const x = roadLeft + 18 + laneSeed * Math.max(1, roadWidth - 36);
+                const y = ((i * 109 + frameCount * currentSpeed * (.25 + (i % 4) * .08)) % (canvas.height + 160)) - 80;
+                const len = 26 + (i % 6) * 17;
+                ctx.fillStyle = i % 5 === 0 ? 'rgba(0,225,255,.07)' : 'rgba(255,255,255,.025)';
+                ctx.fillRect(x, y, (i % 3) + 1, len);
+            }
+            ctx.restore();
+
+            // Guard rails + cyan edge light.
+            for (const x of [roadLeft, roadRight]) {
+                ctx.strokeStyle = 'rgba(120,245,255,.18)';
+                ctx.lineWidth = 10;
+                ctx.beginPath(); ctx.moveTo(x, topHudClear); ctx.lineTo(x, canvas.height); ctx.stroke();
+                ctx.strokeStyle = 'rgba(0,235,255,.8)';
+                ctx.shadowBlur = 12; ctx.shadowColor = '#00d8ff';
+                ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(x, topHudClear); ctx.lineTo(x, canvas.height); ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+
+            // Moving lane markers. Three broad lanes keeps obstacles readable.
+            if (roadLines.length === 0) {
+                for (let i = 0; i < canvas.height + 120; i += 112) roadLines.push(i);
+            }
+            const laneXs = [roadLeft + roadWidth / 3, roadLeft + roadWidth * 2 / 3];
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(87,219,235,.26)';
+            for (let i = 0; i < roadLines.length; i++) {
+                roadLines[i] += currentSpeed;
+                if (roadLines[i] > canvas.height + 30) roadLines[i] = topHudClear - 120;
+                for (const lx of laneXs) {
+                    ctx.beginPath();
+                    ctx.moveTo(lx, roadLines[i]);
+                    ctx.lineTo(lx, roadLines[i] + 48);
+                    ctx.stroke();
+                }
+            }
+
+            // Repeated industrial chevrons near both shoulders.
+            const chevY = (frameCount * currentSpeed * .7) % 150;
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = 'rgba(210,235,238,.15)';
+            for (let y = chevY - 150; y < canvas.height; y += 150) {
+                for (const cx of [roadLeft + 32, roadRight - 32]) {
+                    ctx.beginPath();
+                    ctx.moveTo(cx - 10, y); ctx.lineTo(cx, y + 12); ctx.lineTo(cx + 10, y);
+                    ctx.moveTo(cx - 10, y + 12); ctx.lineTo(cx, y + 24); ctx.lineTo(cx + 10, y + 12);
+                    ctx.stroke();
+                }
+            }
+
+            // Sector text and road stencil — intentionally subtle.
+            ctx.save();
+            ctx.font = '700 12px Courier New';
+            ctx.fillStyle = 'rgba(255,255,255,.09)';
+            ctx.textAlign = 'left';
+            ctx.fillText('SECTOR A7', roadLeft + 48, topHudClear + 38);
+            ctx.textAlign = 'right';
+            ctx.fillText('SECTOR B4', roadRight - 48, topHudClear + 38);
+            ctx.font = '900 18px Courier New';
+            ctx.fillStyle = 'rgba(255,255,255,.07)';
+            ctx.fillText('KEEP MOVING  >>', roadRight - 52, canvas.height - 42);
+            ctx.restore();
+
+            // Vignette makes the active road feel embedded in a black machine shell.
+            const vg = ctx.createRadialGradient(canvas.width/2, canvas.height*.52, Math.min(canvas.width,canvas.height)*.16,
+                                                canvas.width/2, canvas.height*.52, Math.max(canvas.width,canvas.height)*.72);
+            vg.addColorStop(0, 'rgba(0,0,0,0)');
+            vg.addColorStop(1, 'rgba(0,0,0,.38)');
+            ctx.fillStyle = vg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function checkCollisions() {
+            // Player vs Obstacles
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                let obs = obstacles[i];
+                // Simple AABB collision
+                if (player.x - player.width/2 < obs.x + obs.width/2 &&
+                    player.x + player.width/2 > obs.x - obs.width/2 &&
+                    player.y - player.height/2 < obs.y + obs.height/2 &&
+                    player.y + player.height/2 > obs.y - obs.height/2) {
+                    
+                    // Collision!
+                    gameOver();
+                    return;
+                }
+            }
+
+            // Player vs Data Packages
+            for (let i = dataPackages.length - 1; i >= 0; i--) {
+                let pack = dataPackages[i];
+                // Slightly larger collection radius
+                let dx = player.x - pack.x;
+                let dy = player.y - pack.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+
+                if (distance < (player.width/2 + pack.size)) {
+                    score += 10;
+                    scoreEl.innerText = score;
+                    createParticles(pack.x, pack.y, pack.color, 15);
+                    dataPackages.splice(i, 1);
+                    
+                    // Slightly increase speed difficulty on collection
+                    speedMultiplier += 0.002; 
+                }
+            }
+        }
+
+        function spawnEntities() {
+            // Spawn Obstacles
+            let spawnRate = Math.max(30, 100 - (speedMultiplier * 10)); // Faster speed = faster spawns
+            if (frameCount % Math.floor(spawnRate) === 0) {
+                obstacles.push(new Obstacle());
+            }
+
+            // Spawn Data Packages
+            if (frameCount % 150 === 0) {
+                dataPackages.push(new DataPackage());
+            }
+        }
+
+        function cleanUpEntities() {
+            // Remove off-screen entities
+            obstacles = obstacles.filter(obs => obs.y < canvas.height + 100);
+            dataPackages = dataPackages.filter(pack => pack.y < canvas.height + 100);
+            particles = particles.filter(p => p.life > 0);
+        }
+
+        function initGame() {
+            player = new Player();
+            obstacles = [];
+            particles = [];
+            dataPackages = [];
+            score = 0;
+            speedMultiplier = 1;
+            frameCount = 0;
+            scoreEl.innerText = '0';
+            
+            gameState = 'PLAYING';
+            mainMenu.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            hud.classList.remove('hidden');
+            
+            if (gameLoopId) cancelAnimationFrame(gameLoopId);
+            lastTime = performance.now();
+            gameLoop();
+        }
+
+        function gameOver() {
+            gameState = 'GAMEOVER';
+            
+            // Confetti Explosion
+            const confettiColors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffa500', '#ffffff'];
+            for(let i = 0; i < 150; i++) {
+                let randomColor = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+                particles.push(new Particle(player.x, player.y, randomColor, false, true));
+            }
+            
+            hud.classList.add('hidden');
+            gameOverScreen.classList.remove('hidden');
+            finalScoreEl.innerText = score;
+        }
+
+        function gameLoop(timestamp) {
+            if (gameState !== 'PLAYING') {
+                // If game over, just draw one more frame to show explosion
+                if (gameState === 'GAMEOVER') {
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'; // Fade out effect
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    particles.forEach(p => { p.update(); p.draw(); });
+                    if(particles.length > 0) {
+                        gameLoopId = requestAnimationFrame(gameLoop);
+                    }
+                }
+                return;
+            }
+
+            // Calculate Delta Time (optional for smoother movement, using fixed steps here for simplicity)
+            // const dt = timestamp - lastTime;
+            // lastTime = timestamp;
+
+            // Clear Canvas with slight trail effect
+            ctx.fillStyle = 'rgba(2, 2, 4, 0.34)'; // Trail effect
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            let currentScrollSpeed = baseSpeed * speedMultiplier;
+            
+            // Update UI
+            speedEl.innerText = Math.floor(currentScrollSpeed * 20) + ' KPH';
+            
+            // Increment score slowly over time
+            if (frameCount % 60 === 0) {
+                score += 1;
+                scoreEl.innerText = score;
+                speedMultiplier += 0.002; // Very gradually speed up over time (reduced from 0.01)
+            }
+
+            // Logic
+            player.update();
+            spawnEntities();
+            
+            obstacles.forEach(obs => obs.update(currentScrollSpeed));
+            dataPackages.forEach(pack => pack.update(currentScrollSpeed));
+            particles.forEach(p => p.update());
+            
+            checkCollisions();
+            cleanUpEntities();
+
+            // Draw
+            drawEnvironment(currentScrollSpeed);
+            dataPackages.forEach(pack => pack.draw());
+            obstacles.forEach(obs => obs.draw());
+            particles.forEach(p => p.draw());
+            
+            // Don't draw player if dead (handled by collision logic triggering state change)
+            if(gameState === 'PLAYING') player.draw();
+
+            frameCount++;
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        startBtn.addEventListener('click', initGame);
+        restartBtn.addEventListener('click', initGame);
+        fullscreenBtn.addEventListener('click', async () => {
+            try {
+                if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+                else await document.exitFullscreen();
+            } catch (_) {}
+        });
+
+        // Initial draw for background before start
+        ctx.fillStyle = '#020204';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+    </script>
+</body>
+</html>
