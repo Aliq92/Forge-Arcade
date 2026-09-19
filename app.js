@@ -51,6 +51,14 @@ const GAMES = [
     palette: ['#51e6ff', '#ffbf57'],
   },
   {
+    id: 'drifterling',
+    title: 'Drifterling',
+    description: 'Glide across a quiet sky-ocean, gather lost color, and wake the sleeping islands.',
+    category: 'Games',
+    featured: true,
+    palette: ['#9ecbd4', '#d9dde6'],
+  },
+  {
     id: 'bacteria-bloom',
     title: 'Bacteria Bloom',
     description: 'Seed a petri dish with bacterial strains and watch organic colonies bloom and compete.',
@@ -166,45 +174,33 @@ const footerCount = document.getElementById('footer-count');
 
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/* ---------- deterministic per-game "seed" for procedural art ---------- */
-
 function seedFromId(id) {
   let h = 0;
-  for (let i = 0; i < id.length; i++) {
-    h = (h * 31 + id.charCodeAt(i)) >>> 0;
-  }
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
   return h;
 }
 
 function seedStyle(game) {
   const { id, palette = ['#ff7849', '#ffc857'] } = game;
   const h = seedFromId(id);
-  const x = 15 + (h % 70); // 15–85%
-  const y = 10 + ((h >> 8) % 60); // 10–70%
+  const x = 15 + (h % 70);
+  const y = 10 + ((h >> 8) % 60);
   const rot = (h >> 16) % 360;
   return `--seed-x:${x}%; --seed-y:${y}%; --seed-rot:${rot}deg; --game-primary:${palette[0]}; --game-secondary:${palette[1]};`;
 }
 
-function categoryClass(category) {
-  return `art-${category.toLowerCase()}`;
-}
-
+function categoryClass(category) { return `art-${category.toLowerCase()}`; }
 function artClasses(game) {
   const base = categoryClass(game.category);
   return game.artId ? `${base} art-custom-${game.artId}` : base;
 }
 
-/* ---------- spotlight ---------- */
-
 function renderSpotlight() {
   const game = GAMES.find((g) => g.id === SPOTLIGHT_ID) || GAMES[0];
   const tags = (game.tags || []).map((t) => `<span class="spotlight-tag">${t}</span>`).join('');
-
   spotlightEl.innerHTML = `
     <a class="spotlight-panel" href="games/${game.id}/index.html" data-game="${game.id}" style="${seedStyle(game)}">
-      <div class="spotlight-art" aria-hidden="true">
-        <canvas id="spotlight-canvas"></canvas>
-      </div>
+      <div class="spotlight-art" aria-hidden="true"><canvas id="spotlight-canvas"></canvas></div>
       <div class="spotlight-body">
         <span class="spotlight-eyebrow">Featured Simulation</span>
         <h2 class="spotlight-title">${game.title}</h2>
@@ -212,36 +208,25 @@ function renderSpotlight() {
         <div class="spotlight-meta">${tags}</div>
         <span class="spotlight-play">Play now <span class="arrow" aria-hidden="true">&#8594;</span></span>
       </div>
-    </a>
-  `;
-
+    </a>`;
   initSpotlightCanvas(document.getElementById('spotlight-canvas'));
 }
-
-/* ---------- ambient canvas for the spotlight (lightweight, pausable) ---------- */
 
 function initSpotlightCanvas(canvas) {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  let w = 0, h = 0;
-  let ants = [];
-  let nest = { x: 0, y: 0 };
-  let running = false;
-  let rafId = null;
-
+  let w = 0, h = 0, ants = [];
+  let nest = { x: 0, y: 0 }, running = false, rafId = null, t = 0;
   function resize() {
     const rect = canvas.getBoundingClientRect();
-    w = rect.width;
-    h = rect.height;
+    w = rect.width; h = rect.height;
     canvas.width = Math.max(1, Math.round(w * dpr));
     canvas.height = Math.max(1, Math.round(h * dpr));
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     nest = { x: w * 0.5, y: h * 0.55 };
-    ctx.fillStyle = '#0c0a08';
-    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#0c0a08'; ctx.fillRect(0, 0, w, h);
   }
-
   function seedAnts() {
     const count = w < 260 ? 14 : 20;
     const maxR = Math.min(w, h) * 0.46;
@@ -255,199 +240,85 @@ function initSpotlightCanvas(canvas) {
       squash: 0.72 + Math.random() * 0.16,
     }));
   }
-
   function drawStatic() {
-    ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = '#0c0a08';
-    ctx.fillRect(0, 0, w, h);
+    ctx.clearRect(0, 0, w, h); ctx.fillStyle = '#0c0a08'; ctx.fillRect(0, 0, w, h);
     const grd = ctx.createRadialGradient(nest.x, nest.y, 2, nest.x, nest.y, Math.max(w, h) * 0.5);
-    grd.addColorStop(0, 'rgba(226,112,58,0.28)');
-    grd.addColorStop(1, 'rgba(226,112,58,0)');
-    ctx.fillStyle = grd;
-    ctx.beginPath();
-    ctx.arc(nest.x, nest.y, Math.max(w, h) * 0.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = 'rgba(226,112,58,0.35)';
-    ctx.lineWidth = 1;
-    for (let r = 18; r < Math.min(w, h) * 0.42; r += 22) {
-      ctx.beginPath();
-      ctx.arc(nest.x, nest.y, r, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-
-    ctx.fillStyle = '#e2703a';
-    ctx.beginPath();
-    ctx.arc(nest.x, nest.y, 3, 0, Math.PI * 2);
-    ctx.fill();
+    grd.addColorStop(0, 'rgba(226,112,58,0.28)'); grd.addColorStop(1, 'rgba(226,112,58,0)');
+    ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(nest.x, nest.y, Math.max(w, h) * 0.5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(226,112,58,0.35)'; ctx.lineWidth = 1;
+    for (let r = 18; r < Math.min(w, h) * 0.42; r += 22) { ctx.beginPath(); ctx.arc(nest.x, nest.y, r, 0, Math.PI * 2); ctx.stroke(); }
+    ctx.fillStyle = '#e2703a'; ctx.beginPath(); ctx.arc(nest.x, nest.y, 3, 0, Math.PI * 2); ctx.fill();
   }
-
-  let t = 0;
-
   function step() {
     if (!running) return;
-    t += 1;
-    ctx.fillStyle = 'rgba(12,10,8,0.1)';
-    ctx.fillRect(0, 0, w, h);
-
+    t += 1; ctx.fillStyle = 'rgba(12,10,8,0.1)'; ctx.fillRect(0, 0, w, h);
     for (const ant of ants) {
       ant.angle += ant.angularSpeed;
       const r = ant.baseRadius + Math.sin(t * ant.wobbleSpeed + ant.phase) * ant.wobbleAmp;
-      const x = nest.x + Math.cos(ant.angle) * r;
-      const y = nest.y + Math.sin(ant.angle) * r * ant.squash;
-
-      ctx.fillStyle = 'rgba(226,112,58,0.5)';
-      ctx.beginPath();
-      ctx.arc(x, y, 1.1, 0, Math.PI * 2);
-      ctx.fill();
+      const x = nest.x + Math.cos(ant.angle) * r, y = nest.y + Math.sin(ant.angle) * r * ant.squash;
+      ctx.fillStyle = 'rgba(226,112,58,0.5)'; ctx.beginPath(); ctx.arc(x, y, 1.1, 0, Math.PI * 2); ctx.fill();
     }
-
-    ctx.fillStyle = '#e2703a';
-    ctx.beginPath();
-    ctx.arc(nest.x, nest.y, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-
+    ctx.fillStyle = '#e2703a'; ctx.beginPath(); ctx.arc(nest.x, nest.y, 2.5, 0, Math.PI * 2); ctx.fill();
     rafId = requestAnimationFrame(step);
   }
-
-  function start() {
-    if (running || prefersReducedMotion) return;
-    running = true;
-    rafId = requestAnimationFrame(step);
-  }
-
-  function stop() {
-    running = false;
-    if (rafId) cancelAnimationFrame(rafId);
-    rafId = null;
-  }
-
-  resize();
-  seedAnts();
-
-  if (prefersReducedMotion) {
-    drawStatic();
-  } else {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting && !document.hidden) start();
-        else stop();
-      });
-    }, { threshold: 0.1 });
+  function start() { if (running || prefersReducedMotion) return; running = true; rafId = requestAnimationFrame(step); }
+  function stop() { running = false; if (rafId) cancelAnimationFrame(rafId); rafId = null; }
+  resize(); seedAnts();
+  if (prefersReducedMotion) drawStatic();
+  else {
+    const io = new IntersectionObserver((entries) => entries.forEach((entry) => entry.isIntersecting && !document.hidden ? start() : stop()), { threshold: 0.1 });
     io.observe(canvas);
-
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) stop();
-      else if (canvas.getBoundingClientRect().top < window.innerHeight) start();
-    });
+    document.addEventListener('visibilitychange', () => document.hidden ? stop() : (canvas.getBoundingClientRect().top < window.innerHeight && start()));
   }
-
-  window.addEventListener('resize', () => {
-    resize();
-    seedAnts();
-    if (prefersReducedMotion) drawStatic();
-  });
+  window.addEventListener('resize', () => { resize(); seedAnts(); if (prefersReducedMotion) drawStatic(); });
 }
-
-/* ---------- featured collection ---------- */
 
 function featuredCardHTML(game) {
   return `
     <a class="f-card" href="games/${game.id}/index.html" data-game="${game.id}" style="${seedStyle(game)}">
       <div class="f-card-art ${artClasses(game)}" aria-hidden="true"><span class="art-code">${game.title.charAt(0)}</span></div>
-      <div class="f-card-body">
-        <span class="card-category">${game.category}</span>
-        <h3 class="f-card-title">${game.title}</h3>
-        <p class="card-desc">${game.description}</p>
-        <span class="card-play">Play <span class="arrow" aria-hidden="true">&#8594;</span></span>
-      </div>
-    </a>
-  `;
+      <div class="f-card-body"><span class="card-category">${game.category}</span><h3 class="f-card-title">${game.title}</h3><p class="card-desc">${game.description}</p><span class="card-play">Play <span class="arrow" aria-hidden="true">&#8594;</span></span></div>
+    </a>`;
 }
-
 function renderFeaturedCollection() {
-  const list = GAMES.filter((g) => g.featured && g.id !== SPOTLIGHT_ID);
-  featuredGrid.innerHTML = list.map(featuredCardHTML).join('');
+  featuredGrid.innerHTML = GAMES.filter((g) => g.featured && g.id !== SPOTLIGHT_ID).map(featuredCardHTML).join('');
 }
-
-/* ---------- main filterable grid ---------- */
-
 function cardHTML(game) {
   return `
     <a class="card" href="games/${game.id}/index.html" data-game="${game.id}" data-category="${game.category}" role="listitem" style="${seedStyle(game)}">
       <div class="card-art ${artClasses(game)}" aria-hidden="true"><span class="art-code">${game.title.charAt(0)}</span></div>
-      <div class="card-body">
-        <span class="card-category">${game.category}</span>
-        <h3 class="card-title">${game.title}</h3>
-        <p class="card-desc">${game.description}</p>
-        <span class="card-play">Play <span class="arrow" aria-hidden="true">&#8594;</span></span>
-      </div>
-    </a>
-  `;
+      <div class="card-body"><span class="card-category">${game.category}</span><h3 class="card-title">${game.title}</h3><p class="card-desc">${game.description}</p><span class="card-play">Play <span class="arrow" aria-hidden="true">&#8594;</span></span></div>
+    </a>`;
 }
-
 function render(filter) {
-  const list = GAMES.filter((g) => {
-    if (filter === 'All') return true;
-    if (filter === 'Featured') return !!g.featured;
-    return g.category === filter;
-  });
-
+  const list = GAMES.filter((g) => filter === 'All' ? true : filter === 'Featured' ? !!g.featured : g.category === filter);
   grid.innerHTML = list.map(cardHTML).join('');
   countLabel.textContent = `${list.length} ${list.length === 1 ? 'experience' : 'experiences'}`;
 }
-
 function initTabs() {
   tabs.setAttribute('role', 'tablist');
-  tabs.innerHTML = CATEGORIES.map((cat, i) => `
-    <button class="tab" type="button" role="tab" id="tab-${cat}" data-cat="${cat}"
-      aria-selected="${i === 0}" tabindex="${i === 0 ? '0' : '-1'}">${cat}</button>
-  `).join('');
-
+  tabs.innerHTML = CATEGORIES.map((cat, i) => `<button class="tab" type="button" role="tab" id="tab-${cat}" data-cat="${cat}" aria-selected="${i === 0}" tabindex="${i === 0 ? '0' : '-1'}">${cat}</button>`).join('');
   const buttons = () => Array.from(tabs.querySelectorAll('.tab'));
-
   function select(btn) {
-    buttons().forEach((b) => {
-      b.classList.remove('active');
-      b.setAttribute('aria-selected', 'false');
-      b.tabIndex = -1;
-    });
-    btn.classList.add('active');
-    btn.setAttribute('aria-selected', 'true');
-    btn.tabIndex = 0;
-    btn.focus();
-    render(btn.dataset.cat);
+    buttons().forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); b.tabIndex = -1; });
+    btn.classList.add('active'); btn.setAttribute('aria-selected', 'true'); btn.tabIndex = 0; btn.focus(); render(btn.dataset.cat);
   }
-
   buttons()[0].classList.add('active');
-
-  tabs.addEventListener('click', (e) => {
-    const btn = e.target.closest('.tab');
-    if (!btn) return;
-    select(btn);
-  });
-
+  tabs.addEventListener('click', (e) => { const btn = e.target.closest('.tab'); if (btn) select(btn); });
   tabs.addEventListener('keydown', (e) => {
-    const list = buttons();
-    const i = list.indexOf(document.activeElement);
+    const list = buttons(), i = list.indexOf(document.activeElement);
     if (i === -1) return;
     let next = null;
     if (e.key === 'ArrowRight') next = list[(i + 1) % list.length];
     else if (e.key === 'ArrowLeft') next = list[(i - 1 + list.length) % list.length];
     else if (e.key === 'Home') next = list[0];
     else if (e.key === 'End') next = list[list.length - 1];
-    if (next) {
-      e.preventDefault();
-      select(next);
-    }
+    if (next) { e.preventDefault(); select(next); }
   });
 }
 
-/* ---------- init ---------- */
-
 heroStatus.textContent = `${GAMES.length} playable experiments`;
 footerCount.textContent = String(GAMES.length);
-
 renderSpotlight();
 renderFeaturedCollection();
 initTabs();
