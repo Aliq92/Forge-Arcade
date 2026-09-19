@@ -43,34 +43,31 @@ let W,H,CX,HT,BH,TH,U,st='menu',score=0,mult=1,off=0,last=0,spT=1,cbT=1,P=null,e
 const rh=y=>TH+(BH-TH)*Math.min(1,Math.max(0,(y-HT)/(H-HT))),sc=y=>rh(y)/BH,rnd=(a,b)=>a+Math.random()*(b-a);
 function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;CX=W/2;HT=H*.1;BH=W<H?W*.46:W*.31;TH=BH*.27;U=Math.max(.5,W/1672);build();if(P)P.y=Math.min(P.y,H*.9)}
 function build(){bg.width=W;bg.height=H;const g=b;let seed=7;const R=()=>(seed=seed*16807%2147483647)/2147483647;
-let s=g.createLinearGradient(0,0,0,H*.65);s.addColorStop(0,'#03080e');s.addColorStop(1,'#0b2a38');g.fillStyle=s;g.fillRect(0,0,W,H);
-for(let i=0;i<50;i++){const w=30+R()*70,h=H*(.12+R()*.4),x0=R()*W,y0=H*.66-h;g.fillStyle='rgba(5,12,20,.96)';g.fillRect(x0,y0,w,h+H);
-for(let j=0;j<14;j++){g.fillStyle=R()<.6?'rgba(30,220,255,.55)':'rgba(255,60,150,.5)';g.fillRect(x0+R()*(w-4),y0+R()*h,3,5)}}
-for(const[fx,fy]of[[.2,.38],[.8,.34],[.5,.2]]){const f=g.createRadialGradient(W*fx,H*fy,0,W*fx,H*fy,H*.4);f.addColorStop(0,'rgba(120,190,210,.28)');f.addColorStop(1,'rgba(120,190,210,0)');g.fillStyle=f;g.fillRect(0,0,W,H)}
-g.fillStyle='#05080b';g.fillRect(0,H*.66,W,H);
-s=g.createLinearGradient(0,HT,0,H);s.addColorStop(0,'#0d1316');s.addColorStop(1,'#151b1f');g.fillStyle=s;
+let s=g.createLinearGradient(0,0,0,H*.68);s.addColorStop(0,'#05080b');s.addColorStop(1,'#182028');g.fillStyle=s;g.fillRect(0,0,W,H);
+
+/* distant, subdued city silhouette */
+for(let i=0;i<34;i++){const w=28+R()*55,h=H*(.07+R()*.18),x0=R()*W,y0=H*.66-h;g.fillStyle='rgba(10,14,18,.9)';g.fillRect(x0,y0,w,h+H);
+for(let j=0;j<5;j++){g.fillStyle='rgba(205,190,145,.16)';g.fillRect(x0+R()*(w-4),y0+R()*h,2,3)}}
+
+/* ordinary roadside ground */
+g.fillStyle='#182019';g.fillRect(0,H*.64,W,H);
+for(let i=0;i<260;i++){const px=R()*W,py=H*.64+R()*H*.36;g.fillStyle=R()<.7?'rgba(92,105,82,.13)':'rgba(125,112,88,.10)';g.fillRect(px,py,1+R()*3,1+R()*2)}
+
+/* asphalt road */
+s=g.createLinearGradient(0,HT,0,H);s.addColorStop(0,'#111518');s.addColorStop(1,'#202326');g.fillStyle=s;
 g.beginPath();g.moveTo(CX-TH,HT);g.lineTo(CX+TH,HT);g.lineTo(CX+BH,H);g.lineTo(CX-BH,H);g.fill();
-for(const m of[-1,1]){g.fillStyle='#090d10';g.beginPath();g.moveTo(CX+m*TH,HT);g.lineTo(CX+m*1.32*TH,HT);g.lineTo(CX+m*1.32*BH,H);g.lineTo(CX+m*BH,H);g.fill();
-g.strokeStyle='rgba(25,230,255,.35)';g.lineWidth=2;g.beginPath();g.moveTo(CX+m*1.15*TH,HT);g.lineTo(CX+m*1.15*BH,H);g.stroke();
-const y1=H*.44,y0=H*.25,xi=CX+m*1.08*rh(y1),xo=CX+m*1.9*rh(y1),xl=Math.min(xi,xo),wd=Math.abs(xo-xi);
-let t=g.createLinearGradient(0,y0,0,y1);t.addColorStop(0,'#1c2226');t.addColorStop(1,'#0a0d10');g.fillStyle=t;g.fillRect(xl,y0,wd,y1-y0);
-g.strokeStyle='rgba(25,230,255,.35)';g.lineWidth=1;g.strokeRect(xl+.5,y0+.5,wd,y1-y0);g.fillStyle='rgba(255,50,50,.9)';g.fillRect(m<0?xl+8:xl+wd-14,y0+10,6,10);
-g.fillStyle='rgba(200,210,215,.3)';g.textAlign='center';g.font=`700 ${11*U+3}px Courier New`;g.fillText('SECTOR',xl+wd/2,y0+wd*.3);g.font=`900 ${44*U}px Impact,sans-serif`;g.fillText(m<0?'A7':'B4',xl+wd/2,y1-16)}
-const wall=()=>{const f=g.createLinearGradient(0,0,W*.22,0);f.addColorStop(0,'#0a0d0f');f.addColorStop(1,'#161c1f');g.fillStyle=f;g.beginPath();g.moveTo(0,0);g.lineTo(W*.16,0);g.lineTo(W*.2,H*.6);g.lineTo(W*.22,H);g.lineTo(0,H);g.fill();
-g.strokeStyle='rgba(120,140,150,.15)';g.lineWidth=1;for(let y=0;y<H;y+=70*U+10){g.beginPath();g.moveTo(0,y);g.lineTo(W*.2,y+8);g.stroke()}
-for(let i=0;i<220;i++){g.fillStyle=`rgba(255,255,255,${R()*.05})`;g.fillRect(R()*W*.2,R()*H,R()*30,R()*3)}
-g.fillStyle='rgba(255,45,45,.9)';for(let i=0;i<4;i++)g.fillRect(W*.15+i*3,H*(.12+i*.17),5,9);g.fillStyle='rgba(25,230,255,.6)';g.fillRect(W*.2,H*.72,4,H*.2)};
-wall();g.save();g.translate(W,0);g.scale(-1,1);wall();g.restore();
-if(W>H){const T=(t,px,py,rot,size,col)=>{g.save();g.translate(px,py);g.rotate(rot);g.font=`900 ${size*U}px Impact,'Arial Narrow',sans-serif`;g.fillStyle=col;g.textAlign='left';g.fillText(t,0,0);g.restore()};
-T('FORGE',W*.01,H*.31,-.27,105,'rgba(190,200,200,.7)');T('ARCADE',W*.02,H*.42,-.27,95,'rgba(190,200,200,.7)');
-['• GAMES','• MACHINES','• HIGHER','• HUMAN'].forEach((t,i)=>T(t,W*.045+i*4,H*.5+i*H*.033,-.27,26,'rgba(190,200,200,.32)'));T('PLAY DRIFT DELIVER REPEAT',W*.1,H*.74,-.3,12,'rgba(190,200,200,.3)');
-['SAME','CITY','DIFFERENT','ROUTES'].forEach((t,i)=>T(t,W*.915,H*.3+i*H*.038+i*i*1.5,.24,32,'rgba(200,210,210,.72)'));T('配達は止まらない',W*.92,H*.5,.3,26,'rgba(200,210,210,.6)');
-['NEON','DRIFTERS','DELIVER','MORE'].forEach((t,i)=>T(t,W*.9,H*.66+i*H*.036,.3,28,'rgba(200,210,210,.5)'));
-g.save();g.translate(W*.79,H*.12);g.transform(1,.18,-.04,1,0,0);g.fillStyle='rgba(8,12,15,.9)';g.fillRect(0,0,W*.13,H*.26);g.strokeStyle='rgba(120,220,255,.25)';g.strokeRect(0,0,W*.13,H*.26);
-g.fillStyle='rgba(230,240,240,.8)';g.beginPath();g.arc(W*.04,H*.1,H*.05,Math.PI,0);g.lineTo(W*.05,H*.14);g.closePath();g.fill();
-['BETTER','TOMORROW','DELIVERED'].forEach((t,i)=>{g.font=`900 ${22*U}px Impact,sans-serif`;g.fillStyle='rgba(200,210,210,.7)';g.fillText(t,W*.075,H*.06+i*26*U)});g.restore()}
-g.save();g.translate(CX+.42*rh(H*.85),H*.86);g.scale(1,.75);g.fillStyle='rgba(200,215,220,.14)';g.font=`900 ${34*U}px Courier New`;g.textAlign='left';g.fillText('KEEP',0,0);g.fillText('MOVING',0,36*U);g.fillText('>>',44*U,72*U);g.restore();
-g.save();g.translate(CX-.62*rh(H*.85),H*.86);g.scale(1,.75);g.fillStyle='rgba(200,215,220,.13)';g.font=`900 ${56*U}px sans-serif`;g.fillText('前進',0,0);g.restore()}
+
+/* plain gravel shoulders + simple edge line */
+for(const m of[-1,1]){
+g.fillStyle='#4d4b43';g.beginPath();g.moveTo(CX+m*TH,HT);g.lineTo(CX+m*1.18*TH,HT);g.lineTo(CX+m*1.18*BH,H);g.lineTo(CX+m*BH,H);g.fill();
+g.strokeStyle='rgba(225,225,210,.72)';g.lineWidth=2;g.beginPath();g.moveTo(CX+m*1.02*TH,HT);g.lineTo(CX+m*1.02*BH,H);g.stroke();
+}
+
+/* sparse roadside posts */
+for(const m of[-1,1])for(let i=0;i<7;i++){const py=H*(.26+i*.105),r=rh(py),px=CX+m*1.28*r,sz=Math.max(2,sc(py)*7);
+g.fillStyle='#b7b5a8';g.fillRect(px-sz*.35,py-sz*2,sz*.7,sz*2);
+g.fillStyle='#555';g.fillRect(px-sz*.35,py-sz*1.25,sz*.7,sz*.35)}
+}
 addEventListener('resize',rs);rs();
 const kn=e=>e.key.length===1?e.key.toLowerCase():e.key;
 addEventListener('keydown',e=>{const k=kn(e);keys[k]=1;if(k.startsWith('Arrow')||k===' ')e.preventDefault();if((k==='Enter'||k===' ')&&st!=='play')start()});
