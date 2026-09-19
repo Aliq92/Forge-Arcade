@@ -51,14 +51,6 @@ const GAMES = [
     palette: ['#51e6ff', '#ffbf57'],
   },
   {
-    id: 'drifterling',
-    title: 'Drifterling',
-    description: 'Glide across a quiet sky-ocean, gather lost color, and wake the sleeping islands.',
-    category: 'Games',
-    featured: true,
-    palette: ['#9ecbd4', '#d9dde6'],
-  },
-  {
     id: 'bacteria-bloom',
     title: 'Bacteria Bloom',
     description: 'Seed a petri dish with bacterial strains and watch organic colonies bloom and compete.',
