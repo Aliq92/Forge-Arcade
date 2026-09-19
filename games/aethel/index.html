@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Aethel - Spirit Guardian // Forge Arcade</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&amp;family=Montserrat:wght@200;300;400;600&amp;display=swap" rel="stylesheet"/>
+
+<link href="styles.css" rel="stylesheet"/></head>
+<body>
+<canvas id="gameCanvas"></canvas>
+<div class="scanlines"></div>
+<!-- Audio Toggle -->
+<button class="audio-btn" id="audio-toggle">
+<svg class="w-5 h-5 hidden" fill="none" id="icon-unmuted" stroke="currentColor" viewbox="0 0 24 24"><path d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5 10v4a2 2 0 002 2h2.586l3.707 3.707a1 1 0 001.707-.707V4.707a1 1 0 00-1.707-.707L9.586 7.707H7a2 2 0 00-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<svg class="w-5 h-5" fill="none" id="icon-muted" stroke="currentColor" viewbox="0 0 24 24"><path d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><path d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<div id="forge-badge">FORGE ARCADE // SPIRIT RUN</div>
+<div id="ui-layer">
+<!-- Top Corners HUD -->
+<div class="w-full flex justify-between items-start p-6">
+<!-- Left: Identity & Level -->
+<div class="premium-glass interactive px-6 py-4 flex flex-col justify-center min-w-[140px]">
+<h1 class="text-xl md:text-2xl text-gradient-gold mb-1">AETHEL</h1>
+<div class="flex items-center gap-2">
+<div class="h-[1px] w-4 bg-cyan-400/50"></div>
+<p class="micro-caps text-cyan-300">LEVEL <span class="font-bold text-white text-sm" id="level-display">1</span></p>
+</div>
+</div>
+<!-- Right: Score -->
+<div class="premium-glass interactive px-6 py-4 flex flex-col justify-center items-end min-w-[140px]">
+<p class="micro-caps text-gray-400 mb-1">ESSENCE SCORE</p>
+<p class="text-xl md:text-2xl text-white font-light tracking-widest" id="score-display">0</p>
+<p class="micro-caps text-cyan-400/70 mt-2">BEST <span class="text-white" id="best-score-display-hud">0</span></p>
+</div>
+</div>
+<div class="premium-glass interactive px-4 py-3 text-center" id="center-panel">
+<p class="micro-caps text-cyan-300 mb-1">Current Form</p>
+<p class="text-sm md:text-base text-white tracking-[0.28em]" id="form-display">AETHEL</p>
+<p class="micro-caps text-purple-300 mt-2" id="ability-display">CORE</p>
+<p class="micro-caps text-fuchsia-300 mt-2 hidden" id="prismatic-signal">PRISMATIC SIGNAL DETECTED</p>
+</div>
+<!-- Bottom Center HUD (Stats) -->
+<div class="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md px-4">
+<div class="premium-glass interactive p-5 md:p-6 flex flex-col gap-4">
+<div class="ability-strip">
+<div class="ability-chip locked" id="ability-dash">
+<div class="ability-label">DASH</div>
+<div class="ability-state" id="ability-dash-state">LOCKED · LV2</div>
+<div class="ability-meter"><div class="ability-meter-fill" id="ability-dash-fill"></div></div>
+</div>
+<div class="ability-chip locked" id="ability-shield">
+<div class="ability-label">AEGIS</div>
+<div class="ability-state" id="ability-shield-state">LOCKED · LV4</div>
+<div class="ability-meter"><div class="ability-meter-fill" id="ability-shield-fill"></div></div>
+</div>
+<div class="ability-chip locked" id="ability-magnet">
+<div class="ability-label">MAGNET</div>
+<div class="ability-state" id="ability-magnet-state">LOCKED · LV6</div>
+<div class="ability-meter"><div class="ability-meter-fill" id="ability-magnet-fill"></div></div>
+</div>
+<div class="ability-chip locked" id="ability-pulse">
+<div class="ability-label">PULSE</div>
+<div class="ability-state" id="ability-pulse-state">LOCKED · LV8</div>
+<div class="ability-meter"><div class="ability-meter-fill" id="ability-pulse-fill"></div></div>
+</div>
+</div>
+<!-- Health Bar -->
+<div>
+<div class="flex justify-between micro-caps text-gray-400 mb-2">
+<span>Vitality</span>
+<span class="text-emerald-400" id="health-text">100%</span>
+</div>
+<div class="bar-container">
+<div class="bar-fill" id="bar-health" style="width: 100%; background: #10b981; box-shadow: 0 0 15px #10b981;"></div>
+</div>
+</div>
+<!-- Hunger Bar -->
+<div>
+<div class="flex justify-between micro-caps text-gray-400 mb-2">
+<span>Luminescence</span>
+<span class="text-cyan-300" id="hunger-text">100%</span>
+</div>
+<div class="bar-container">
+<div class="bar-fill" id="bar-hunger" style="width: 100%; background: #0ea5e9; box-shadow: 0 0 15px #0ea5e9;"></div>
+</div>
+</div>
+<!-- XP Bar -->
+<div>
+<div class="flex justify-between micro-caps text-purple-400/80 mb-2">
+<span>Evolution Progress</span>
+<span class="text-purple-200" id="xp-text">0%</span>
+</div>
+<div class="bar-container">
+<div class="bar-fill" id="bar-xp" style="width: 0%; background: #a855f7; box-shadow: 0 0 15px #a855f7;"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Evolution text -->
+<h1 class="cinzel text-center" id="evo-text">TRANSCENDENCE</h1>
+<!-- Game Over Screen -->
+<div class="screen-overlay interactive" id="game-over-screen">
+<p class="micro-caps text-red-500 mb-2 tracking-[0.4em]">CRITICAL FAILURE</p>
+<h1 class="text-4xl md:text-6xl text-white mb-8" style="text-shadow: 0 0 30px rgba(255,255,255,0.2);">SPIRIT FADED</h1>
+<div class="premium-glass p-8 mb-12 text-center min-w-[280px] border-t-red-500/30 border-t border-b border-b-red-500/10">
+<div class="mb-6">
+<p class="micro-caps text-gray-500 mb-2">Final Resonance</p>
+<p class="text-5xl text-white font-light tracking-wider" id="final-score">0</p>
+</div>
+<div class="mb-6">
+<p class="micro-caps text-cyan-500/60 mb-1">Peak Resonance (Best)</p>
+<p class="text-2xl text-cyan-400 font-light tracking-widest" id="high-score-display">0</p>
+</div>
+<div>
+<p class="micro-caps text-gray-500 mb-2">Final Form</p>
+<p class="text-2xl text-gradient-gold font-light tracking-wider" id="final-form">AETHEL</p>
+<p class="micro-caps text-gray-500 mt-2">LEVEL <span id="final-level">1</span></p>
+</div>
+</div>
+<button class="btn-premium" onclick="restartGame()"><span>Initiate Rebirth</span></button>
+</div>
+<!-- Start Screen -->
+<div class="screen-overlay active interactive" id="start-screen">
+<div class="text-center mb-12">
+<h1 class="text-6xl md:text-8xl text-white mb-4 tracking-widest cinzel drop-shadow-2xl">AETHEL</h1>
+<div class="flex items-center justify-center gap-4">
+<div class="h-[1px] w-12 bg-cyan-500/30"></div>
+<p class="micro-caps text-cyan-300">Spirit Guardian // Forge Edition</p>
+<div class="h-[1px] w-12 bg-cyan-500/30"></div>
+</div>
+</div>
+<div class="max-w-lg text-center text-gray-400 font-light text-sm md:text-base leading-relaxed mb-12 premium-glass p-8 border-t-cyan-500/20">
+<p class="mb-6">Aethel requires your guidance to survive the void. Forge powers now awaken as the creature evolves.</p>
+<div class="flex flex-col gap-4 text-left">
+<div class="flex items-start gap-3">
+<span class="text-cyan-400 mt-1">✧</span>
+<p><strong class="text-gray-200 font-normal">Guide:</strong> Move your cursor/finger to maneuver Aethel.</p>
+</div>
+<div class="flex items-start gap-3">
+<span class="text-yellow-400 mt-1">✧</span>
+<p><strong class="text-gray-200 font-normal">Nourish:</strong> Consume Star-drops — and rare <span class="text-fuchsia-300">Prismatic Food</span> — to refill luminescence and evolve faster.</p>
+</div>
+<div class="flex items-start gap-3">
+<span class="text-red-400 mt-1">✧</span>
+<p><strong class="text-gray-200 font-normal">Defend:</strong> Tap/Click Void-mites to eradicate them before they drain Aethel's essence.</p>
+</div>
+<div class="flex items-start gap-3">
+<span class="text-violet-300 mt-1">✧</span>
+<p><strong class="text-gray-200 font-normal">Awaken Powers:</strong> Lv2 empty-tap <span class="text-cyan-200">Dash</span>, Lv4 auto <span class="text-cyan-200">Aegis</span>, Lv6 <span class="text-cyan-200">Magnet</span>, Lv8 double-tap <span class="text-cyan-200">Pulse</span>.</p>
+</div>
+</div>
+</div>
+<button class="btn-premium" onclick="startGame()"><span>Awaken</span></button>
+</div>
+
+<script src="core.js"></script>
+<script src="runtime.js"></script></body>
+</html>
