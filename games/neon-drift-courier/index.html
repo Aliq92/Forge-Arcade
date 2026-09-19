@@ -15,11 +15,8 @@ canvas{position:fixed;inset:0;width:100%;height:100%}
 #tt b{font:italic 900 clamp(15px,2.7vw,38px)/1 Impact,'Arial Black',sans-serif;color:#eee;text-shadow:2px 2px 0 #000;white-space:nowrap}
 #tt b span{color:#ff2d9a;text-shadow:0 0 14px rgba(255,45,154,.55)}
 #tt i{font-style:normal;font-size:clamp(6px,.8vw,11px);letter-spacing:.7em;color:#9aa;margin-top:6px}
-#dpad{position:fixed;left:2.6vw;bottom:7vh;z-index:7;display:grid;--d:clamp(40px,5.8vw,66px);grid:repeat(3,var(--d))/repeat(3,var(--d))}
-#dpad i{font-style:normal;display:flex;align-items:center;justify-content:center;color:#aab;font-size:calc(var(--d)*.4);background:linear-gradient(145deg,#2b3034,#0a0c0e);border:2px solid #4a5156;clip-path:polygon(14% 0,86% 0,100% 14%,100% 86%,86% 100%,14% 100%,0 86%,0 14%);opacity:.9}
-#dpad i.on{color:#19e6ff;border-color:#19e6ff;background:#062a30}
-#dpad b{grid-area:2/2;margin:22%;border:2px solid #4a5156;border-radius:50%}
-#dl{position:fixed;left:2.6vw;bottom:2.2vh;width:calc(var(--d,60px)*3);z-index:7;font-size:10px;letter-spacing:.4em;color:#8a9;text-align:center;white-space:nowrap}
+#touchhint{position:fixed;left:18px;bottom:14px;z-index:7;font-size:9px;letter-spacing:.13em;color:#78868b;line-height:1.55;pointer-events:none}
+#touchhint b{color:#19e6ff;font-weight:700}
 #rt{position:fixed;right:78px;bottom:14px;z-index:7;font-size:9px;letter-spacing:.12em;color:#889;text-align:right;line-height:1.5}
 #fs{position:fixed;right:18px;bottom:14px;z-index:8;width:42px;height:42px;border:1px solid #556;background:rgba(0,0,0,.7);color:#dff;font-size:20px;border-radius:4px}
 .ov{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.8);backdrop-filter:blur(3px);text-align:center;padding:16px}
@@ -36,10 +33,9 @@ button.go{margin-top:18px;padding:14px 32px;font:900 20px 'Courier New';letter-s
 <div id="tt"><b>NEON DRIFT: <span>COURIER</span></b><i>FORGE ARCADE</i></div>
 <div class="p r"><div class="big">SPD: <span id="sp">168</span> KPH</div><div class="sl">///</div><div class="sub">FASTER PACKAGES. A BRIGHTER TOMORROW.</div></div>
 </div>
-<div id="dpad"><i data-k="ArrowUp" style="grid-area:1/2">▲</i><i data-k="ArrowLeft" style="grid-area:2/1">◀</i><b></b><i data-k="ArrowRight" style="grid-area:2/3">▶</i><i data-k="ArrowDown" style="grid-area:3/2">▼</i></div>
-<div id="dl">DRIVE ANYWHERE</div>
+<div id="touchhint"><b>LEFT / RIGHT</b> SCREEN TO STEER<br><b>SWIPE UP</b> BOOST // <b>SWIPE DOWN</b> BRAKE</div>
 <div id="rt">ROUTES CHANGE.<br>COURIERS DON'T.</div><button id="fs" aria-label="Fullscreen">⛶</button>
-<div id="menu" class="ov"><div style="font-size:10px;letter-spacing:.5em;color:#778;margin-bottom:14px">FORGE ARCADE // NIGHT ROUTE</div><h1>NEON DRIFT</h1><h1 style="font-size:clamp(28px,5vw,56px)"><span>COURIER</span></h1><p>Deliver the data cubes. Dodge drones and spike barriers. Drive anywhere.<br><br><b style="color:#ffd21a">Arrows / WASD / D-Pad</b></p><button class="go" id="st">Initialize Run</button></div>
+<div id="menu" class="ov"><div style="font-size:10px;letter-spacing:.5em;color:#778;margin-bottom:14px">FORGE ARCADE // NIGHT ROUTE</div><h1>NEON DRIFT</h1><h1 style="font-size:clamp(28px,5vw,56px)"><span>COURIER</span></h1><p>Deliver the data cubes. Dodge drones and spike barriers. Drive anywhere.<br><br><b style="color:#ffd21a">Touch left/right screen to steer · Swipe up to boost · Swipe down to brake</b><br><span style="color:#7d8a90">Desktop: Arrow Keys / WASD</span></p><button class="go" id="st">Initialize Run</button></div>
 <div id="over" class="ov hid"><h1 style="color:#ff3030;text-shadow:0 0 20px red;font-size:clamp(34px,7vw,72px)">CONNECTION LOST</h1><p style="font-size:20px;color:#19e6ff">Total Data Delivered<br><span id="fin" style="font-size:40px;font-weight:900">0</span> TB</p><button class="go" id="rs" style="color:#19e6ff;border-color:#19e6ff;box-shadow:0 0 14px #19e6ff">Reboot System</button></div>
 <script>
 const $=id=>document.getElementById(id),cv=$('c'),x=cv.getContext('2d'),bg=document.createElement('canvas'),b=bg.getContext('2d');
@@ -79,8 +75,28 @@ addEventListener('resize',rs);rs();
 const kn=e=>e.key.length===1?e.key.toLowerCase():e.key;
 addEventListener('keydown',e=>{const k=kn(e);keys[k]=1;if(k.startsWith('Arrow')||k===' ')e.preventDefault();if((k==='Enter'||k===' ')&&st!=='play')start()});
 addEventListener('keyup',e=>keys[kn(e)]=0);
-document.querySelectorAll('#dpad i').forEach(el=>{const k=el.dataset.k,on=e=>{e.preventDefault();keys[k]=1;el.classList.add('on')},of=e=>{keys[k]=0;el.classList.remove('on')};
-el.addEventListener('pointerdown',on);['pointerup','pointerleave','pointercancel'].forEach(n=>el.addEventListener(n,of))});
+let touchId=null,touchX=0,touchY=0,touchSteer=null,touchSwiped=false;
+const clearTouchSteer=()=>{if(touchSteer){keys[touchSteer]=0;touchSteer=null}};
+cv.addEventListener('pointerdown',e=>{
+  if(st!=='play'||touchId!==null)return;
+  touchId=e.pointerId;touchX=e.clientX;touchY=e.clientY;touchSwiped=false;
+  touchSteer=e.clientX<CX?'ArrowLeft':'ArrowRight';keys[touchSteer]=1;
+  try{cv.setPointerCapture(e.pointerId)}catch(_){}
+});
+cv.addEventListener('pointermove',e=>{
+  if(e.pointerId!==touchId||st!=='play')return;
+  const dy=e.clientY-touchY,dx=e.clientX-touchX;
+  if(!touchSwiped&&Math.abs(dy)>42&&Math.abs(dy)>Math.abs(dx)*1.15){
+    touchSwiped=true;clearTouchSteer();
+    if(dy<0)mult=Math.min(3,mult+.28);
+    else mult=Math.max(.55,mult-.32);
+  }else if(!touchSwiped){
+    const next=e.clientX<CX?'ArrowLeft':'ArrowRight';
+    if(next!==touchSteer){clearTouchSteer();touchSteer=next;keys[touchSteer]=1}
+  }
+});
+const endTouch=e=>{if(e.pointerId!==touchId)return;clearTouchSteer();touchId=null;touchSwiped=false};
+cv.addEventListener('pointerup',endTouch);cv.addEventListener('pointercancel',endTouch);cv.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')endTouch(e)});
 function start(){P={lx:0,y:H*.8,vx:0,vy:0,tilt:0,w:40,h:84};ents=[];parts=[];score=0;mult=1;spT=1;cbT=.8;st='play';$('menu').classList.add('hid');$('over').classList.add('hid')}
 function die(){st='over';const cs=['#ff3030','#19e6ff','#ffd21a','#ff2d9a','#b04dff','#fff'],px=CX+P.lx*rh(P.y);for(let i=0;i<130;i++){const a=rnd(0,6.28),v=rnd(3,13);parts.push({x:px,y:P.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-5,l:1,d:rnd(.005,.015),c:cs[i%6],s:rnd(2,5),g:.3})}
 $('fin').textContent=Math.floor(score);setTimeout(()=>$('over').classList.remove('hid'),700)}
