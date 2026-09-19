@@ -444,6 +444,7 @@
             formDisplay.innerText = getEvolutionName(1);
             abilityDisplay.innerText = getAbilitySummary(1);
             prismaticSignal.classList.add('hidden');
+            updateCinematicButton();
             
             animationFrameId = requestAnimationFrame(gameLoop);
         }
