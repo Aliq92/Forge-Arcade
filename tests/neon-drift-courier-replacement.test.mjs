@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 
-const expectedGameSha256 = 'b26a435f70a7ba7b736bfcd3ddeae47f691b9c22c1b83a8f0ca8720314f94d8b';
+const expectedGameSha256 = '982b9bbc5b5cbce6191a4eded90a463fdb98ecf5843f7ca29e6a81b03b96c4ce';
 
 test('Forge Arcade serves the approved Neon Drift: Courier build', async () => {
   const html = await readFile(new URL('../games/neon-drift-courier/index.html', import.meta.url));
@@ -24,4 +24,18 @@ test('the existing Neon Drift: Courier arcade registration remains intact', asyn
   assert.match(registration, /id:\s*['"]neon-drift-courier['"]/);
   assert.match(registration, /title:\s*['"]Neon Drift: Courier['"]/);
   assert.match(launcher, /href="games\/\$\{game\.id\}\/index\.html"/);
+});
+
+test('Neon Drift exposes a bottom-center hold-to-boost control during a run', async () => {
+  const html = await readFile(
+    new URL('../games/neon-drift-courier/index.html', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(html, /<button id="boost"[^>]*>BOOST<\/button>/);
+  assert.match(html, /#boost\{[^}]*position:fixed[^}]*left:50%[^}]*bottom:/s);
+  assert.match(html, /const BOOST_MULTIPLIER=1\.65/);
+  assert.match(html, /boostEl\.addEventListener\('pointerdown',.*?setBoost\(true\)/s);
+  assert.match(html, /const simulationRate=boostActive\?BOOST_MULTIPLIER:1/);
+  assert.match(html, /step\(dt\*simulationRate\)/);
 });
