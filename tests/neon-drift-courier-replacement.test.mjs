@@ -13,11 +13,15 @@ test('Forge Arcade serves the approved Neon Drift: Courier build', async () => {
 });
 
 test('the existing Neon Drift: Courier arcade registration remains intact', async () => {
+  const arcade = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+  const launcher = await readFile(new URL('../app.js', import.meta.url), 'utf8');
   const registration = await readFile(
     new URL('../neon-drift-courier-register.js', import.meta.url),
     'utf8',
   );
 
+  assert.match(arcade, /<script src="neon-drift-courier-register\.js"><\/script>/);
   assert.match(registration, /id:\s*['"]neon-drift-courier['"]/);
   assert.match(registration, /title:\s*['"]Neon Drift: Courier['"]/);
+  assert.match(launcher, /href="games\/\$\{game\.id\}\/index\.html"/);
 });
