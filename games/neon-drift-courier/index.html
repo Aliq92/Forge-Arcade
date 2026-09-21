@@ -22,17 +22,23 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #b .st span:nth-child(even){color:var(--cy);text-align:right}#b .nb{color:var(--lm);font-weight:900;letter-spacing:.2em}
 #go{font:700 18px Orbitron,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--mg);background:rgba(255,43,214,.1);border:2px solid var(--mg);border-radius:10px;padding:16px 30px;cursor:pointer;box-shadow:0 0 14px var(--mg),inset 0 0 12px rgba(255,43,214,.5);text-shadow:0 0 8px var(--mg);transition:background .2s}
 #go:hover,#go:focus-visible{background:rgba(255,43,214,.3);outline:none}
+#boost{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);display:none;transform:translateX(-50%);z-index:3;width:104px;height:58px;border:2px solid var(--mg);border-radius:18px;background:rgba(255,43,214,.12);color:#fff;font:900 14px Orbitron,monospace;letter-spacing:.16em;text-shadow:0 0 9px var(--mg);box-shadow:0 0 16px var(--mg),inset 0 0 14px rgba(255,43,214,.45);touch-action:none;cursor:pointer;opacity:.82}
+#boost.on{display:block}
+#boost.active{transform:translateX(-50%) scale(.94);background:rgba(255,43,214,.38);box-shadow:0 0 28px var(--mg),inset 0 0 20px var(--mg);opacity:1}
+#boost:focus-visible{outline:2px solid #fff;outline-offset:3px}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div id="hud"><div><small>DATA TB</small><b id="sc">0</b></div><div><small>BEST</small><b id="bs">0</b></div></div>
+<button id="boost" type="button" aria-label="Hold to boost">BOOST</button>
 <div id="ov"><h1 id="t"></h1><div id="b"></div><button id="go"></button></div>
 <script>
-const $=i=>document.getElementById(i),cv=$('c'),ctx=cv.getContext('2d'),ov=$('ov'),go=$('go'),scEl=$('sc'),bsEl=$('bs'),hud=$('hud');
+const $=i=>document.getElementById(i),cv=$('c'),ctx=cv.getContext('2d'),ov=$('ov'),go=$('go'),boostEl=$('boost'),scEl=$('sc'),bsEl=$('bs'),hud=$('hud');
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let W,H,L,R,P=null,stars=[],state='MENU',muted=false,now=0,last=0;
 let obs=[],pks=[],fx=[],score=0,t=0,lvl=1,speed=4.2,spawnD=0,gx=0,combo=0,comboT=0,maxCombo=0,grazes=0,shake=0,shield=false,inv=0,hue=190,off=0,banner=0,bannerTxt='',deadT=0,best=0,newBest=false,shown=-1;
+let boostActive=false;const BOOST_MULTIPLIER=1.65;
 try{best=+localStorage.getItem('ndc_best')||0}catch(e){}
 bsEl.textContent=best;
 
@@ -57,11 +63,12 @@ addEventListener('keydown',e=>{
   const k=e.key.toLowerCase();
   if(['arrowleft','arrowright','arrowup','arrowdown',' '].includes(k))e.preventDefault();
   K[k]=true;if(e.repeat)return;
-  if(k==='enter'||k===' ')act();
+  if(k===' '){state==='PLAYING'?setBoost(true):act()}
+  else if(k==='enter')act();
   else if(k==='p'||k==='escape')state==='PLAYING'?pause():state==='PAUSED'&&act();
   else if(k==='m')muted=!muted;
 });
-addEventListener('keyup',e=>K[e.key.toLowerCase()]=false);
+addEventListener('keyup',e=>{const k=e.key.toLowerCase();K[k]=false;if(k===' ')setBoost(false)});
 function side(e){touchDir=e.clientX<W/2?-1:1}
 addEventListener('pointerdown',e=>{if(e.target.closest('button')||state!=='PLAYING')return;down=true;side(e)});
 addEventListener('pointermove',e=>{if(down)side(e)});
@@ -70,6 +77,9 @@ addEventListener('pointerup',up);addEventListener('pointercancel',up);
 addEventListener('blur',()=>{for(const k in K)K[k]=false;up();pause()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pause()});
 go.addEventListener('click',act);
+function setBoost(active){boostActive=active&&state==='PLAYING';boostEl.classList.toggle('active',boostActive)}
+boostEl.addEventListener('pointerdown',e=>{e.preventDefault();setBoost(true)});
+for(const type of['pointerup','pointercancel','pointerleave'])boostEl.addEventListener(type,e=>{e.preventDefault();setBoost(false)});
 addEventListener('contextmenu',e=>e.preventDefault());
 
 /* ---------- flow ---------- */
@@ -80,18 +90,18 @@ function showDead(){
 }
 function act(){
   if(state==='PLAYING'||(state==='DEAD'&&deadT<.9))return;
-  if(state==='PAUSED'){state='PLAYING';ov.classList.remove('on');go.blur();return}
+  if(state==='PAUSED'){state='PLAYING';ov.classList.remove('on');boostEl.classList.add('on');go.blur();return}
   start();
 }
-function pause(){if(state==='PLAYING'){up();state='PAUSED';show('PAUSED','var(--am)','<p class="k">Tap or press P / Space to resume</p>','Resume')}}
+function pause(){if(state==='PLAYING'){up();setBoost(false);boostEl.classList.remove('on');state='PAUSED';show('PAUSED','var(--am)','<p class="k">Tap or press P / Space to resume</p>','Resume')}}
 function start(){
   P={x:(L+R)/2,y:H-Math.max(110,H*.18),w:30,h:50,vx:0,tilt:0};
   obs=[];pks=[];fx=[];score=0;t=0;lvl=1;speed=4.2;spawnD=120;gx=(L+R)/2;combo=0;comboT=0;maxCombo=0;grazes=0;shield=false;inv=0;shake=0;newBest=false;deadT=0;
-  banner=1.6;bannerTxt='SECTOR 1';state='PLAYING';ov.classList.remove('on');go.blur();hud.style.display='flex';bsEl.textContent=best;
+  banner=1.6;bannerTxt='SECTOR 1';state='PLAYING';setBoost(false);ov.classList.remove('on');boostEl.classList.add('on');go.blur();hud.style.display='flex';bsEl.textContent=best;
   sfx(300,.25,'square',.05,500);
 }
 function die(){
-  state='DEAD';deadT=0;P.dead=true;boom(P.x,P.y,'#39ff14',45);boom(P.x,P.y,'#ffffff',20);shake=26;sfx(110,.7,'sawtooth',.12,-80);
+  setBoost(false);boostEl.classList.remove('on');state='DEAD';deadT=0;P.dead=true;boom(P.x,P.y,'#39ff14',45);boom(P.x,P.y,'#ffffff',20);shake=26;sfx(110,.7,'sawtooth',.12,-80);
   newBest=Math.floor(score)>best;if(newBest){best=Math.floor(score);try{localStorage.setItem('ndc_best',best)}catch(e){}}
   bsEl.textContent=best;hud.style.display='none';
 }
@@ -246,7 +256,7 @@ function draw(sv){
       ctx.fillText(bannerTxt,W/2,H*.32);ctx.globalAlpha=1;ctx.shadowBlur=0;
     }
     ctx.fillStyle='rgba(255,255,255,.45)';ctx.font='500 11px Orbitron,monospace';ctx.textAlign='left';
-    ctx.fillText('SECTOR '+lvl+' · '+Math.floor(speed*20)+' KPH',12,H-12-(W<=768?4:0));
+    ctx.fillText('SECTOR '+lvl+' · '+Math.floor(speed*(boostActive?BOOST_MULTIPLIER:1)*20)+' KPH',12,H-12-(W<=768?4:0));
   }
 }
 
@@ -254,10 +264,11 @@ function draw(sv){
 function loop(ts){
   requestAnimationFrame(loop);
   const dt=Math.min((ts-last)/1000||0,.05);last=ts;now=ts;const k=dt*60;
-  if(state==='PLAYING')step(dt);
+  const simulationRate=boostActive?BOOST_MULTIPLIER:1;
+  if(state==='PLAYING')step(dt*simulationRate);
   else if(state==='DEAD'){deadT+=dt;stepFx(dt*.5);if(deadT>.9&&!ov.classList.contains('on'))showDead()}
   else if(state==='MENU')stepFx(dt);
-  const sv=state==='PLAYING'?speed:state==='MENU'?2.6:state==='DEAD'?speed*Math.max(0,1-deadT*1.5):0;
+  const sv=state==='PLAYING'?speed*simulationRate:state==='MENU'?2.6:state==='DEAD'?speed*Math.max(0,1-deadT*1.5):0;
   off+=sv*k;hue+=((190+lvl*40)-hue)*.02*Math.min(k,2);
   shake=Math.max(0,shake-k*.9);if(banner>0)banner-=dt;
   for(const s of stars){s.y+=sv*s.d*.75*k;if(s.y>H+12){s.y=-12;s.x=Math.random()*W}}
