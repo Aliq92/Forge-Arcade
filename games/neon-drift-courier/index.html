@@ -220,11 +220,37 @@ function drawPk(p){
 function drawShip(){
   ctx.save();ctx.translate(P.x,P.y);ctx.rotate(P.tilt);
   if(inv>0&&Math.floor(now/70)%2)ctx.globalAlpha=.4;
-  const w=P.w,h=P.h,c='#39ff14';
-  ctx.shadowBlur=15;ctx.shadowColor=c;ctx.fillStyle='#07150b';ctx.strokeStyle=c;ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(0,-h/2);ctx.lineTo(w/3.5,h/8);ctx.lineTo(w/6,h/2);ctx.lineTo(-w/6,h/2);ctx.lineTo(-w/3.5,h/8);ctx.closePath();ctx.fill();ctx.stroke();
-  for(const s of[-1,1]){ctx.beginPath();ctx.rect(s<0?-w/2:w/2-w/5,-h/4,w/5,h*.75);ctx.fill();ctx.stroke()}
-  ctx.beginPath();ctx.arc(0,0,4,0,7);ctx.fillStyle='#d8ffd0';ctx.fill();
+  const w=P.w,h=P.h,cy='#00f0ff',mg='#ff2bd6';
+  ctx.lineJoin='round';ctx.lineCap='round';ctx.lineWidth=1.6;
+
+  // Swept courier wings: the visual silhouette stays inside the original 30x50 body.
+  ctx.shadowBlur=15;ctx.shadowColor=cy;ctx.strokeStyle=cy;ctx.fillStyle='#061426';
+  for(const s of[-1,1]){
+    ctx.beginPath();ctx.moveTo(s*2,-h*.28);ctx.lineTo(s*w*.5,h*.12);ctx.lineTo(s*w*.42,h*.43);ctx.lineTo(s*w*.17,h*.25);ctx.lineTo(s*w*.12,-h*.08);ctx.closePath();ctx.fill();ctx.stroke();
+  }
+
+  // Twin armored engine pods.
+  ctx.shadowBlur=10;ctx.fillStyle='#08101f';
+  for(const s of[-1,1]){
+    ctx.beginPath();ctx.moveTo(s*w*.48,h*.08);ctx.lineTo(s*w*.43,h*.46);ctx.lineTo(s*w*.25,h*.47);ctx.lineTo(s*w*.28,h*.13);ctx.closePath();ctx.fill();ctx.stroke();
+  }
+
+  // Central armored hull and needle nose.
+  ctx.shadowBlur=18;ctx.fillStyle='#071728';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(0,-h*.5);ctx.lineTo(w*.2,-h*.18);ctx.lineTo(w*.18,h*.32);ctx.lineTo(0,h*.48);ctx.lineTo(-w*.18,h*.32);ctx.lineTo(-w*.2,-h*.18);ctx.closePath();ctx.fill();ctx.stroke();
+
+  // Magenta energy spine doubles as the courier cargo core.
+  ctx.shadowColor=mg;ctx.strokeStyle=mg;ctx.fillStyle='rgba(255,43,214,.25)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(0,-h*.28);ctx.lineTo(w*.09,h*.1);ctx.lineTo(0,h*.32);ctx.lineTo(-w*.09,h*.1);ctx.closePath();ctx.fill();ctx.stroke();
+
+  // Bright cockpit canopy.
+  ctx.shadowColor=cy;ctx.shadowBlur=12;ctx.fillStyle='#d9fbff';ctx.strokeStyle=cy;
+  ctx.beginPath();ctx.ellipse(0,-h*.18,w*.09,h*.11,0,0,7);ctx.fill();ctx.stroke();
+
+  // Paired engine apertures keep the thrust direction readable at speed.
+  for(const s of[-1,1]){
+    ctx.shadowColor=mg;ctx.fillStyle=mg;ctx.beginPath();ctx.arc(s*w*.34,h*.39,2.2,0,7);ctx.fill();
+  }
   if(shield){ctx.strokeStyle=ctx.shadowColor='#00f0ff';ctx.lineWidth=2+Math.sin(now/90);ctx.beginPath();ctx.arc(0,0,34,0,7);ctx.stroke()}
   ctx.restore();
 }
