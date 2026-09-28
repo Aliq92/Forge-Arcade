@@ -997,4 +997,367 @@
                 ctx.moveTo(startPos.x, startPos.y);
                 
                 // Organic bending for tension
-                const midX = (startPos.x + endX) / 2;
+                const midX = (startPos.x + endX) / 2;                const midY = (startPos.y + endY) / 2 + (Math.sin(time*0.01) * 10);
+                ctx.quadraticCurveTo(midX, midY, endX, endY);
+                
+                // Base color off the starting node's region
+                const dragColor = CONFIG.regionColors[input.startNode.region].main;
+                ctx.strokeStyle = dragColor + (input.hoverNode ? '0.9)' : '0.4)');
+                
+                ctx.lineWidth = 2.5;
+                if (!input.hoverNode) ctx.setLineDash([6, 6]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+            ctx.globalCompositeOperation = 'source-over';
+        }
+
+        function drawNodes(time) {
+            nodes.forEach(node => {
+                const rColor = CONFIG.regionColors[node.region];
+                
+                if (node.state === 'dormant') {
+                    if (state.unlockedRegions.includes(node.region) && node.type !== 'hidden') {
+                        const pos = toScreen(node.x, node.y);
+                        ctx.fillStyle = rColor.main + '0.15)';
+                        ctx.beginPath();
+                        ctx.arc(pos.x, pos.y, CONFIG.nodeRadius * 0.5, 0, Math.PI*2);
+                        ctx.fill();
+                    }
+                    return;
+                }
+
+                const pos = toScreen(node.x, node.y);
+                let coreColor = '#FFFFFF';
+                let outerColor = rColor.main;
+                let radius = CONFIG.nodeRadius;
+                let glowMult = 1.2;
+
+                if (node.state === 'available') {
+                    outerColor = rColor.main + '0.6)';
+                    coreColor = rColor.main + '0.8)';
+                } else if (node.state === 'connected') {
+                    outerColor = rColor.main + '0.9)';
+                    radius *= 1.2;
+                } else if (node.state === 'mystery') {
+                    outerColor = rColor.main + '1)';
+                    coreColor = '#FFD700'; // Gold core for mystery
+                    radius *= 1.5;
+                    glowMult = 1.8 + Math.sin(time * 0.005 + node.animPhase) * 0.7; // Fast pulsing
+                } else if (node.state === 'completed') {
+                    outerColor = rColor.main + '1)';
+                    coreColor = '#FFFFFF';
+                    radius *= 1.3;
+                    glowMult = 1.5;
+                }
+
+                // Hover visual enlargement
+                if (input.hoverNode && input.hoverNode.id === node.id) {
+                    radius *= 1.5;
+                    glowMult *= 1.8;
+                    outerColor = rColor.main + '1)';
+                }
+
+                ctx.globalCompositeOperation = 'lighter';
+                
+                // Smooth Radial Glow
+                const grad = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, radius * 4 * glowMult);
+                grad.addColorStop(0, outerColor.includes(')') ? outerColor : outerColor + '0.8)');
+                grad.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, radius * 4 * glowMult, 0, Math.PI*2);
+                ctx.fill();
+
+                // Solid Core
+                ctx.fillStyle = coreColor;
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, radius, 0, Math.PI*2);
+                ctx.fill();
+                
+                ctx.globalCompositeOperation = 'source-over';
+            });
+        }
+
+        function drawParticles() {
+            ctx.globalCompositeOperation = 'lighter';
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= p.decay;
+                
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1.0;
+            ctx.globalCompositeOperation = 'source-over';
+        }
+
+        function drawHint(time) {
+            if (!currentHintEdge) return;
+            const posA = toScreen(currentHintEdge.a.x, currentHintEdge.a.y);
+            const posB = toScreen(currentHintEdge.b.x, currentHintEdge.b.y);
+            
+            const color = CONFIG.regionColors[currentHintEdge.b.region].main;
+            const opacity = Math.abs(Math.sin(time * 0.0015)) * 0.4 + 0.1;
+            
+            ctx.globalCompositeOperation = 'lighter';
+            
+            // Draw flowing dashed line
+            ctx.beginPath();
+            ctx.moveTo(posA.x, posA.y);
+            ctx.lineTo(posB.x, posB.y);
+            ctx.setLineDash([6, 12]);
+            ctx.lineDashOffset = -time * 0.02;
+            ctx.strokeStyle = color + opacity + ')';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Draw pulsing halos on hint nodes
+            const radiusPulse = Math.sin(time * 0.003) * 4;
+            ctx.fillStyle = color + (opacity * 0.4) + ')';
+            ctx.beginPath();
+            ctx.arc(posA.x, posA.y, CONFIG.nodeRadius * 2.5 + radiusPulse, 0, Math.PI*2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(posB.x, posB.y, CONFIG.nodeRadius * 2.5 + radiusPulse, 0, Math.PI*2);
+            ctx.fill();
+            
+            ctx.globalCompositeOperation = 'source-over';
+        }
+
+        function gameLoop(time) {
+            // Check hint logic
+            if (!lastActionTime) lastActionTime = time;
+            if (time - lastActionTime > 12000 && !input.isDragging) {
+                if (!currentHintEdge) currentHintEdge = findHintEdge();
+            } else {
+                currentHintEdge = null;
+            }
+
+            drawBackground(time);
+            drawThreads(time);
+            drawHint(time);
+            drawNodes(time);
+            drawParticles();
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- UI & STATE MANAGEMENT ---
+        function getSaveKey() {
+            return currentMode === 'journey' ? 'threadlight_save' : 'threadlight_daily_' + dailyDateKey;
+        }
+
+        function loadState() {
+            // Reset state to defaults before loading
+            state = {
+                unlockedRegions: [0],
+                completedRegions: [],
+                connections: [],
+                discoveredMystery: [],
+                soundEnabled: state.soundEnabled !== undefined ? state.soundEnabled : true,
+                shapesFound: 0,
+                hasMadeFirstConnection: false,
+                history: []
+            };
+
+            try {
+                const saved = localStorage.getItem(getSaveKey());
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    // Merge safe properties
+                    state.unlockedRegions = parsed.unlockedRegions || [0];
+                    state.completedRegions = parsed.completedRegions || [];
+                    state.connections = parsed.connections || [];
+                    state.discoveredMystery = parsed.discoveredMystery || [];
+                    state.soundEnabled = parsed.soundEnabled !== undefined ? parsed.soundEnabled : true;
+                    state.shapesFound = parsed.shapesFound || 0;
+                    state.hasMadeFirstConnection = parsed.hasMadeFirstConnection || false;
+                }
+            } catch (e) {
+                console.error("Could not load save:", e);
+            }
+            
+            // Choose node layout based on mode
+            if (currentMode === 'journey') {
+                nodes = JSON.parse(JSON.stringify(RAW_NODES));
+                document.getElementById('sub-title').innerText = "WEAVE THE SKY";
+            } else {
+                nodes = generateDailyNodes(dailyDateKey);
+                document.getElementById('sub-title').innerText = "DAILY TAPESTRY";
+            }
+            
+            // Re-apply mystery reveals on load
+            state.discoveredMystery.forEach(id => checkSpecialNodes(id));
+            
+            updateNodeStates();
+            updateUI();
+            
+            if (state.hasMadeFirstConnection) {
+                document.getElementById('title-container').style.display = 'none';
+                document.getElementById('title-container').style.opacity = '0';
+            } else {
+                document.getElementById('title-container').style.display = 'block';
+                void document.getElementById('title-container').offsetWidth; // Trigger reflow
+                document.getElementById('title-container').style.opacity = '1';
+            }
+            
+            // Set initial background state based on progress
+            targetBgHaze = Math.min(1.0, state.completedRegions.length * 0.33);
+            currentBgHaze = targetBgHaze; // Snap on load
+        }
+
+        function saveState() {
+            const toSave = {
+                unlockedRegions: state.unlockedRegions,
+                completedRegions: state.completedRegions,
+                connections: state.connections,
+                discoveredMystery: state.discoveredMystery,
+                soundEnabled: state.soundEnabled,
+                shapesFound: state.shapesFound,
+                hasMadeFirstConnection: state.hasMadeFirstConnection
+            };
+            localStorage.setItem(getSaveKey(), JSON.stringify(toSave));
+            localStorage.setItem('threadlight_mode', currentMode);
+            updateUI();
+        }
+
+        function resetRegion() {
+            resetInteraction();
+            // Find highest unlocked region
+            const currentRegionId = Math.max(...state.unlockedRegions);
+            
+            saveHistory();
+            
+            // Remove connections where either node is in the current region
+            state.connections = state.connections.filter(c => {
+                const nA = nodes.find(n => n.id === c.a);
+                const nB = nodes.find(n => n.id === c.b);
+                return nA.region !== currentRegionId && nB.region !== currentRegionId;
+            });
+            
+            updateNodeStates();
+            saveState();
+            closeModal();
+            
+            // Visual burst on reset
+            const center = toScreen(0.5, 0.5);
+            spawnParticles(0.5, 0.5, 30, 'rgba(255,100,100,0.5)', 3);
+            if(audioCtx) playSound('disconnect', 0.5);
+        }
+
+        // Custom Modal Logic
+        const modal = document.getElementById('modal-overlay');
+        const modalText = document.getElementById('modal-text');
+        const btnConfirm = document.getElementById('modal-btn-confirm');
+        const btnCancel = document.getElementById('modal-btn-cancel');
+        let modalConfirmAction = null;
+
+        function showModal(text, action) {
+            modalText.innerText = text;
+            modalConfirmAction = action;
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+            modalConfirmAction = null;
+        }
+
+        btnCancel.addEventListener('click', closeModal);
+        btnConfirm.addEventListener('click', () => {
+            if (modalConfirmAction) modalConfirmAction();
+        });
+
+        // UI Bindings
+        document.getElementById('btn-sound').addEventListener('click', () => {
+            resetInteraction();
+            state.soundEnabled = !state.soundEnabled;
+            updateUI();
+            updateAudioVolume();
+            saveState();
+            initAudio(); // Initialize on explicit interaction if not already
+        });
+
+        document.getElementById('btn-mode').addEventListener('click', () => {
+            resetInteraction();
+            saveState();
+            currentMode = currentMode === 'journey' ? 'daily' : 'journey';
+            dailyDateKey = new Date().toDateString();
+            localStorage.setItem('threadlight_mode', currentMode);
+            
+            // Visual transition burst
+            spawnParticles(0.5, 0.5, 40, 'rgba(255,255,255,0.8)', 4);
+            if (audioCtx) playSound('restore');
+            
+            // Brief pause before reloading nodes for effect
+            setTimeout(() => {
+                loadState();
+            }, 200);
+        });
+
+        document.getElementById('btn-undo').addEventListener('click', undo);
+        document.getElementById('btn-hint').addEventListener('click', () => {
+            resetInteraction();
+            currentHintEdge = findHintEdge();
+            if (currentHintEdge) lastActionTime = performance.now() - 12001;
+        });
+        document.getElementById('btn-help').addEventListener('click', () => {
+            showModal('Drag between glowing stars to weave threads. Close triangles and build a star with four connections to unlock new regions. The mystery star reveals hidden paths. Journey and Daily save separately on this device.', closeModal);
+        });
+
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            showModal("Reset all connections in the current region?", resetRegion);
+        });
+
+        let uiHidden = false;
+        document.getElementById('btn-hide-ui').addEventListener('click', () => {
+            uiHidden = !uiHidden;
+            const elements = document.querySelectorAll('.togglable-ui');
+            elements.forEach(el => el.classList.toggle('hidden-ui', uiHidden));
+            document.getElementById('btn-hide-ui').innerText = uiHidden ? "Show UI" : "Hide UI";
+        });
+
+        function updateUI() {
+            document.getElementById('btn-sound').innerText = `Sound: ${state.soundEnabled ? 'ON' : 'OFF'}`;
+            
+            const modeBtn = document.getElementById('btn-mode');
+            modeBtn.innerText = currentMode === 'journey' ? 'Mode: Journey' : 'Mode: Daily';
+            if (currentMode === 'daily') {
+                modeBtn.classList.add('text-yellow-200', 'border-yellow-500/30');
+                modeBtn.classList.remove('text-cyan-200', 'border-cyan-500/30');
+            } else {
+                modeBtn.classList.add('text-cyan-200', 'border-cyan-500/30');
+                modeBtn.classList.remove('text-yellow-200', 'border-yellow-500/30');
+            }
+
+            document.getElementById('btn-undo').disabled = state.history.length === 0;
+            const activeRegion = REGIONS[Math.min(3, Math.max(...state.unlockedRegions))];
+            document.getElementById('forge-status').textContent = `${currentMode === 'daily' ? 'DAILY' : 'JOURNEY'} · ${activeRegion.name} · ${state.unlockedRegions.length}/4 regions open · ${state.connections.length} threads`;
+        }
+
+        // Init
+        window.addEventListener('resize', resize);
+        
+        // Start Game
+        window.onload = function() {
+            resize();
+            loadState();
+            lastActionTime = performance.now();
+            requestAnimationFrame(gameLoop);
+        };
+
+    </script>
+</body>
+</html>
