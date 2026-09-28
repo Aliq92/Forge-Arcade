@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>THREADLIGHT</title>
+    <style>
+        :root {
+            --bg-color: #030305;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            touch-action: none; /* Prevent browser scrolling/bouncing on mobile */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none; /* Let clicks pass through to canvas by default */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .ui-element {
+            pointer-events: auto; /* Enable clicks on specific UI parts */
+        }
+        .btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+        .ui-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .hidden-ui {
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+        #title-container {
+            text-align: center;
+            width: 100%;
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            transition: opacity 2s ease;
+        }
+        #main-title {
+            font-size: 32px;
+            font-weight: 300;
+            letter-spacing: 8px;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 0 20px rgba(200, 230, 255, 0.5);
+            margin-bottom: 8px;
+        }
+        #sub-title {
+            font-size: 14px;
+            letter-spacing: 4px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        /* Custom modal for resets instead of alert() */
+        #modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            pointer-events: auto;
+        }
+        #modal-box {
+            background: #0d0d12;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            max-width: 300px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        /* Forge Arcade shell: keep the sky open and place controls at the edges. */
+        :root { --forge: #ef9a48; --forge-border: rgba(239,154,72,.37); }
+        #ui-layer { padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
+        .ui-row { display:flex; align-items:center; gap:8px; }
+        .justify-between { justify-content:space-between; }
+        .justify-center { justify-content:center; }
+        .w-full { width:100%; }
+        .btn { min-height:44px; padding:9px 12px; border-radius:9px; background:rgba(12,13,17,.88); border-color:var(--forge-border); color:#f5e8d6; font-size:11px; letter-spacing:.07em; backdrop-filter:blur(10px); }
+        .btn:hover,.btn:focus-visible { border-color:var(--forge); color:white; background:rgba(58,38,27,.93); }
+        .btn:focus-visible { outline:2px solid var(--forge); outline-offset:2px; }
+        .btn:disabled { opacity:.43; cursor:not-allowed; }
+        .forge-top { align-items:flex-start; gap:8px; }
+        .forge-brand { pointer-events:none; display:flex; flex-direction:column; gap:2px; background:rgba(8,9,13,.78); border-left:3px solid var(--forge); padding:8px 11px; color:#f2dcc5; text-shadow:0 1px 7px #000; }
+        .forge-brand span { font-size:10px; font-weight:800; letter-spacing:.19em; color:var(--forge); }
+        .forge-brand strong { font-size:13px; letter-spacing:.09em; }
+        .forge-tools { display:flex; gap:7px; flex-wrap:wrap; justify-content:flex-end; max-width:62%; }
+        .forge-bottom { display:flex; flex-direction:column; align-items:center; gap:7px; }
+        .forge-status { max-width:calc(100vw - 28px); padding:7px 12px; border:1px solid var(--forge-border); border-radius:8px; color:#f5e8d6; background:rgba(7,9,14,.82); font-size:11px; letter-spacing:.04em; text-align:center; }
+        .forge-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:7px; }
+        #main-title { color:#fff0db; text-shadow:0 0 24px rgba(239,154,72,.42); }
+        #modal-box { width:min(320px,calc(100vw - 48px)); background:#101116; border-color:var(--forge-border); }
+        #modal-box p { color:#f8e9d5; margin:0 0 20px; line-height:1.5; font-size:14px; }
+        #modal-box .ui-row { justify-content:center; }
+        @media(max-width:600px) {
+            .forge-top { flex-direction:column; }
+            .forge-brand { padding:5px 9px; }
+            .forge-brand strong { font-size:11px; }
+            .forge-tools { justify-content:flex-start; max-width:100%; }
+            .forge-tools .btn { min-height:40px; padding:7px 9px; font-size:10px; }
+            .forge-actions .btn { min-height:44px; padding:8px 11px; }
+            #title-container { top:30%; }
+            #main-title { font-size:clamp(21px,6vw,32px); letter-spacing:5px; }
+        }
+        @media(max-height:620px) { .forge-brand strong { display:none; } .forge-status { padding:5px 9px; } }
+        @media(prefers-reduced-motion:reduce) { .btn,#title-container { transition:none; } }
+    </style>
+</head>
+<body>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="title-container">
+        <div id="main-title">THREADLIGHT</div>
+        <div id="sub-title">WEAVE THE SKY</div>
+    </div>
+
+    <div id="ui-layer">
+        <div class="ui-row justify-between w-full forge-top">
+            <div class="forge-brand"><span>FORGE ARCADE / 01</span><strong>THREADLIGHT</strong></div>
+            <div class="forge-tools togglable-ui">
+                <button id="btn-sound" class="btn ui-element">Sound: ON</button>
+                <button id="btn-mode" class="btn ui-element">Mode: Journey</button>
+                <button id="btn-help" class="btn ui-element">How to play</button>
+            </div>
+            <button id="btn-hide-ui" class="btn ui-element">Hide UI</button>
+        </div>
+        
+        <div class="forge-bottom togglable-ui">
+            <div id="forge-status" class="forge-status" role="status" aria-live="polite"></div>
+            <div class="forge-actions">
+                <button id="btn-hint" class="btn ui-element">Hint</button>
+                <button id="btn-undo" class="btn ui-element">Undo Last</button>
+                <button id="btn-reset" class="btn ui-element">Reset Region</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Modal -->
+    <div id="modal-overlay">
+        <div id="modal-box">
+            <p id="modal-text"></p>
+            <div class="ui-row">
+                <button id="modal-btn-cancel" class="btn text-gray-400">Cancel</button>
+                <button id="modal-btn-confirm" class="btn bg-white/10 text-white">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d', { alpha: false }); // Optimize for no transparency on base canvas
+        
+        // --- CONFIGURATION ---
+        const CONFIG = {
+            snapRadius: 40, // How close pointer needs to be to snap to a node
+            nodeRadius: 4,
+            baseGlow: 15,
+            colors: {
+                bgStart: { r: 3, g: 3, b: 8 },
+                bgEnd: { r: 8, g: 12, b: 25 }, // Deeper space blue
+                threadGlow: 'rgba(150, 200, 255, 0.2)'
+            },
+            regionColors: [
+                { main: 'rgba(0, 230, 255, ', glow: 'rgba(0, 150, 255, ' },    // 0: Cyan
+                { main: 'rgba(255, 200, 50, ', glow: 'rgba(255, 120, 0, ' },     // 1: Gold
+                { main: 'rgba(220, 50, 255, ', glow: 'rgba(150, 0, 255, ' },     // 2: Magenta
+                { main: 'rgba(50, 255, 150, ', glow: 'rgba(0, 200, 100, ' }      // 3: Emerald
+            ],
+            particleCap: 150,
+            reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        };
+
+        // --- GAME STATE ---
+        let currentMode = localStorage.getItem('threadlight_mode') || 'journey';
+        let dailyDateKey = new Date().toDateString();
+
+        let state = {
+            unlockedRegions: [0], // IDs of accessible regions
+            completedRegions: [],
+            connections: [], // Array of {a: id, b: id}
+            discoveredMystery: [],
+            soundEnabled: true,
+            shapesFound: 0,
+            hasMadeFirstConnection: false,
+            history: [] // Stack of connection states for undo
+        };
+
+        // --- CAMERA & SCALING ---
+        let scale = 1;
+        let offsetX = 0;
+        let offsetY = 0;
+        let targetBgHaze = 0; // 0 to 1, increases as regions complete
+        let currentBgHaze = 0;
+
+        // --- ENTITIES ---
+        // Coordinates are normalized 0.0 to 1.0 representing the entire game map
+        const REGIONS = [
+            { id: 0, name: "The Void", condition: "triangle" },
+            { id: 1, name: "Constellation Field", condition: "star" },
+            { id: 2, name: "Nebula Weave", condition: "mystery" },
+            { id: 3, name: "Celestial Garden", condition: "complex" }
+        ];
+
+        const RAW_NODES = [
+            // REGION 0: Center (The Void) - Introduces Triangle
+            { id: 0, region: 0, x: 0.5, y: 0.45, type: 'normal' },
+            { id: 1, region: 0, x: 0.43, y: 0.55, type: 'normal' },
+            { id: 2, region: 0, x: 0.57, y: 0.55, type: 'normal' },
+            
+            // REGION 1: Top Right (Constellation) - Introduces Star
+            { id: 3, region: 1, x: 0.75, y: 0.25, type: 'normal' },
+            { id: 4, region: 1, x: 0.75, y: 0.15, type: 'normal' },
+            { id: 5, region: 1, x: 0.65, y: 0.25, type: 'normal' },
+            { id: 6, region: 1, x: 0.85, y: 0.25, type: 'normal' },
+            { id: 7, region: 1, x: 0.75, y: 0.35, type: 'normal' },
+            { id: 8, region: 1, x: 0.60, y: 0.15, type: 'normal' }, // Bonus
+
+            // REGION 2: Bottom Left (Nebula) - Introduces Mystery
+            { id: 9, region: 2, x: 0.25, y: 0.75, type: 'normal' },
+            { id: 10, region: 2, x: 0.35, y: 0.75, type: 'normal' },
+            { id: 11, region: 2, x: 0.30, y: 0.65, type: 'mystery', mysteryEffect: 'reveal' },
+            { id: 12, region: 2, x: 0.20, y: 0.65, type: 'hidden' }, // Revealed by mystery
+            { id: 13, region: 2, x: 0.40, y: 0.65, type: 'hidden' }, // Revealed by mystery
+            { id: 14, region: 2, x: 0.30, y: 0.85, type: 'normal' },
+
+            // REGION 3: Top Left (Garden) - Complex symmetry
+            { id: 15, region: 3, x: 0.2, y: 0.2, type: 'normal' },
+            { id: 16, region: 3, x: 0.3, y: 0.2, type: 'normal' },
+            { id: 17, region: 3, x: 0.25, y: 0.12, type: 'normal' },
+            { id: 18, region: 3, x: 0.25, y: 0.28, type: 'normal' },
+            { id: 19, region: 3, x: 0.15, y: 0.28, type: 'normal' },
+            { id: 20, region: 3, x: 0.35, y: 0.28, type: 'normal' }
+        ];
+
+        // --- PROCEDURAL GENERATION (DAILY TAPESTRY) ---
+        function hashStr(str) {
+            let h = 0;
+            for(let i=0; i<str.length; i++) h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+            return h;
+        }
+
+        // Seeded random number generator
+        function mulberry32(a) {
+            return function() {
+              var t = a += 0x6D2B79F5;
+              t = Math.imul(t ^ t >>> 15, t | 1);
+              t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+              return ((t ^ t >>> 14) >>> 0) / 4294967296;
+            }
+        }
+
+        function generateDailyNodes(seedStr) {
+            const rng = mulberry32(hashStr(seedStr));
+            let newNodes = [];
+            let idCounter = 0;
+
+            const placeCluster = (r, cx, cy, count, radius) => {
+                for(let i=0; i<count; i++) {
+                    let angle = (i / count) * Math.PI * 2 + (rng() * Math.PI);
+                    let dist = radius * (0.3 + rng() * 0.7);
+                    // clamp inside screen boundaries
+                    let nx = Math.max(0.15, Math.min(0.85, cx + Math.cos(angle) * dist));
+                    let ny = Math.max(0.15, Math.min(0.85, cy + Math.sin(angle) * dist));
+                    newNodes.push({ id: idCounter++, region: r, x: nx, y: ny, type: 'normal' });
+                }
+            };
+
+            // Region 0: Center Void
+            placeCluster(0, 0.5, 0.5, 3 + Math.floor(rng()*2), 0.12);
+            // Region 1: Constellation (Top Right)
+            placeCluster(1, 0.75, 0.25, 4 + Math.floor(rng()*3), 0.18);
+            // Region 2: Nebula Weave (Bottom Left)
+            placeCluster(2, 0.25, 0.75, 4 + Math.floor(rng()*3), 0.18);
+            // Region 3: Celestial Garden (Top Left)
+            placeCluster(3, 0.25, 0.25, 5 + Math.floor(rng()*2), 0.15);
+
+            // Plant special daily mystery nodes
+            let r2Nodes = newNodes.filter(n => n.region === 2);
+            if(r2Nodes.length >= 2) {
+                r2Nodes[0].type = 'mystery';
+                r2Nodes[0].mysteryEffect = 'reveal';
+                r2Nodes[1].type = 'hidden';
+                r2Nodes[1].x = r2Nodes[0].x + (rng() * 0.08 - 0.04);
+                r2Nodes[1].y = r2Nodes[0].y + (rng() * 0.08 - 0.04);
+            }
+
+            return newNodes;
+        }
+
+        let nodes = [];
+        let particles = [];
+        let backgroundStars = [];
+
+        // Input state
+        let input = {
+            isDragging: false,
+            startNode: null,
+            currentX: 0,
+            currentY: 0,
+            hoverNode: null,
+            activePointerId: null
+        };
+
+        // --- HINT SYSTEM ---
+        let lastActionTime = 0;
+        let currentHintEdge = null;
+        
+        function resetInteraction() {
+            lastActionTime = performance.now();
+            currentHintEdge = null;
+        }
+
+        function findHintEdge() {
+            const activeNodes = nodes.filter(n => n.state !== 'dormant' && n.type !== 'hidden');
+            if (activeNodes.length < 2) return null;
+
+            // 1. Reveal mystery node
+            const mysteryNode = activeNodes.find(n => n.type === 'mystery' && !state.discoveredMystery.includes(n.id));
+            if (mysteryNode) {
+                let target = activeNodes.find(n => n.id !== mysteryNode.id && getNeighbors(n.id).length > 0);
+                if (!target) target = activeNodes.find(n => n.id !== mysteryNode.id);
+                if (target) return { a: mysteryNode, b: target };
+            }
+
+            // 2. Complete a triangle
+            for (let i = 0; i < activeNodes.length; i++) {
+                for (let j = i + 1; j < activeNodes.length; j++) {
+                    let nA = activeNodes[i];
+                    let nB = activeNodes[j];
+                    if (!areConnected(nA.id, nB.id)) {
+                        let neighborsA = getNeighbors(nA.id);
+                        let neighborsB = getNeighbors(nB.id);
+                        if (neighborsA.some(id => neighborsB.includes(id))) {
+                            return { a: nA, b: nB }; 
+                        }
+                    }
+                }
+            }
+
+            // 3. Complete a star (3 edges -> 4)
+            const almostStar = activeNodes.find(n => getNeighbors(n.id).length === 3);
+            if (almostStar) {
+                const neighborIds = getNeighbors(almostStar.id);
+                const target = activeNodes.find(n => n.id !== almostStar.id && !neighborIds.includes(n.id));
+                if (target) return { a: almostStar, b: target };
+            }
+
+            // 4. Branch out
+            const connectedNodes = activeNodes.filter(n => getNeighbors(n.id).length > 0);
+            const unconnectedNodes = activeNodes.filter(n => getNeighbors(n.id).length === 0);
+            if (connectedNodes.length > 0 && unconnectedNodes.length > 0) {
+                return { a: connectedNodes[0], b: unconnectedNodes[0] };
+            }
+            
+            // 5. Connect any two unconnected
+            if (unconnectedNodes.length >= 2) {
+                return { a: unconnectedNodes[0], b: unconnectedNodes[1] };
+            }
+            
+            return null;
+        }
+
+        // --- AUDIO SYSTEM ---
+        let audioCtx;
+        let masterGain;
+        const PENTATONIC = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00];
+
+        function initAudio() {
+            if (audioCtx) return;
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+            masterGain = audioCtx.createGain();
+            masterGain.connect(audioCtx.destination);
+            updateAudioVolume();
+        }
+
+        function updateAudioVolume() {
+            if (!masterGain) return;
+            masterGain.gain.value = state.soundEnabled ? 0.3 : 0;
+        }
+
+        function playSound(type, nodeY = 0.5) {
+            if (!state.soundEnabled || !audioCtx) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(masterGain);
+
+            const now = audioCtx.currentTime;
+            
+            // Map Y position to a note in the scale
+            const noteIndex = Math.floor((1 - nodeY) * (PENTATONIC.length - 1));
+            const freq = PENTATONIC[Math.max(0, Math.min(PENTATONIC.length - 1, noteIndex))];
+
+            if (type === 'connect') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.5, now + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+                osc.start(now);
+                osc.stop(now + 1.5);
+            } else if (type === 'shape') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq / 2, now); // Octave lower
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.3, now + 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
+                
+                // Add a little harmony
+                const osc2 = audioCtx.createOscillator();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(freq * 1.5, now); // Fifth
+                osc2.connect(gain);
+                osc2.start(now);
+                osc2.stop(now + 3.0);
+                
+                osc.start(now);
+                osc.stop(now + 3.0);
+            } else if (type === 'restore') {
+                // Large ambient chord
+                [freq/2, freq, freq*1.25, freq*1.5].forEach((f, i) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = 'sine';
+                    o.frequency.value = f;
+                    o.connect(g);
+                    g.connect(masterGain);
+                    g.gain.setValueAtTime(0, now);
+                    g.gain.linearRampToValueAtTime(0.2, now + 1.0 + (i*0.2));
+                    g.gain.exponentialRampToValueAtTime(0.001, now + 6.0);
+                    o.start(now);
+                    o.stop(now + 6.0);
+                });
+            } else if (type === 'disconnect') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq * 2, now);
+                osc.frequency.exponentialRampToValueAtTime(freq, now + 0.1);
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.1, now + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+        }
+
+        // --- MATH & UTILS ---
+        function dist(x1, y1, x2, y2) {
+            return Math.hypot(x2 - x1, y2 - y1);
+        }
+
+        // Map normalized (0-1) to screen coordinates, preserving aspect ratio
+        function toScreen(nx, ny) {
+            return {
+                x: (nx - 0.5) * scale + offsetX,
+                y: (ny - 0.5) * scale + offsetY
+            };
+        }
+
+        // Map screen to normalized
+        function toNorm(sx, sy) {
+            return {
+                x: (sx - offsetX) / scale + 0.5,
+                y: (sy - offsetY) / scale + 0.5
+            };
+        }
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            // Scale based on the smaller dimension to keep constellations intact
+            const vmin = Math.min(canvas.width, canvas.height);
+            scale = vmin * 0.9; // 90% of screen
+            offsetX = canvas.width / 2;
+            offsetY = canvas.height / 2;
+            
+            // Re-generate background stars on resize for full coverage
+            generateBackgroundStars();
+        }
+
+        function generateBackgroundStars() {
+            backgroundStars = [];
+            for(let i=0; i<200; i++) {
+                backgroundStars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 1.5,
+                    alpha: Math.random() * 0.5 + 0.1,
+                    twinkleSpeed: Math.random() * 0.02 + 0.01
+                });
+            }
+        }
+
+        // --- GRAPH LOGIC ---
+        function areConnected(id1, id2) {
+            return state.connections.some(c => 
+                (c.a === id1 && c.b === id2) || (c.a === id2 && c.b === id1)
+            );
+        }
+
+        function getNeighbors(nodeId) {
+            let neighbors = [];
+            state.connections.forEach(c => {
+                if (c.a === nodeId) neighbors.push(c.b);
+                if (c.b === nodeId) neighbors.push(c.a);
+            });
+            return neighbors;
+        }
+
+        function saveHistory() {
+            state.history.push(JSON.parse(JSON.stringify(state.connections)));
+            if (state.history.length > 20) state.history.shift(); // Keep last 20
+        }
+
+        function undo() {
+            resetInteraction();
+            if (state.history.length > 0) {
+                state.connections = state.history.pop();
+                playSound('disconnect', 0.8);
+                updateNodeStates();
+                saveState();
+            }
+        }
+
+        function addConnection(id1, id2) {
+            if (id1 === id2 || areConnected(id1, id2)) return false;
+            resetInteraction();
+            saveHistory();
+            state.connections.push({a: id1, b: id2});
+            
+            const n1 = nodes.find(n => n.id === id1);
+            const n2 = nodes.find(n => n.id === id2);
+            
+            // Interaction effects
+            playSound('connect', (n1.y + n2.y) / 2);
+            spawnParticles(n2.x, n2.y, 10, 'rgba(255,255,255,0.8)');
+            
+            checkSpecialNodes(id2); // Did we just connect to a mystery node?
+            checkPatterns(id1, id2);
+            updateNodeStates();
+            checkProgression();
+            
+            if (!state.hasMadeFirstConnection) {
+                state.hasMadeFirstConnection = true;
+                document.getElementById('title-container').style.opacity = '0';
+            }
+            saveState();
+            return true;
+        }
+
+        function removeConnection(id1, id2) {
+            resetInteraction();
+            saveHistory();
+            state.connections = state.connections.filter(c => 
+                !( (c.a === id1 && c.b === id2) || (c.a === id2 && c.b === id1) )
+            );
+            const n = nodes.find(n => n.id === id1);
+            playSound('disconnect', n.y);
+            updateNodeStates();
+            saveState();
+        }
+
+        function checkPatterns(lastA, lastB) {
+            let shapesFoundThisTurn = 0;
+            const nA = nodes.find(n => n.id === lastA);
+            const nB = nodes.find(n => n.id === lastB);
+            
+            // 1. Triangle Detection (Cycle of 3)
+            let neighborsA = getNeighbors(lastA);
+            let neighborsB = getNeighbors(lastB);
+            let commonNeighbors = neighborsA.filter(n => neighborsB.includes(n));
+            
+            if (commonNeighbors.length > 0) {
+                commonNeighbors.forEach(commonId => {
+                    shapesFoundThisTurn++;
+                    const nC = nodes.find(n => n.id === commonId);
+                    // Visual feedback at centroid
+                    const cx = (nA.x + nB.x + nC.x) / 3;
+                    const cy = (nA.y + nB.y + nC.y) / 3;
+                    setTimeout(() => triggerShapeEffect(cx, cy, 'triangle'), 100);
+                });
+            }
+
+            // 2. Star Detection (Degree >= 4 on either node)
+            if (neighborsA.length >= 4) {
+                shapesFoundThisTurn++;
+                setTimeout(() => triggerShapeEffect(nA.x, nA.y, 'star'), 150);
+            }
+            if (neighborsB.length >= 4) {
+                shapesFoundThisTurn++;
+                setTimeout(() => triggerShapeEffect(nB.x, nB.y, 'star'), 150);
+            }
+            
+            if (shapesFoundThisTurn > 0) {
+                state.shapesFound += shapesFoundThisTurn;
+            }
+        }
+
+        function triggerShapeEffect(nx, ny, type) {
+            playSound('shape', ny);
+            spawnParticles(nx, ny, type === 'star' ? 40 : 25, type === 'star' ? 'rgba(255, 230, 150, 1)' : 'rgba(150, 220, 255, 1)', 2);
+            // Flash screen slightly
+            const overlay = document.createElement('div');
+            overlay.style.position = 'absolute';
+            overlay.style.top = '0'; overlay.style.left = '0';
+            overlay.style.width = '100%'; overlay.style.height = '100%';
+            overlay.style.background = type === 'star' ? 'rgba(255,255,255,0.15)' : 'rgba(150,200,255,0.1)';
+            overlay.style.pointerEvents = 'none';
+            overlay.style.zIndex = '5';
+            overlay.style.transition = 'opacity 0.8s ease-out';
+            document.body.appendChild(overlay);
+            
+            requestAnimationFrame(() => {
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.remove(), 800);
+            });
+        }
+
+        function checkSpecialNodes(connectedId) {
+            const node = nodes.find(n => n.id === connectedId);
+            if (node && node.type === 'mystery' && !state.discoveredMystery.includes(node.id)) {
+                state.discoveredMystery.push(node.id);
+                // Reveal effect
+                if (node.mysteryEffect === 'reveal') {
+                    // Find nearby hidden nodes and make them available
+                    nodes.forEach(n => {
+                        if (n.type === 'hidden' && dist(node.x, node.y, n.x, n.y) < 0.2) {
+                            n.type = 'normal';
+                            setTimeout(() => {
+                                spawnParticles(n.x, n.y, 15, CONFIG.colors.nodeMystery);
+                                playSound('shape', n.y);
+                            }, Math.random() * 500 + 200);
+                        }
+                    });
+                }
+            }
+        }
+
+        function checkProgression() {
+            let newlyUnlocked = false;
+
+            // Region 0 -> 1 unlock
+            if (!state.unlockedRegions.includes(1) && state.shapesFound >= 1) {
+                state.unlockedRegions.push(1);
+                state.completedRegions.push(0);
+                newlyUnlocked = true;
+            }
+            
+            // Region 1 -> 2 unlock (needs a star or more shapes)
+            if (state.unlockedRegions.includes(1) && !state.unlockedRegions.includes(2)) {
+                const region1Nodes = nodes.filter(n => n.region === 1);
+                const hasStar = region1Nodes.some(n => getNeighbors(n.id).length >= 4);
+                if (hasStar || state.shapesFound >= 4) {
+                    state.unlockedRegions.push(2);
+                    state.completedRegions.push(1);
+                    newlyUnlocked = true;
+                }
+            }
+
+            // Region 2 -> 3 unlock (connect mystery node)
+            if (state.unlockedRegions.includes(2) && !state.unlockedRegions.includes(3)) {
+                const mysteryRevealed = state.discoveredMystery.includes(11);
+                if (mysteryRevealed) {
+                    state.unlockedRegions.push(3);
+                    state.completedRegions.push(2);
+                    newlyUnlocked = true;
+                }
+            }
+
+            if (newlyUnlocked) {
+                triggerRestorationEvent();
+            }
+        }
+
+        function triggerRestorationEvent() {
+            playSound('restore');
+            targetBgHaze = Math.min(1.0, state.completedRegions.length * 0.33);
+            
+            // Massive rainbow particle burst
+            const center = toScreen(0.5, 0.5);
+            const colors = ['rgba(0,230,255,0.8)', 'rgba(255,200,50,0.8)', 'rgba(220,50,255,0.8)', 'rgba(50,255,150,0.8)'];
+            for(let i=0; i<80; i++) {
+                if (particles.length > CONFIG.particleCap) break;
+                particles.push({
+                    x: center.x + (Math.random() - 0.5) * canvas.width,
+                    y: center.y + (Math.random() - 0.5) * canvas.height,
+                    vx: (Math.random() - 0.5) * 3,
+                    vy: (Math.random() - 0.5) * 3,
+                    life: 1.0,
+                    decay: Math.random() * 0.01 + 0.005,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    size: Math.random() * 4 + 1
+                });
+            }
+            updateNodeStates();
+        }
+
+        function updateNodeStates() {
+            nodes.forEach(node => {
+                // Determine base state
+                if (!state.unlockedRegions.includes(node.region) || node.type === 'hidden') {
+                    node.state = 'dormant'; // Invisible or very faint
+                } else {
+                    const neighbors = getNeighbors(node.id);
+                    if (neighbors.length > 0) {
+                        node.state = state.completedRegions.includes(node.region) ? 'completed' : 'connected';
+                    } else {
+                        node.state = 'available';
+                    }
+                    
+                    if (node.type === 'mystery' && !state.discoveredMystery.includes(node.id)) {
+                        node.state = 'mystery';
+                    }
+                }
+                
+                // Animate properties slightly
+                node.animPhase = Math.random() * Math.PI * 2;
+            });
+        }
+
+        // --- INPUT HANDLING ---
+        function getPointerPos(e) {
+            if (e.touches && e.touches.length > 0) {
+                return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }
+            return { x: e.clientX, y: e.clientY };
+        }
+
+        function handlePointerDown(e) {
+            if (e.target.closest('.ui-element')) return; // Let UI handle its own clicks
+            initAudio();
+            resetInteraction();
+            
+            const pos = getPointerPos(e);
+            const nPos = toNorm(pos.x, pos.y);
+            
+            // Find closest active node within snap radius
+            let closest = null;
+            let minDist = (CONFIG.snapRadius / scale); // Normalize snap radius
+
+            nodes.forEach(node => {
+                if (node.state === 'dormant') return; // Can't interact
+                let d = dist(nPos.x, nPos.y, node.x, node.y);
+                if (d < minDist) {
+                    minDist = d;
+                    closest = node;
+                }
+            });
+
+            if (closest) {
+                input.isDragging = true;
+                input.startNode = closest;
+                input.currentX = pos.x;
+                input.currentY = pos.y;
+                input.hoverNode = closest;
+                
+                // Visual feedback on grab
+                spawnParticles(closest.x, closest.y, 3, 'rgba(255,255,255,0.5)');
+            }
+        }
+
+        function handlePointerMove(e) {
+            const pos = getPointerPos(e);
+            
+            if (input.isDragging) {
+                input.currentX = pos.x;
+                input.currentY = pos.y;
+                
+                const nPos = toNorm(pos.x, pos.y);
+                let closest = null;
+                let minDist = (CONFIG.snapRadius / scale);
+
+                nodes.forEach(node => {
+                    if (node.state === 'dormant' || node.id === input.startNode.id) return;
+                    let d = dist(nPos.x, nPos.y, node.x, node.y);
+                    if (d < minDist) {
+                        minDist = d;
+                        closest = node;
+                    }
+                });
+                
+                // Haptic-like visual snap
+                if (closest && closest !== input.hoverNode) {
+                    if(audioCtx && audioCtx.state === 'running') playSound('connect', closest.y); // faint tick
+                }
+                
+                input.hoverNode = closest;
+            }
+        }
+
+        function handlePointerUp(e) {
+            resetInteraction();
+            if (input.isDragging) {
+                if (input.hoverNode && input.hoverNode.id !== input.startNode.id) {
+                    // Check if connection already exists to remove it
+                    if (areConnected(input.startNode.id, input.hoverNode.id)) {
+                        removeConnection(input.startNode.id, input.hoverNode.id);
+                    } else {
+                        addConnection(input.startNode.id, input.hoverNode.id);
+                    }
+                }
+                input.isDragging = false;
+                input.startNode = null;
+                input.hoverNode = null;
+            }
+        }
+
+        // Bind events
+        canvas.addEventListener('pointerdown', handlePointerDown);
+        window.addEventListener('pointermove', handlePointerMove); // Listen on window for drags outside canvas
+        window.addEventListener('pointerup', handlePointerUp);
+        
+        // Prevent default touch actions (scrolling)
+        canvas.addEventListener('touchstart', e => { if(!e.target.closest('.ui-element')) e.preventDefault(); }, {passive: false});
+        canvas.addEventListener('touchmove', e => { if(!e.target.closest('.ui-element')) e.preventDefault(); }, {passive: false});
+
+        // --- RENDERING ---
+        function spawnParticles(nx, ny, count, color, speedMultiplier = 1) {
+            if (CONFIG.reducedMotion) count = Math.floor(count / 3);
+            const sPos = toScreen(nx, ny);
+            for(let i=0; i<count; i++) {
+                if (particles.length > CONFIG.particleCap) particles.shift();
+                const angle = Math.random() * Math.PI * 2;
+                const speed = (Math.random() * 2 + 0.5) * speedMultiplier;
+                particles.push({
+                    x: sPos.x,
+                    y: sPos.y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 1.0,
+                    decay: Math.random() * 0.03 + 0.01,
+                    color: color,
+                    size: Math.random() * 2 + 1
+                });
+            }
+        }
+
+        function drawBackground(time) {
+            // Smoothly transition background haze
+            currentBgHaze += (targetBgHaze - currentBgHaze) * 0.01;
+            
+            // Base color
+            const r = CONFIG.colors.bgStart.r + (CONFIG.colors.bgEnd.r - CONFIG.colors.bgStart.r) * currentBgHaze;
+            const g = CONFIG.colors.bgStart.g + (CONFIG.colors.bgEnd.g - CONFIG.colors.bgStart.g) * currentBgHaze;
+            const b = CONFIG.colors.bgStart.b + (CONFIG.colors.bgEnd.b - CONFIG.colors.bgStart.b) * currentBgHaze;
+            
+            ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Stars and Colorful Nebulae
+            if (currentBgHaze > 0.05) {
+                ctx.globalCompositeOperation = 'lighter';
+                
+                // Procedural slowly drifting nebulae clouds based on time
+                const nebulae = [
+                    { x: Math.sin(time*0.0002) * 0.2 + 0.3, y: Math.cos(time*0.0003) * 0.2 + 0.3, color: 'rgba(0, 100, 255, ', radius: 0.6 },
+                    { x: Math.cos(time*0.00025) * 0.3 + 0.7, y: Math.sin(time*0.00015) * 0.2 + 0.6, color: 'rgba(200, 0, 150, ', radius: 0.7 },
+                    { x: Math.sin(time*0.0001) * 0.4 + 0.5, y: Math.cos(time*0.0004) * 0.3 + 0.5, color: 'rgba(0, 200, 100, ', radius: 0.5 }
+                ];
+
+                nebulae.forEach(neb => {
+                    const nx = neb.x * canvas.width;
+                    const ny = neb.y * canvas.height;
+                    const nr = neb.radius * Math.min(canvas.width, canvas.height);
+                    const gradient = ctx.createRadialGradient(nx, ny, 0, nx, ny, nr);
+                    gradient.addColorStop(0, neb.color + (currentBgHaze * 0.15) + ')');
+                    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                });
+
+                // Twinkling stars
+                backgroundStars.forEach((star, i) => {
+                    let alpha = star.alpha + Math.sin(time * star.twinkleSpeed + i) * 0.2;
+                    alpha = Math.max(0, Math.min(1, alpha)) * (currentBgHaze);
+                    if (alpha > 0) {
+                        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                        ctx.beginPath();
+                        ctx.arc(star.x, star.y, star.size, 0, Math.PI*2);
+                        ctx.fill();
+                    }
+                });
+                
+                ctx.globalCompositeOperation = 'source-over';
+            }
+        }
+
+        function drawThreads(time) {
+            ctx.globalCompositeOperation = 'lighter';
+            
+            state.connections.forEach(c => {
+                const nA = nodes.find(n => n.id === c.a);
+                const nB = nodes.find(n => n.id === c.b);
+                if (!nA || !nB) return;
+
+                const posA = toScreen(nA.x, nA.y);
+                const posB = toScreen(nB.x, nB.y);
+                
+                // Get region colors for gradient blending
+                const colorA = CONFIG.regionColors[nA.region].main;
+                const colorB = CONFIG.regionColors[nB.region].main;
+
+                // Outer glow gradient
+                const glowGrad = ctx.createLinearGradient(posA.x, posA.y, posB.x, posB.y);
+                glowGrad.addColorStop(0, colorA + '0.3)');
+                glowGrad.addColorStop(1, colorB + '0.3)');
+
+                ctx.beginPath();
+                ctx.moveTo(posA.x, posA.y);
+                ctx.lineTo(posB.x, posB.y);
+                ctx.strokeStyle = glowGrad;
+                ctx.lineWidth = 10;
+                ctx.stroke();
+
+                // Inner core gradient with pulsing
+                const pulse = Math.sin(time * 0.002 + c.a + c.b) * 0.3 + 0.7; // 0.4 to 1.0
+                const coreGrad = ctx.createLinearGradient(posA.x, posA.y, posB.x, posB.y);
+                coreGrad.addColorStop(0, colorA + pulse + ')');
+                coreGrad.addColorStop(1, colorB + pulse + ')');
+
+                ctx.beginPath();
+                ctx.moveTo(posA.x, posA.y);
+                ctx.lineTo(posB.x, posB.y);
+                ctx.strokeStyle = coreGrad;
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+            });
+
+            // Draw preview line
+            if (input.isDragging && input.startNode) {
+                const startPos = toScreen(input.startNode.x, input.startNode.y);
+                let endX = input.currentX;
+                let endY = input.currentY;
+
+                // Snap visuals
+                if (input.hoverNode) {
+                    const hPos = toScreen(input.hoverNode.x, input.hoverNode.y);
+                    endX = hPos.x;
+                    endY = hPos.y;
+                }
+
+                ctx.beginPath();
+                ctx.moveTo(startPos.x, startPos.y);
+                
+                // Organic bending for tension
+                const midX = (startPos.x + endX) / 2;
