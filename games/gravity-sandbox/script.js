@@ -1211,10 +1211,12 @@ const elCollisionGroup = document.getElementById('collision-group');
 const elTrailLengthGroup = document.getElementById('trail-length-group');
 const elTrajectoryGroup = document.getElementById('trajectory-group');
 const elTypeGrid = document.getElementById('type-grid');
+const elQuickSpawn = document.getElementById('quick-spawn');
 const elMassSlider = document.getElementById('spawn-mass');
 const elMassValue = document.getElementById('spawn-mass-value');
 const elToggleHud = document.getElementById('btn-toggle-hud');
 const elPanels = document.getElementById('panels');
+if (window.matchMedia('(max-width: 900px)').matches) elPanels.classList.add('hidden');
 const elModeBar = document.getElementById('mode-bar');
 const elModePlayIcon = document.getElementById('mode-play-icon');
 const elToast = document.getElementById('toast');
@@ -1297,9 +1299,19 @@ elTrajectoryGroup.addEventListener('click', (e) => {
 elTypeGrid.addEventListener('click', (e) => {
   const btn = e.target.closest('button[data-type]');
   if (!btn) return;
-  currentSpawnType = btn.dataset.type;
-  [...elTypeGrid.children].forEach(c => c.classList.toggle('active', c === btn));
-  applyMassRange(elMassSlider, elMassValue, MASS_RANGE[currentSpawnType]);
+  chooseSpawnType(btn.dataset.type);
+});
+
+function chooseSpawnType(type) {
+  currentSpawnType = type;
+  [...elTypeGrid.children, ...elQuickSpawn.children].forEach(c => c.classList.toggle('active', c.dataset.type === type));
+  applyMassRange(elMassSlider, elMassValue, MASS_RANGE[type]);
+  setMode('spawn');
+}
+
+elQuickSpawn.addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-type]');
+  if (btn) chooseSpawnType(btn.dataset.type);
 });
 
 function applyMassRange(sliderEl, labelEl, range) {
@@ -1325,13 +1337,19 @@ document.querySelectorAll('.panel-presets [data-preset]').forEach(btn => {
   btn.addEventListener('click', () => loadPreset(btn.dataset.preset));
 });
 
-elToggleHud.addEventListener('click', () => elPanels.classList.toggle('hidden'));
+function togglePanels() {
+  elPanels.classList.toggle('hidden');
+  const expanded = !elPanels.classList.contains('hidden');
+  elToggleHud.setAttribute('aria-expanded', String(expanded));
+  document.getElementById('btn-menu-mobile').setAttribute('aria-expanded', String(expanded));
+}
+elToggleHud.addEventListener('click', togglePanels);
 
 elModeBar.addEventListener('click', (e) => {
   const modeBtn = e.target.closest('button[data-mode]');
   if (modeBtn) { setMode(modeBtn.dataset.mode); return; }
   if (e.target.closest('#btn-play-mobile')) { running = !running; updatePlayButton(); return; }
-  if (e.target.closest('#btn-menu-mobile')) { elPanels.classList.toggle('hidden'); return; }
+  if (e.target.closest('#btn-menu-mobile')) { togglePanels(); return; }
 });
 
 /* ------------------------------ Save / Load ------------------------------ */
@@ -1364,7 +1382,7 @@ function syncUIFromState() {
   [...elCollisionGroup.children].forEach(c => c.classList.toggle('active', c.dataset.collision === collisionMode));
   [...elTrailLengthGroup.children].forEach(c => c.classList.toggle('active', c.dataset.traillen === display.trailLength));
   [...elTrajectoryGroup.children].forEach(c => c.classList.toggle('active', c.dataset.traj === trajectoryKey));
-  [...elTypeGrid.children].forEach(c => c.classList.toggle('active', c.dataset.type === currentSpawnType));
+  [...elTypeGrid.children, ...elQuickSpawn.children].forEach(c => c.classList.toggle('active', c.dataset.type === currentSpawnType));
   applyMassRange(elMassSlider, elMassValue, MASS_RANGE[currentSpawnType]);
 }
 
