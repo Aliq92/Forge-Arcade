@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#171c28" />
+    <title>Outpost Orbit · Forge Arcade</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="arcade.css" />
+  </head>
+  <body>
+    <canvas
+      id="world"
+      aria-label="Alien moon village. Drag to pan, scroll to zoom, select villagers or place buildings."
+    ></canvas>
+    <header class="hud">
+      <div class="brand">
+        <span class="orbit-mark">◌</span>
+        <div>
+          <h1>OUTPOST <b>ORBIT</b></h1>
+          <p>A LITTLE WORLD FAR FROM HOME</p>
+        </div>
+      </div>
+      <div id="resources" class="resources"></div>
+      <button id="settings" class="icon" aria-label="Settings">⚙</button>
+    </header>
+    <div class="world-title">
+      <span class="eyebrow">KEPLER'S REST · SECTOR 07</span>
+      <h2>A home among the stars.</h2>
+      <div class="live">
+        <i></i> <span id="population">5 little lives unfolding</span>
+      </div>
+    </div>
+    <div class="day-panel">
+      <span id="day">DAY 01</span><strong id="clock">☀ MORNING</strong>
+      <div id="day-track"><i></i></div>
+    </div>
+    <div id="toast" aria-live="polite"></div>
+    <aside id="panel" hidden></aside>
+    <div id="hint">
+      <span>YOUR FIRST LITTLE STEP</span><strong>Build a habitat</strong>
+      <p>A place to rest. A reason to stay.</p>
+      <button id="hint-build">Choose a home +</button
+      ><button id="hint-close" aria-label="Dismiss hint">×</button>
+    </div>
+    <div id="placement" hidden>
+      Choose a clear patch of explored ground
+      <button id="cancel-build">Cancel</button>
+    </div>
+    <div class="map-tools">
+      <button id="zoom-in" aria-label="Zoom in">+</button
+      ><button id="zoom-out" aria-label="Zoom out">−</button
+      ><button id="home" aria-label="Return to village">⌂</button>
+    </div>
+    <footer>
+      <nav>
+        <button data-panel="build"><span>⌂</span>Build</button
+        ><button data-panel="priorities"><span>≋</span>Priorities</button
+        ><button data-panel="villagers"><span>♧</span>Villagers</button
+        ><button data-panel="log">
+          <span>≡</span>Journal <i id="log-dot"></i>
+        </button>
+      </nav>
+      <div class="time-controls">
+        <button data-speed="0" aria-label="Pause">II</button
+        ><button data-speed="1" class="active">1×</button
+        ><button data-speed="2">2×</button><button data-speed="4">4×</button
+        ><button data-speed="8">8×</button>
+      </div>
+      <button id="cinematic">▭ <span>Cinematic</span></button>
+    </footer>
+    <div class="map-caption">
+      DRAG TO EXPLORE <span>·</span> SCROLL TO ZOOM <span>·</span> LET LIFE
+      UNFOLD
+    </div>
+    <div id="cinema-caption">
+      <span>OUTPOST ORBIT</span>
+      <p id="cinema-story">Little lives. An infinite sky.</p>
+    </div>
+    <dialog id="confirm">
+      <h2>A new beginning?</h2>
+      <p>
+        This replaces your saved colony. Your little world will start again.
+      </p>
+      <div>
+        <button id="keep">Keep my colony</button
+        ><button id="restart">Start anew</button>
+      </div>
+    </dialog>
+    <a href="../../index.html" id="forge-back-link" aria-label="Return to Forge Arcade">← Arcade</a>
+    <script type="module" src="script.js"></script>
+  </body>
+</html>
