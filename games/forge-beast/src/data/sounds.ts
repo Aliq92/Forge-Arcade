@@ -1,0 +1,20 @@
+export type SoundEvent = 'button' | 'confirm' | 'alert' | 'feed' | 'training' | 'play' | 'sleep' | 'wake' | 'evolution' | 'battle-start' | 'attack' | 'hit' | 'guard' | 'skill' | 'critical' | 'victory' | 'defeat';
+export const SOUNDS: Record<SoundEvent, { notes: number[]; duration: number; gap: number; volume: number }> = {
+  'battle-start': { notes: [330, 660, 440], duration: .07, gap: .1, volume: .014 },
+  attack: { notes: [280, 420], duration: .045, gap: .05, volume: .015 },
+  hit: { notes: [180, 130], duration: .045, gap: .04, volume: .015 },
+  guard: { notes: [390, 390], duration: .05, gap: .08, volume: .012 },
+  skill: { notes: [440, 550, 740], duration: .07, gap: .07, volume: .016 },
+  critical: { notes: [220, 880], duration: .075, gap: .06, volume: .017 },
+  victory: { notes: [440, 555, 660, 880], duration: .1, gap: .1, volume: .016 },
+  defeat: { notes: [390, 280, 220], duration: .1, gap: .12, volume: .012 },
+  button: { notes: [520], duration: .045, gap: .055, volume: .012 },
+  confirm: { notes: [620, 830], duration: .055, gap: .06, volume: .014 },
+  feed: { notes: [370, 440, 555], duration: .07, gap: .12, volume: .016 },
+  training: { notes: [260, 260, 520], duration: .06, gap: .14, volume: .016 },
+  play: { notes: [440, 660, 880, 660], duration: .065, gap: .075, volume: .014 },
+  sleep: { notes: [440, 330, 220], duration: .13, gap: .15, volume: .009 },
+  wake: { notes: [220, 330, 520], duration: .08, gap: .1, volume: .013 },
+  alert: { notes: [660, 440], duration: .09, gap: .14, volume: .014 },
+  evolution: { notes: [330, 440, 555, 660, 880], duration: .12, gap: .13, volume: .017 },
+};

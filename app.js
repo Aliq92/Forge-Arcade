@@ -269,7 +269,7 @@ function featuredCardHTML(game) {
   return `
     <a class="f-card" href="games/${game.id}/index.html" data-game="${game.id}" style="${seedStyle(game)}">
       <div class="f-card-art ${artClasses(game)}" aria-hidden="true"><span class="art-code">${game.title.charAt(0)}</span></div>
-      <div class="f-card-body"><span class="card-category">${game.category}</span><h3 class="f-card-title">${game.title}</h3><p class="card-desc">${game.description}</p><span class="card-play">Play <span class="arrow" aria-hidden="true">&#8594;</span></span></div>
+      <div class="f-card-body"><span class="card-category">${game.category}</span><h3 class="f-card-title">${game.title}</h3><p class="card-desc">${game.description}</p>${game.loadSummary ? '<p class="card-desc" data-game-summary aria-live="polite"></p>' : ''}<span class="card-play">Play <span class="arrow" aria-hidden="true">&#8594;</span></span></div>
     </a>`;
 }
 function renderFeaturedCollection() {
@@ -279,13 +279,14 @@ function cardHTML(game) {
   return `
     <a class="card" href="games/${game.id}/index.html" data-game="${game.id}" data-category="${game.category}" role="listitem" style="${seedStyle(game)}">
       <div class="card-art ${artClasses(game)}" aria-hidden="true"><span class="art-code">${game.title.charAt(0)}</span></div>
-      <div class="card-body"><span class="card-category">${game.category}</span><h3 class="card-title">${game.title}</h3><p class="card-desc">${game.description}</p><span class="card-play">Play <span class="arrow" aria-hidden="true">&#8594;</span></span></div>
+      <div class="card-body"><span class="card-category">${game.category}</span><h3 class="card-title">${game.title}</h3><p class="card-desc">${game.description}</p>${game.loadSummary ? '<p class="card-desc" data-game-summary aria-live="polite"></p>' : ''}<span class="card-play">Play <span class="arrow" aria-hidden="true">&#8594;</span></span></div>
     </a>`;
 }
 function render(filter) {
   const list = GAMES.filter((g) => filter === 'All' ? true : filter === 'Featured' ? !!g.featured : g.category === filter);
   grid.innerHTML = list.map(cardHTML).join('');
   countLabel.textContent = `${list.length} ${list.length === 1 ? 'experience' : 'experiences'}`;
+  document.dispatchEvent(new Event('arcade:cards-rendered'));
 }
 function initTabs() {
   tabs.setAttribute('role', 'tablist');

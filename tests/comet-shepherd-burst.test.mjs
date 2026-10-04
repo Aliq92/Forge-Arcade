@@ -49,6 +49,7 @@ test('mobile burst uses the saved aim vector instead of the stale screen point',
   game.input = {
     pointerScreen:{ x:-500, y:500 },
     lastAimVector:{ dx:65, dy:-50 },
+    dragVector(){ return null; },
   };
   game.renderer = {
     worldToScreen(){ return { x:0, y:0 }; },
@@ -56,6 +57,7 @@ test('mobile burst uses the saved aim vector instead of the stale screen point',
   };
   game.audio = { emergency(){} };
   game.screenShakeOn = false;
+  game.flow = 100;
   game.settings = {};
   game.ui = {
     on(action, fn){ actions[action] = fn; },

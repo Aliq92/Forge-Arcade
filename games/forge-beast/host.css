@@ -1,0 +1,8 @@
+/* Only the native Arcade game page; no changes to either device or launcher. */
+body.arcade-game-page { height: 100dvh; min-height: 0; overflow: hidden; overscroll-behavior: none; }
+.arcade-game-shell { height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr); padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+.arcade-game-bar { min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 12px; background: var(--panel); border-bottom: 1px solid var(--line); font: 10px/1.4 var(--mono); }
+.arcade-game-bar a, .arcade-game-bar button { min-height: 44px; display: inline-flex; align-items: center; padding: 8px; color: var(--text); font: inherit; background: transparent; border: 0; text-decoration: none; cursor: pointer; touch-action: manipulation; }
+.arcade-game-viewport { min-width: 0; min-height: 0; overflow: hidden; touch-action: none; }
+.arcade-game-message { position: absolute; left: 16px; right: 16px; top: 54px; color: var(--muted); font: 11px/1.5 var(--mono); pointer-events: none; }
+.arcade-game-message[hidden] { display: none; }
