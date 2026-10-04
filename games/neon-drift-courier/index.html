@@ -10,9 +10,9 @@
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);overflow:hidden;color:#dff;font-family:Orbitron,'Courier New',monospace;touch-action:none;user-select:none;-webkit-user-select:none}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
-#hud{position:fixed;top:0;left:0;right:0;display:none;justify-content:space-between;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 0;pointer-events:none}
+#hud{position:fixed;top:48px;left:0;right:0;display:none;justify-content:space-between;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 0;pointer-events:none}
 #hud small{display:block;font-size:10px;letter-spacing:.2em;opacity:.7}
-#hud b{font-size:26px;text-shadow:0 0 10px currentColor}
+#hud b{font-size:22px;text-shadow:0 0 10px currentColor}
 #hud div:first-child{color:var(--cy)}#hud div:last-child{color:var(--am);text-align:right}
 #ov{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center;background:rgba(3,3,12,.74);backdrop-filter:blur(4px);z-index:5}
 #ov.on{display:flex}
@@ -22,25 +22,50 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #b .st span:nth-child(even){color:var(--cy);text-align:right}#b .nb{color:var(--lm);font-weight:900;letter-spacing:.2em}
 #go{font:700 18px Orbitron,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--mg);background:rgba(255,43,214,.1);border:2px solid var(--mg);border-radius:10px;padding:16px 30px;cursor:pointer;box-shadow:0 0 14px var(--mg),inset 0 0 12px rgba(255,43,214,.5);text-shadow:0 0 8px var(--mg);transition:background .2s}
 #go:hover,#go:focus-visible{background:rgba(255,43,214,.3);outline:none}
-#boost{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);display:none;transform:translateX(-50%);z-index:3;width:104px;height:58px;border:2px solid var(--mg);border-radius:18px;background:rgba(255,43,214,.12);color:#fff;font:900 14px Orbitron,monospace;letter-spacing:.16em;text-shadow:0 0 9px var(--mg);box-shadow:0 0 16px var(--mg),inset 0 0 14px rgba(255,43,214,.45);touch-action:none;cursor:pointer;opacity:.82}
+#boost{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 86px);display:none;transform:translateX(-50%);z-index:3;width:104px;height:58px;border:2px solid var(--mg);border-radius:18px;background:rgba(255,43,214,.12);color:#fff;font:900 14px Orbitron,monospace;letter-spacing:.16em;text-shadow:0 0 9px var(--mg);box-shadow:0 0 16px var(--mg),inset 0 0 14px rgba(255,43,214,.45);touch-action:none;cursor:pointer;opacity:.82}
 #boost.on{display:block}
 #boost.active{transform:translateX(-50%) scale(.94);background:rgba(255,43,214,.38);box-shadow:0 0 28px var(--mg),inset 0 0 20px var(--mg);opacity:1}
 #boost:focus-visible{outline:2px solid #fff;outline-offset:3px}
+
+#toolbar{position:fixed;top:env(safe-area-inset-top,0px);left:10px;right:10px;display:flex;justify-content:space-between;align-items:center;z-index:6;gap:8px}
+#toolbar a,.tool,.pad,#restart{min-height:44px;min-width:44px;border:1px solid #44606b;border-radius:10px;background:rgba(5,12,25,.9);color:#c9e9ef;font:700 11px Orbitron,monospace;touch-action:none;cursor:pointer;text-decoration:none}
+#toolbar a{display:flex;align-items:center;padding:0 12px;font-size:10px}
+#toolbar .tools{display:flex;gap:6px}.tool{padding:0 10px}
+#mission{position:fixed;top:calc(env(safe-area-inset-top,0px) + 102px);left:12px;right:12px;display:none;text-align:center;pointer-events:none;color:var(--cy);font-size:12px;letter-spacing:.04em;z-index:2}
+#mission small{display:block;color:#a2bbc6;font:10px Orbitron,monospace;margin-top:6px}
+#mission.deliver{color:var(--mg)}
+#drive-state{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 148px);left:0;right:0;display:none;text-align:center;color:var(--cy);font-size:11px;letter-spacing:.16em;pointer-events:none}
+#drive-state.drifting{color:var(--mg);text-shadow:0 0 10px var(--mg)}
+#touch-controls{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);left:10px;right:10px;display:none;justify-content:space-between;z-index:3}
+.thumb{display:flex;gap:6px}.pad{width:58px;height:60px;font-size:10px;border-color:#00b3c0;color:var(--cy);background:rgba(0,90,105,.2)}
+.pad[data-control="drift"]{color:var(--mg);border-color:var(--mg)}.pad.active{background:rgba(0,240,255,.25);box-shadow:0 0 12px currentColor}.pad[data-control="drift"].active{background:rgba(255,43,214,.3)}
+#restart{display:none;padding:10px 20px;color:var(--am);border-color:var(--am)}
+button:focus-visible,a:focus-visible{outline:2px solid white;outline-offset:3px}
+button:disabled{opacity:.45;cursor:default}
+@media(max-height:520px){#ov{gap:8px;padding:50px 16px 12px}#t{font-size:30px}#b{font-size:11px;line-height:1.3}#b p{margin:6px 0}#go{font-size:13px;padding:10px 20px}#restart{min-height:40px}#mission{top:calc(env(safe-area-inset-top,0px) + 86px);font-size:11px}#hud{top:44px}#hud b{font-size:18px}#drive-state{bottom:calc(env(safe-area-inset-bottom,0px) + 133px)}#boost{height:44px;bottom:calc(env(safe-area-inset-bottom,0px) + 80px)}.pad{height:52px}}
+@media(prefers-reduced-motion:reduce){#go{transition:none}#boost.active{transform:translateX(-50%)}}
 </style>
 </head>
 <body>
-<canvas id="c"></canvas>
-<div id="hud"><div><small>DATA TB</small><b id="sc">0</b></div><div><small>BEST</small><b id="bs">0</b></div></div>
+<canvas id="c" aria-label="Neon courier road"></canvas>
+<nav id="toolbar" aria-label="Game controls"><a href="../../index.html">‹ ARCADE</a><div class="tools"><button id="sound" class="tool" type="button" aria-label="Mute sound" aria-pressed="false">SOUND ON</button><button id="pause" class="tool" type="button" disabled>PAUSE</button></div></nav>
+<div id="mission"><span id="objective"></span><small id="mission-detail"></small></div>
+<div id="drive-state"></div>
+<div id="touch-controls" aria-label="Hold driving controls"><div class="thumb"><button class="pad" data-control="left" aria-label="Steer left">◀</button><button class="pad" data-control="right" aria-label="Steer right">▶</button></div><div class="thumb"><button class="pad" data-control="drift" aria-label="Hold to drift">DRIFT</button><button class="pad" data-control="brake" aria-label="Hold to brake">BRAKE</button></div></div>
+<div id="hud"><div><small>DATA TB</small><b id="sc">0</b><small id="telemetry">SECTOR 1 · 84 KPH</small></div><div><small>BEST</small><b id="bs">0</b></div></div>
 <button id="boost" type="button" aria-label="Hold to boost">BOOST</button>
-<div id="ov"><h1 id="t"></h1><div id="b"></div><button id="go"></button></div>
+<div id="ov"><h1 id="t"></h1><div id="b"></div><button id="go"></button><button id="restart" type="button">Restart run</button></div>
 <script>
 const $=i=>document.getElementById(i),cv=$('c'),ctx=cv.getContext('2d'),ov=$('ov'),go=$('go'),boostEl=$('boost'),scEl=$('sc'),bsEl=$('bs'),hud=$('hud');
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let W,H,L,R,P=null,stars=[],state='MENU',muted=false,now=0,last=0;
 let obs=[],pks=[],fx=[],score=0,t=0,lvl=1,speed=4.2,spawnD=0,gx=0,combo=0,comboT=0,maxCombo=0,grazes=0,shake=0,shield=false,inv=0,hue=190,off=0,banner=0,bannerTxt='',deadT=0,best=0,newBest=false,shown=-1;
 let boostActive=false;const BOOST_MULTIPLIER=1.65;
+let cargo=0,deliveries=0,gate=null,cargoTime=0,trailClock=0,drifting=false;
+const missionEl=$('mission'),objectiveEl=$('objective'),detailEl=$('mission-detail'),driveEl=$('drive-state'),controlsEl=$('touch-controls'),pauseEl=$('pause'),soundEl=$('sound'),restartEl=$('restart');
 try{best=+localStorage.getItem('ndc_best')||0}catch(e){}
-bsEl.textContent=best;
+try{muted=localStorage.getItem('ndc_muted')==='1'}catch(e){}
+syncSound();bsEl.textContent=best;
 
 /* ---------- audio (tiny synth, M to mute) ---------- */
 let AC;
@@ -48,68 +73,91 @@ function sfx(f,d,type,v,slide){if(muted)return;try{AC=AC||new(window.AudioContex
 
 /* ---------- layout ---------- */
 function fit(){
+  const oldL=L,oldR=R;
   const dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
   cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
   const rw=Math.min(W>768?W*.8:W-16,1000);L=(W-rw)/2;R=L+rw;
-  stars=[];const n=Math.max(90,W*H/7000|0);
+  stars=[];const n=RM?30:Math.min(140,Math.max(45,W*H/11000|0));
   for(let i=0;i<n;i++)stars.push({x:Math.random()*W,y:Math.random()*H,s:Math.random()*1.8+.4,d:Math.random()*1.4+.35,c:Math.random()>.82?'#b79cff':'#d8f5ff'});
-  if(P){P.y=H-Math.max(110,H*.18);P.x=Math.min(Math.max(P.x,L+P.w/2),R-P.w/2)}
+  if(P){P.y=H-Math.max(190,H*.25);P.x=L+(P.x-oldL)/(oldR-oldL)*(R-L);P.x=Math.min(Math.max(P.x,L+P.w/2),R-P.w/2)}
+  for(const item of [...obs,...pks,...(gate?[gate]:[])])item.x=L+(item.x-oldL)/(oldR-oldL)*(R-L);
+  gx=L+(R-L)/2;
 }
 addEventListener('resize',fit);fit();
 
 /* ---------- input ---------- */
-const K={};let touchDir=0,down=false;
+const K={},held=new Map(),pads=new Map();
+const pressed=name=>Array.from(held.values()).includes(name);
+function clearInput(){for(const k in K)K[k]=false;held.clear();syncPads();setBoost(false)}
+function syncPads(){for(const [name,el] of pads)el.classList.toggle('active',pressed(name));setBoost(K[' ']||pressed('boost'))}
+function bindHold(el,name){
+  pads.set(name,el);
+  el.addEventListener('pointerdown',e=>{if(state!=='PLAYING')return;e.preventDefault();held.set(e.pointerId,name);el.setPointerCapture(e.pointerId);syncPads()});
+  const release=e=>{held.delete(e.pointerId);syncPads()};
+  for(const type of ['pointerup','pointercancel','lostpointercapture'])el.addEventListener(type,release);
+}
+for(const el of document.querySelectorAll('[data-control]'))bindHold(el,el.dataset.control);
+bindHold(boostEl,'boost');
+// Retain screen-side steering; each pointer owns its own input so two thumbs work.
+cv.addEventListener('pointerdown',e=>{if(state!=='PLAYING')return;e.preventDefault();cv.setPointerCapture(e.pointerId);held.set(e.pointerId,e.clientX<W/2?'left':'right');syncPads()});
+cv.addEventListener('pointermove',e=>{if(held.has(e.pointerId)){held.set(e.pointerId,e.clientX<W/2?'left':'right');syncPads()}});
+for(const type of ['pointerup','pointercancel','lostpointercapture'])cv.addEventListener(type,e=>{held.delete(e.pointerId);syncPads()});
 addEventListener('keydown',e=>{
   const k=e.key.toLowerCase();
-  if(['arrowleft','arrowright','arrowup','arrowdown',' '].includes(k))e.preventDefault();
+  // Focused menu buttons and links retain their native keyboard behavior.
+  if(e.target.closest('button,a')&&(k==='enter'||k===' '))return;
+  if(['arrowleft','arrowright','arrowup','arrowdown',' ','shift'].includes(k))e.preventDefault();
   K[k]=true;if(e.repeat)return;
   if(k===' '){state==='PLAYING'?setBoost(true):act()}
   else if(k==='enter')act();
   else if(k==='p'||k==='escape')state==='PLAYING'?pause():state==='PAUSED'&&act();
-  else if(k==='m')muted=!muted;
+  else if(k==='m')toggleSound();
+  else if(k==='r'&&state==='PAUSED')start();
 });
-addEventListener('keyup',e=>{const k=e.key.toLowerCase();K[k]=false;if(k===' ')setBoost(false)});
-function side(e){touchDir=e.clientX<W/2?-1:1}
-addEventListener('pointerdown',e=>{if(e.target.closest('button')||state!=='PLAYING')return;down=true;side(e)});
-addEventListener('pointermove',e=>{if(down)side(e)});
-const up=()=>{down=false;touchDir=0};
-addEventListener('pointerup',up);addEventListener('pointercancel',up);
-addEventListener('blur',()=>{for(const k in K)K[k]=false;up();pause()});
-document.addEventListener('visibilitychange',()=>{if(document.hidden)pause()});
-go.addEventListener('click',act);
+addEventListener('keyup',e=>{K[e.key.toLowerCase()]=false;syncPads()});
+addEventListener('blur',()=>{clearInput();pause()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){clearInput();pause()}});
+addEventListener('pagehide',()=>{saveBest();clearInput();pause();AC?.suspend()});
+go.addEventListener('click',act);restartEl.addEventListener('click',start);
+pauseEl.addEventListener('click',()=>state==='PAUSED'?act():pause());
+soundEl.addEventListener('click',toggleSound);
+function syncSound(){soundEl.textContent=muted?'SOUND OFF':'SOUND ON';soundEl.setAttribute('aria-pressed',String(muted));soundEl.setAttribute('aria-label',muted?'Enable sound':'Mute sound')}
+function toggleSound(){muted=!muted;try{localStorage.setItem('ndc_muted',muted?'1':'0')}catch(e){}syncSound()}
 function setBoost(active){boostActive=active&&state==='PLAYING';boostEl.classList.toggle('active',boostActive)}
-boostEl.addEventListener('pointerdown',e=>{e.preventDefault();setBoost(true)});
-for(const type of['pointerup','pointercancel','pointerleave'])boostEl.addEventListener(type,e=>{e.preventDefault();setBoost(false)});
+function saveBest(){if(Math.floor(score)>best){best=Math.floor(score);newBest=true;try{localStorage.setItem('ndc_best',best)}catch(e){}bsEl.textContent=best}}
+function runUI(active){hud.style.display=active?'flex':'none';missionEl.style.display=active?'block':'none';driveEl.style.display=active?'block':'none';controlsEl.style.display=active?'flex':'none';boostEl.classList.toggle('on',active);pauseEl.disabled=!active&&state!=='PAUSED';pauseEl.textContent=state==='PAUSED'?'RESUME':'PAUSE';restartEl.style.display=state==='PAUSED'?'block':'none'}
 addEventListener('contextmenu',e=>e.preventDefault());
 
 /* ---------- flow ---------- */
 function show(title,col,body,btn){$('t').textContent=title;$('t').style.color=col;$('b').innerHTML=body;go.textContent=btn;ov.classList.add('on');go.focus()}
-function showMenu(){show('NEON DRIFT','var(--cy)','<p style="color:var(--mg);font-weight:900;letter-spacing:.4em;margin:0 0 8px">COURIER</p><p>Ride the gap between blockades. Grab data, graze drones, chain the combo. One shield can save a run.</p><p class="k">← → / A D or hold left / right side<br>P pause · M mute</p>'+(best?'<p>BEST '+best+' TB</p>':''),'Initialize run')}
+function showMenu(){show('NEON DRIFT','var(--cy)','<p style="color:var(--mg);font-weight:900;letter-spacing:.4em;margin:0 0 8px">COURIER</p><p>Collect 3 data packets, then fly through the pink delivery gate. Dodge blockades, graze drones and chain your combo. Shields absorb one hit.</p><p class="k">← → / A D steer · ↑ / W or Space boost<br>↓ / S brake · Shift drift · P pause · M sound<br>Touch: hold the pads or either screen side to steer</p>'+(best?'<p>BEST '+best+' TB</p>':''),'Initialize run')}
 function showDead(){
-  show('CONNECTION LOST','var(--rd)',(newBest?'<p class="nb">NEW BEST</p>':'')+'<div class="st"><span>DATA</span><span>'+Math.floor(score)+' TB</span><span>BEST</span><span>'+best+' TB</span><span>SECTOR</span><span>'+lvl+'</span><span>MAX COMBO</span><span>'+maxCombo+'</span><span>GRAZES</span><span>'+grazes+'</span></div>','Reboot system');
+  show('CONNECTION LOST','var(--rd)',(newBest?'<p class="nb">NEW BEST</p>':'')+'<div class="st"><span>DATA</span><span>'+Math.floor(score)+' TB</span><span>BEST</span><span>'+best+' TB</span><span>SECTOR</span><span>'+lvl+'</span><span>MAX COMBO</span><span>'+maxCombo+'</span><span>GRAZES</span><span>'+grazes+'</span><span>DELIVERIES</span><span>'+deliveries+'</span></div>','Reboot system');
 }
 function act(){
   if(state==='PLAYING'||(state==='DEAD'&&deadT<.9))return;
-  if(state==='PAUSED'){state='PLAYING';ov.classList.remove('on');boostEl.classList.add('on');go.blur();return}
+  if(state==='PAUSED'){clearInput();state='PLAYING';ov.classList.remove('on');runUI(true);AC?.resume();go.blur();return}
   start();
 }
-function pause(){if(state==='PLAYING'){up();setBoost(false);boostEl.classList.remove('on');state='PAUSED';show('PAUSED','var(--am)','<p class="k">Tap or press P / Space to resume</p>','Resume')}}
+function pause(){if(state==='PLAYING'){clearInput();state='PAUSED';runUI(false);AC?.suspend();show('PAUSED','var(--am)','<p>Your cargo and road are on hold.</p><p class="k">Resume or restart below · P to resume</p>','Resume')}}
 function start(){
-  P={x:(L+R)/2,y:H-Math.max(110,H*.18),w:30,h:50,vx:0,tilt:0};
+  saveBest();clearInput();AC?.resume();
+  cargo=0;deliveries=0;gate=null;cargoTime=0;trailClock=0;drifting=false;shown=-1;
+  P={x:(L+R)/2,y:H-Math.max(190,H*.25),w:30,h:50,vx:0,tilt:0};
   obs=[];pks=[];fx=[];score=0;t=0;lvl=1;speed=4.2;spawnD=120;gx=(L+R)/2;combo=0;comboT=0;maxCombo=0;grazes=0;shield=false;inv=0;shake=0;newBest=false;deadT=0;
-  banner=1.6;bannerTxt='SECTOR 1';state='PLAYING';setBoost(false);ov.classList.remove('on');boostEl.classList.add('on');go.blur();hud.style.display='flex';bsEl.textContent=best;
+  banner=1.6;bannerTxt='SECTOR 1';state='PLAYING';setBoost(false);ov.classList.remove('on');boostEl.classList.add('on');go.blur();runUI(true);updateMission();bsEl.textContent=best;
   sfx(300,.25,'square',.05,500);
 }
 function die(){
   setBoost(false);boostEl.classList.remove('on');state='DEAD';deadT=0;P.dead=true;boom(P.x,P.y,'#39ff14',45);boom(P.x,P.y,'#ffffff',20);shake=26;sfx(110,.7,'sawtooth',.12,-80);
-  newBest=Math.floor(score)>best;if(newBest){best=Math.floor(score);try{localStorage.setItem('ndc_best',best)}catch(e){}}
+  saveBest();clearInput();runUI(false);
   bsEl.textContent=best;hud.style.display='none';
 }
 
 /* ---------- world ---------- */
 const mult=()=>1+Math.min(7,combo>>2);
 function boom(x,y,c,n){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=Math.random()*8+2;fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:1,d:Math.random()*.03+.015,c,s:Math.random()*3+1})}}
-function pop(txt,x,y,c){fx.push({txt,x,y,vx:0,vy:-1.3,l:1,d:.018,c})}
+function pop(txt,x,y,c){if(txt.startsWith('DATA'))fx=fx.filter(f=>!f.txt?.startsWith('DATA'));fx.push({txt,x,y,vx:0,vy:-1.3,l:1,d:.018,c})}
 function gain(n,txt,x,y,c){const m=mult();score+=n*m;pop(txt+(m>1?' x'+m:''),x,y,c)}
 function mkObs(){
   return Math.random()<.5
@@ -126,9 +174,12 @@ function spawnRow(){
       const a=gx-sg-o.w/2,b=gx+sg+o.w/2,okA=a>=L+o.w/2,okB=b<=R-o.w/2;
       x=okA&&(!okB||Math.random()<.5)?a:okB?b:null;
     }
-    if(x!==null){o.x=x;obs.push(o)}
+    if(x!==null&&!(gate&&Math.abs(gate.y+90)<150&&Math.abs(x-gate.x)<o.w/2+65)){o.x=x;obs.push(o)}
   }
-  if(Math.random()<.75)pks.push({k:!shield&&Math.random()<.1?'s':'p',x:gx,y:-90,c:['#00ffff','#ffff00','#ff2bd6','#39ff14'][Math.random()*4|0]});
+  if(Math.random()<.75){
+    const kind=!shield&&Math.random()<.1?'s':'p';
+    if(kind==='s'||cargo<3)pks.push({k:kind,x:gx,y:-90,c:['#00ffff','#ffff00','#ff2bd6','#39ff14'][Math.random()*4|0]});
+  }
   spawnD=spacing;
 }
 function stepFx(dt){
@@ -136,21 +187,57 @@ function stepFx(dt){
   for(const f of fx){f.x+=f.vx*k;f.y+=f.vy*k;f.l-=f.d*k}
   fx=fx.filter(f=>f.l>0);if(fx.length>500)fx.splice(0,fx.length-500);
 }
+function updateMission(){
+  missionEl.classList.toggle('deliver',cargo>=3);
+  const lane=gate?gate.x<L+(R-L)/3?'LEFT':gate.x>R-(R-L)/3?'RIGHT':'CENTER':'';
+  objectiveEl.textContent=cargo<3?'COLLECT DATA '+cargo+' / 3':'DELIVER → '+lane+' GATE';
+  detailEl.textContent=cargo<3?'◆ '.repeat(cargo)+'◇ '.repeat(3-cargo)+' · '+deliveries+' delivered':'Pink gate · '+Math.max(0,Math.ceil((P.y-gate.y)/speed/60))+'s ahead';
+}
+function makeGate(){
+  const lane=Math.random()*3|0;
+  gate={x:L+(R-L)*(lane+.5)/3,y:-100};
+  obs=obs.filter(o=>Math.abs(o.y-gate.y)>150||Math.abs(o.x-gate.x)>o.w/2+65);
+}
+function stepMission(dt,k){
+  if(cargo<3)return;
+  cargoTime+=dt;if(!gate)makeGate();gate.y+=speed*k;
+  if(Math.abs(P.y-gate.y)<28&&Math.abs(P.x-gate.x)<48){
+    deliveries++;const bonus=Math.max(0,Math.floor(20-cargoTime));
+    gain(50+bonus,'DELIVERED +'+(50+bonus),gate.x,P.y-45,'#ff2bd6');
+    boom(gate.x,P.y,'#ff2bd6',RM?6:28);sfx(650,.25,'triangle',.06,550);
+    banner=1.5;bannerTxt='DELIVERY '+deliveries;cargo=0;gate=null;cargoTime=0;
+  }else if(gate.y>P.y+55){makeGate();pop('GATE MISSED · RETRY',W/2,P.y-55,'#ffd166')}
+}
 function step(dt){
   const k=dt*60;t+=dt;
   const nl=1+Math.floor(t/14);
   if(nl>lvl){lvl=nl;banner=2;bannerTxt='SECTOR '+lvl;sfx(280,.5,'sawtooth',.05,700)}
-  speed=4.2+Math.min(lvl-1,12)*.45;
+  const brake=K.arrowdown||K.s||pressed('brake');
+  const boost=K.arrowup||K.w||K[' ']||pressed('boost');setBoost(boost&&!brake);
+  const cruise=4.2+Math.min(lvl-1,12)*.45;
+  const target=cruise*(brake?.52:boostActive?BOOST_MULTIPLIER:1);
+  speed+=(target-speed)*(1-Math.exp(-dt*(brake?5:2.5)));
   score+=dt*3*mult();
   if(comboT>0){comboT-=dt;if(comboT<=0)combo=0}
   if(inv>0)inv-=dt;
-  // player
-  const dir=(K.arrowright||K.d?1:0)-(K.arrowleft||K.a?1:0)||touchDir;
-  P.vx=(P.vx+dir*1.25*k)*Math.pow(.91,k);P.vx=Math.max(-14,Math.min(14,P.vx));P.x+=P.vx*k;
-  P.tilt+=(dir*.3-P.tilt)*Math.min(1,.25*k);
-  if(P.x<L+P.w/2){P.x=L+P.w/2;P.vx=-P.vx*.5;boom(P.x,P.y,'#ffd166',4)}
-  if(P.x>R-P.w/2){P.x=R-P.w/2;P.vx=-P.vx*.5;boom(P.x,P.y,'#ffd166',4)}
-  if(Math.random()<.7*Math.min(k,2))fx.push({x:P.x-Math.sin(P.tilt)*18,y:P.y+P.h/2-4,vx:(Math.random()-.5)*.6,vy:speed*.6+Math.random()*3,l:1,d:.06,c:'#39ff14',s:2});
+  const dir=(K.arrowright||K.d||pressed('right')?1:0)-(K.arrowleft||K.a||pressed('left')?1:0);
+  const drift=K.shift||pressed('drift');
+  // Exact velocity relaxation and integrated travel keep feel stable at 30/60/120 Hz.
+  const grip=drift?2.3:brake?14:10,maxV=drift?650:480;
+  const targetV=dir*maxV,decay=Math.exp(-grip*dt),oldV=P.vx;
+  P.vx=targetV+(oldV-targetV)*decay;
+  P.x+=targetV*dt+(oldV-targetV)*(1-decay)/grip;
+  drifting=!!drift&&Math.abs(P.vx)>160;
+  const tilt=P.vx/maxV*(drifting?.42:.24);
+  P.tilt+=(tilt-P.tilt)*(1-Math.exp(-dt*12));
+  if(P.x<L+P.w/2||P.x>R-P.w/2){P.x=Math.min(R-P.w/2,Math.max(L+P.w/2,P.x));P.vx=0;boom(P.x,P.y,'#ffd166',RM?0:3)}
+  $('telemetry').textContent='SECTOR '+lvl+' · '+Math.floor(speed*20)+' KPH';
+  driveEl.textContent=drifting?'DRIFT · LOW GRIP':brake?'BRAKING':boostActive?'BOOST':'CRUISE';driveEl.classList.toggle('drifting',drifting);
+  trailClock+=dt;
+  if(trailClock>=(RM?.12:.035)){
+    trailClock=0;
+    for(const side of [-1,1])fx.push({x:P.x+side*P.w*.34,y:P.y+P.h*.42,vx:-P.vx/60*.08,vy:speed*.85,l:1,d:drifting?.028:.055,c:drifting?'#ff2bd6':'#00f0ff',s:drifting?3:2,trail:true});
+  }
   // spawn + move
   spawnD-=speed*k;if(spawnD<=0)spawnRow();
   for(const o of obs){
@@ -174,12 +261,12 @@ function step(dt){
     if(Math.hypot(P.x-p.x,P.y-p.y)<(p.k==='s'?30:26)){
       p.got=1;
       if(p.k==='s'){shield=true;pop('SHIELD',p.x,p.y,'#00f0ff');sfx(500,.3,'triangle',.07,600)}
-      else{combo++;comboT=2.6;maxCombo=Math.max(maxCombo,combo);gain(10,'+10',p.x,p.y,p.c);sfx(500+Math.min(combo,24)*30,.09,'triangle',.06,300)}
+      else{cargo=Math.min(3,cargo+1);if(cargo===3&&!gate){cargoTime=0;makeGate()}combo++;comboT=2.6;maxCombo=Math.max(maxCombo,combo);gain(10,'DATA +10',p.x,p.y,p.c);sfx(500+Math.min(combo,24)*30,.09,'triangle',.06,300)}
       boom(p.x,p.y,p.c,14);
     }
   }
   obs=obs.filter(o=>o.y<H+120&&!o.dead);pks=pks.filter(p=>p.y<H+60&&!p.got);
-  stepFx(dt);
+  stepMission(dt,k);updateMission();stepFx(dt);
   const s=Math.floor(score);if(s!==shown){shown=s;scEl.textContent=s}
 }
 
@@ -188,10 +275,17 @@ function drawRoad(){
   const c=`hsl(${hue%360} 100% 55%)`;
   ctx.strokeStyle=c;ctx.shadowColor=c;ctx.shadowBlur=12;ctx.lineWidth=3;
   ctx.beginPath();ctx.moveTo(L,0);ctx.lineTo(L,H);ctx.moveTo(R,0);ctx.lineTo(R,H);ctx.stroke();
-  ctx.shadowBlur=0;ctx.globalAlpha=.16;ctx.lineWidth=1;ctx.beginPath();
+  ctx.shadowBlur=0;ctx.fillStyle='rgba(0,220,255,.025)';ctx.fillRect(L,0,R-L,H);ctx.globalAlpha=.16;ctx.lineWidth=1;ctx.beginPath();
   for(let y=off%60-60;y<H;y+=60){ctx.moveTo(L,y);ctx.lineTo(R,y)}
   for(let i=1;i<6;i++){const x=L+(R-L)*i/6;ctx.moveTo(x,0);ctx.lineTo(x,H)}
   ctx.stroke();ctx.globalAlpha=1;
+  // Subtle lane reflectors give speed cues without covering hazards or data.
+  ctx.fillStyle=c;ctx.globalAlpha=boostActive?.32:.18;
+  for(let y=off%90-90;y<H;y+=90){
+    ctx.fillRect(L+5,y,2,boostActive?22:12);ctx.fillRect(R-7,y,2,boostActive?22:12);
+    for(let i=1;i<3;i++)ctx.fillRect(L+(R-L)*i/3,y,1,14);
+  }
+  ctx.globalAlpha=1;
 }
 function drawObs(o){
   ctx.save();ctx.translate(o.x,o.y);ctx.shadowBlur=14;ctx.shadowColor=o.c;ctx.strokeStyle=o.c;ctx.lineWidth=3;ctx.fillStyle='rgba(255,40,40,.16)';
@@ -217,11 +311,29 @@ function drawPk(p){
   }
   ctx.restore();
 }
+function drawGate(){
+  if(!gate)return;
+  ctx.save();ctx.strokeStyle=ctx.shadowColor='#ff2bd6';ctx.shadowBlur=RM?0:14;ctx.lineWidth=3;
+  ctx.fillStyle='rgba(255,43,214,.12)';ctx.fillRect(gate.x-48,gate.y-18,96,36);ctx.strokeRect(gate.x-48,gate.y-18,96,36);
+  ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='700 10px Orbitron,monospace';ctx.fillText('DELIVER',gate.x,gate.y+4);
+  // A fixed marker keeps offscreen gates understandable while approaching.
+  const markerY=H<520?116:152;
+  ctx.shadowBlur=0;ctx.fillStyle='#ff2bd6';ctx.beginPath();ctx.moveTo(gate.x-7,markerY);ctx.lineTo(gate.x+7,markerY);ctx.lineTo(gate.x,markerY+10);ctx.fill();
+  ctx.restore();
+}
 function drawShip(){
   ctx.save();ctx.translate(P.x,P.y);ctx.rotate(P.tilt);
   if(inv>0&&Math.floor(now/70)%2)ctx.globalAlpha=.4;
   const w=P.w,h=P.h,cy='#00f0ff',mg='#ff2bd6';
   ctx.lineJoin='round';ctx.lineCap='round';ctx.lineWidth=1.6;
+  // Twin thrust cones lengthen with boost; the collision body remains 30×50.
+  ctx.fillStyle=drifting?mg:cy;ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=RM?0:10;
+  ctx.globalAlpha=.65;
+  for(const side of [-1,1]){
+    const x=side*w*.34;
+    ctx.beginPath();ctx.moveTo(x-2,h*.4);ctx.lineTo(x+2,h*.4);ctx.lineTo(x,h*.4+(boostActive?17:7));ctx.closePath();ctx.fill();
+  }
+  ctx.globalAlpha=inv>0&&Math.floor(now/70)%2?.4:1;
 
   // Swept courier wings: the visual silhouette stays inside the original 30x50 body.
   ctx.shadowBlur=15;ctx.shadowColor=cy;ctx.strokeStyle=cy;ctx.fillStyle='#061426';
@@ -262,27 +374,26 @@ function draw(sv){
   ctx.restore();
   ctx.save();
   if(shake>0&&!RM)ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
-  drawRoad();pks.forEach(drawPk);obs.forEach(drawObs);
+  drawRoad();drawGate();pks.forEach(drawPk);obs.forEach(drawObs);
   if(P&&!P.dead)drawShip();
   ctx.globalCompositeOperation='lighter';ctx.textAlign='center';
   for(const f of fx){
     ctx.globalAlpha=Math.max(0,f.l);ctx.fillStyle=f.c;
-    if(f.txt){ctx.font='700 15px Orbitron,monospace';ctx.fillText(f.txt,f.x,f.y)}else ctx.fillRect(f.x-f.s/2,f.y-f.s/2,f.s,f.s);
+    if(f.txt){ctx.font='700 15px Orbitron,monospace';ctx.fillText(f.txt,f.x,f.y)}else if(f.trail){ctx.fillRect(f.x-f.s/2,f.y,f.s,Math.max(3,sv*1.2))}else ctx.fillRect(f.x-f.s/2,f.y-f.s/2,f.s,f.s);
   }
   ctx.restore();ctx.globalAlpha=1;
   if(state==='PLAYING'||state==='PAUSED'){
     ctx.textAlign='center';
-    if(combo>=2){
+    if(combo>=2&&H>520){
       const m=mult();ctx.fillStyle='#ff2bd6';ctx.shadowColor='#ff2bd6';ctx.shadowBlur=10;ctx.font='900 20px Orbitron,monospace';
-      ctx.fillText('CHAIN '+combo+(m>1?'  x'+m:''),W/2,Math.max(70,innerHeight*0+70));
-      ctx.fillRect(W/2-60,80,120*Math.max(0,comboT/2.6),3);ctx.shadowBlur=0;
+      ctx.fillText('CHAIN '+combo+(m>1?'  x'+m:''),W/2,184);
+      ctx.fillRect(W/2-60,192,120*Math.max(0,comboT/2.6),3);ctx.shadowBlur=0;
     }
     if(banner>0){
-      ctx.globalAlpha=Math.min(1,banner);ctx.fillStyle='#fff';ctx.shadowColor=`hsl(${hue%360} 100% 55%)`;ctx.shadowBlur=20;ctx.font='900 '+Math.min(48,W/9)+'px Orbitron,monospace';
-      ctx.fillText(bannerTxt,W/2,H*.32);ctx.globalAlpha=1;ctx.shadowBlur=0;
+      ctx.globalAlpha=Math.min(1,banner);ctx.fillStyle='#fff';ctx.shadowColor=`hsl(${hue%360} 100% 55%)`;ctx.shadowBlur=20;ctx.font='900 '+Math.min(H<520?16:40,W/10)+'px Orbitron,monospace';
+      ctx.fillText(bannerTxt,W/2,H<520?142:H*.44);ctx.globalAlpha=1;ctx.shadowBlur=0;
     }
-    ctx.fillStyle='rgba(255,255,255,.45)';ctx.font='500 11px Orbitron,monospace';ctx.textAlign='left';
-    ctx.fillText('SECTOR '+lvl+' · '+Math.floor(speed*(boostActive?BOOST_MULTIPLIER:1)*20)+' KPH',12,H-12-(W<=768?4:0));
+
   }
 }
 
@@ -290,17 +401,16 @@ function draw(sv){
 function loop(ts){
   requestAnimationFrame(loop);
   const dt=Math.min((ts-last)/1000||0,.05);last=ts;now=ts;const k=dt*60;
-  const simulationRate=boostActive?BOOST_MULTIPLIER:1;
-  if(state==='PLAYING')step(dt*simulationRate);
+  if(state==='PLAYING')step(dt);
   else if(state==='DEAD'){deadT+=dt;stepFx(dt*.5);if(deadT>.9&&!ov.classList.contains('on'))showDead()}
   else if(state==='MENU')stepFx(dt);
-  const sv=state==='PLAYING'?speed*simulationRate:state==='MENU'?2.6:state==='DEAD'?speed*Math.max(0,1-deadT*1.5):0;
+  const sv=state==='PLAYING'?speed:state==='MENU'?2.6:state==='DEAD'?speed*Math.max(0,1-deadT*1.5):0;
   off+=sv*k;hue+=((190+lvl*40)-hue)*.02*Math.min(k,2);
-  shake=Math.max(0,shake-k*.9);if(banner>0)banner-=dt;
+  shake=Math.max(0,shake-k*.9);if(banner>0&&state!=='PAUSED')banner-=dt;
   for(const s of stars){s.y+=sv*s.d*.75*k;if(s.y>H+12){s.y=-12;s.x=Math.random()*W}}
   draw(sv);
 }
-showMenu();requestAnimationFrame(loop);
+runUI(false);showMenu();requestAnimationFrame(loop);
 </script>
 </body>
 </html>
