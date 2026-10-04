@@ -11,7 +11,7 @@ test('Forge Arcade serves the upgraded static Canvas courier', async () => {
   assert.match(html, /localStorage.getItem\('ndc_best'\)/);
 });
 
-test('the existing Neon Drift: Courier arcade registration remains intact', async () => {
+test('Neon Drift: Courier is removed from the arcade catalog', async () => {
   const arcade = await readFile(new URL('../index.html', import.meta.url), 'utf8');
   const launcher = await readFile(new URL('../app.js', import.meta.url), 'utf8');
   const registration = await readFile(
@@ -19,7 +19,8 @@ test('the existing Neon Drift: Courier arcade registration remains intact', asyn
     'utf8',
   );
 
-  assert.match(arcade, /<script src="neon-drift-courier-register\.js"><\/script>/);
+  assert.doesNotMatch(arcade, /neon-drift-courier-register\.js/);
+  assert.doesNotMatch(launcher, /id:\s*['"]neon-drift-courier['"]/);
   assert.match(registration, /id:\s*['"]neon-drift-courier['"]/);
   assert.match(registration, /title:\s*['"]Neon Drift: Courier['"]/);
   assert.match(launcher, /href="games\/\$\{game\.id\}\/index\.html"/);
