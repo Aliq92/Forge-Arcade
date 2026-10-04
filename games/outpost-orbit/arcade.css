@@ -1,0 +1,40 @@
+/* Forge Arcade's standard native-page return link. Game styles stay unchanged. */
+#forge-back-link {
+  position: fixed;
+  right: 12px;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 2147483000;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 7px 12px;
+  font: 500 12px/1.2 system-ui, -apple-system, sans-serif;
+  color: #e8e8ec;
+  background: rgba(10, 10, 14, .65);
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 999px;
+  text-decoration: none;
+  backdrop-filter: blur(6px);
+  opacity: .75;
+}
+#forge-back-link:hover, #forge-back-link:focus-visible { opacity: 1; }
+#forge-back-link:focus-visible { outline: 2px solid #bce9c9; outline-offset: 3px; }
+/* Reserve a separate touch row; never cover pause, speed or cinematic controls. */
+@media (max-width: 760px) {
+  #forge-back-link { min-height: 44px; }
+  footer, .cinematic footer { bottom: calc(68px + env(safe-area-inset-bottom)); }
+  #panel { bottom: 183px; max-height: calc(100dvh - 317px); }
+  #hint { bottom: 193px; }
+  .map-tools { bottom: 195px; }
+  #toast { bottom: 196px; }
+  #cinema-caption { bottom: 162px; }
+}
+@media (max-height: 520px) {
+  #forge-back-link { min-height: 44px; }
+  footer, .cinematic footer { bottom: calc(64px + env(safe-area-inset-bottom)); }
+  #panel { bottom: 128px; max-height: calc(100dvh - 217px); }
+  #hint { bottom: 132px; }
+  .map-tools { bottom: 142px; }
+  #toast { bottom: 142px; }
+}
