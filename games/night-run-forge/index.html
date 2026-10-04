@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="theme-color" content="#071019"/>
+<meta name="description" content="Night Run: Forge — Forge Arcade integration candidate."/>
+<title>Night Run: Forge — Forge Arcade</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#05080d;overflow:hidden;font-family:Inter,Arial,Helvetica,sans-serif;color:#fff}
+body{display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+#arcadeBar{height:44px;width:100%;flex:0 0 44px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:#090a0d;border-bottom:1px solid rgba(255,255,255,.08);font-size:11px;font-weight:900;letter-spacing:.7px}#arcadeBar a{color:#fff;text-decoration:none;opacity:.9}#arcadeBar span:last-child{opacity:.5}#gameWrap{position:relative;width:min(100vw,430px);height:min(calc(100vh - 44px),820px);background:#091019;overflow:hidden;box-shadow:0 0 46px rgba(0,0,0,.62)}
+canvas{width:100%;height:100%;display:block;touch-action:none}
+.hud{position:absolute;inset:0;pointer-events:none}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;padding:12px}
+.pill{background:rgba(7,10,15,.7);border:1px solid rgba(255,255,255,.13);backdrop-filter:blur(8px);border-radius:14px;padding:8px 11px;font-weight:800}
+.muted{font-size:11px;opacity:.68;font-weight:700}
+#nitroBox{position:absolute;left:14px;right:14px;bottom:22px;height:14px;border-radius:9px;background:rgba(255,255,255,.12);overflow:hidden;border:1px solid rgba(255,255,255,.16)}
+#nitroBar{height:100%;width:100%;background:linear-gradient(90deg,#45d7ff,#9a7cff);transition:width .08s linear}
+#combo{position:absolute;left:50%;top:86px;transform:translateX(-50%);font-size:20px;font-weight:900;text-shadow:0 3px 10px #000;opacity:0;transition:opacity .12s}
+#mission{position:absolute;left:14px;top:78px;max-width:214px;font-size:12px;line-height:1.25;background:rgba(7,10,15,.62);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:8px 10px}
+#zone{position:absolute;left:50%;top:126px;transform:translateX(-50%);font-size:12px;font-weight:900;letter-spacing:1.2px;opacity:.8}
+#heat{position:absolute;right:14px;top:132px;font-size:11px;font-weight:900;background:rgba(7,10,15,.62);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:7px 9px}
+#overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;background:linear-gradient(rgba(3,5,8,.18),rgba(3,5,8,.8));overflow:auto}
+.card{width:100%;background:rgba(7,10,15,.84);border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:20px;backdrop-filter:blur(12px);box-shadow:0 20px 60px rgba(0,0,0,.44)}
+h1{font-size:34px;line-height:.96;margin:0 0 10px;letter-spacing:-1.3px}
+h2{font-size:22px;margin:0 0 10px}
+.accent{background:linear-gradient(90deg,#7ce8ff,#b19cff);-webkit-background-clip:text;background-clip:text;color:transparent}
+p{opacity:.78;line-height:1.42;margin:8px 0 16px}
+button{width:100%;border:0;border-radius:15px;padding:13px 15px;font-size:15px;font-weight:900;background:#f4f7fb;color:#071019;cursor:pointer}
+button:disabled{opacity:.45;cursor:default}
+.secondary{margin-top:9px;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.12)}
+.row{display:flex;gap:10px;margin:10px 0}
+.stat{flex:1;background:rgba(255,255,255,.06);border-radius:14px;padding:9px;text-align:center}
+.stat b{display:block;font-size:17px}
+.tiny{font-size:11px;opacity:.62}
+#pauseBtn{position:absolute;right:14px;top:82px;pointer-events:auto;width:42px;height:42px;padding:0;border-radius:12px;background:rgba(7,10,15,.66);color:#fff;border:1px solid rgba(255,255,255,.12)}
+.garageGrid{display:grid;grid-template-columns:1fr;gap:9px;margin-top:12px}
+.carCard{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:12px}
+.carCard.selected{outline:2px solid rgba(124,232,255,.7)}
+.carHead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.carName{font-weight:900}
+.badge{font-size:10px;padding:4px 7px;border-radius:10px;background:rgba(255,255,255,.09)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px}
+.statMini{background:rgba(255,255,255,.05);border-radius:10px;padding:7px;text-align:center;font-size:11px}
+.progress{height:6px;border-radius:5px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:4px}
+.progress>i{display:block;height:100%;background:linear-gradient(90deg,#6de6ff,#a98cff)}
+.actionRow{display:flex;gap:8px;margin-top:9px}
+.actionRow button{padding:10px 9px;font-size:12px}
+.locked{opacity:.6}
+.settings{display:grid;gap:10px;margin:12px 0}
+.toggle{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.05);border-radius:14px;padding:12px}
+.toggle button{width:auto;padding:8px 12px;font-size:12px}
+.callout{background:rgba(124,232,255,.08);border:1px solid rgba(124,232,255,.18);border-radius:14px;padding:10px 12px;font-size:12px;line-height:1.4}
+.diag{background:rgba(255,255,255,.045);border-radius:12px;padding:10px 12px;font:11px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap}
+.ok{color:#9fffd8}.warn{color:#ffd987}
+</style>
+</head>
+<body>
+<div id="arcadeBar"><a href="../../index.html" aria-label="Return to Forge Arcade">← Arcade</a><span>NIGHT RUN: FORGE</span><span>v0.5.1</span></div>
+<div id="gameWrap">
+<canvas id="game" width="430" height="820" aria-label="Night Run Forge driving game"></canvas>
+<div class="hud">
+  <div class="topbar">
+    <div class="pill"><div class="muted">DISTANCE</div><span id="distance">0 m</span></div>
+    <div class="pill" style="text-align:right"><div class="muted">COINS</div><span id="coins">0</span></div>
+  </div>
+  <div id="mission">Mission: Reach 1,400 m</div>
+  <button id="pauseBtn" aria-label="Pause">Ⅱ</button>
+  <div id="combo">NEAR MISS ×2</div>
+  <div id="zone">OLD CITY</div>
+  <div id="heat">HEAT 0</div>
+  <div id="nitroBox"><div id="nitroBar"></div></div>
+</div>
+<div id="overlay"><div class="card" id="card"></div></div>
+</div>
+
+<script>
+const GAME_META={
+id:'night-run-forge',
+title:'Night Run: Forge',
+version:'0.5.1',
+genre:'Arcade Driving',
+orientation:'portrait',
+scoreMode:'distance',
+saveSchema:2,
+thumbnailHint:'neon-night-traffic-runner',
+supports:['pause','resume','restart','score','haptics','audio','persistent-profile','host-handshake','diagnostics']
+};
+
+const c=document.getElementById('game'),ctx=c.getContext('2d');
+const W=c.width,H=c.height;
+const ui={
+overlay:document.getElementById('overlay'),card:document.getElementById('card'),
+distance:document.getElementById('distance'),coins:document.getElementById('coins'),
+combo:document.getElementById('combo'),nitro:document.getElementById('nitroBar'),
+mission:document.getElementById('mission'),pause:document.getElementById('pauseBtn'),
+zone:document.getElementById('zone'),heat:document.getElementById('heat')
+};
+
+const CARS=[
+{id:'spark',name:'Sparkline',cost:0,colorA:'#f8fbff',colorB:'#8eb7d0',speed:1,steer:1.08,nitro:1.0,desc:'Balanced starter. Easy to control.'},
+{id:'volt',name:'Volt RS',cost:80,colorA:'#88f7d4',colorB:'#2f8e76',speed:1.08,steer:.98,nitro:1.12,desc:'Faster top end and stronger nitro.'},
+{id:'wraith',name:'Wraith X',cost:180,colorA:'#c7a8ff',colorB:'#6b4bb3',speed:1.15,steer:1.15,nitro:.92,desc:'Aggressive handling. High skill ceiling.'}
+];
+const ZONES=[
+{name:'OLD CITY',at:0,fog:0,rain:0,traffic:1},
+{name:'RAIN BELT',at:900,fog:.05,rain:1,traffic:1.08},
+{name:'INDUSTRIAL CUT',at:1800,fog:.12,rain:.35,traffic:1.18},
+{name:'BLACKOUT SECTOR',at:3000,fog:.28,rain:.7,traffic:1.28}
+];
+
+const SAVE_KEY='forge_arcade_night_run_profile_v2';
+const LEGACY_SAVE_KEY='nr_profile';
+const DEFAULT_PROFILE={
+schema:2,credits:0,best:0,selected:'spark',owned:['spark'],
+settings:{audio:true,haptics:true,onboarded:false},
+upgrades:{spark:{engine:0,handling:0,nitro:0},volt:{engine:0,handling:0,nitro:0},wraith:{engine:0,handling:0,nitro:0}}
+};
+
+function clone(v){return JSON.parse(JSON.stringify(v))}
+function sanitizeNum(v,min=0,max=1e9,fallback=0){v=Number(v);return Number.isFinite(v)?Math.max(min,Math.min(max,v)):fallback}
+function loadProfile(){
+let raw=null;
+try{raw=JSON.parse(localStorage.getItem(SAVE_KEY)||localStorage.getItem(LEGACY_SAVE_KEY)||'null')}catch(e){}
+const p=clone(DEFAULT_PROFILE);
+if(raw&&typeof raw==='object'){
+p.credits=sanitizeNum(raw.credits,0,999999,0);
+p.best=sanitizeNum(raw.best,0,9999999,0);
+p.selected=CARS.some(x=>x.id===raw.selected)?raw.selected:'spark';
+p.owned=Array.isArray(raw.owned)?raw.owned.filter(id=>CARS.some(x=>x.id===id)):['spark'];
+if(!p.owned.includes('spark'))p.owned.unshift('spark');
+if(!p.owned.includes(p.selected))p.selected='spark';
+if(raw.settings&&typeof raw.settings==='object'){
+p.settings.audio=raw.settings.audio!==false;
+p.settings.haptics=raw.settings.haptics!==false;
+p.settings.onboarded=raw.settings.onboarded===true;
+}
+for(const car of CARS){
+const ru=raw.upgrades&&raw.upgrades[car.id]||{};
+for(const k of ['engine','handling','nitro'])p.upgrades[car.id][k]=Math.floor(sanitizeNum(ru[k],0,5,0));
+}
+}
+return p;
+}
+let profile=loadProfile();
+function persist(){profile.schema=GAME_META.saveSchema;try{localStorage.setItem(SAVE_KEY,JSON.stringify(profile));return true}catch(e){return false}}
+persist();
+
+function currentCar(){return CARS.find(c=>c.id===profile.selected)||CARS[0]}
+function upg(car,key){return profile.upgrades[car.id][key]||0}
+function statVal(car,key){
+if(key==='speed')return car.speed+upg(car,'engine')*.035;
+if(key==='steer')return car.steer+upg(car,'handling')*.04;
+return car.nitro+upg(car,'nitro')*.05;
+}
+function upgradeCost(level){return 35+level*30}
+
+const integration={
+hostSeen:false,hostReady:false,lastHostAt:0,lastEventKey:'',lastEventAt:0,origin:'*',
+eventsSent:0,messagesReceived:0
+};
+function forgeEvent(type,data={}){
+const now=Date.now(),key=type+':'+JSON.stringify(data);
+if(key===integration.lastEventKey&&now-integration.lastEventAt<120)return;
+integration.lastEventKey=key;integration.lastEventAt=now;integration.eventsSent++;
+const payload={source:'forge-arcade',game:GAME_META.id,version:GAME_META.version,type,timestamp:now,data};
+try{window.parent&&window.parent.postMessage(payload,integration.origin)}catch(e){}
+try{window.dispatchEvent(new CustomEvent('forgearcade',{detail:payload}))}catch(e){}
+}
+window.NightRunForge={
+meta:GAME_META,
+start:()=>start(),
+pause:()=>pause(),
+resume:()=>resume(),
+restart:()=>start(),
+getState:()=>({state,score:Math.floor(score),heat:Math.floor(heat),credits:runCoins,car:profile.selected,mission:clone(mission)}),
+getProfile:()=>clone(profile),
+getDiagnostics:()=>clone(integration)
+};
+
+let audioCtx=null;
+function ensureAudio(){
+if(!profile.settings.audio)return null;
+if(!audioCtx){try{audioCtx=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}
+if(audioCtx.state==='suspended')audioCtx.resume().catch(()=>{});
+return audioCtx;
+}
+function beep(freq=440,dur=.05,vol=.03,type='sine'){
+const ac=ensureAudio();if(!ac)return;
+try{
+const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.value=freq;g.gain.value=vol;
+o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+dur);
+}catch(e){}
+}
+function haptic(pattern=12){try{if(profile.settings.haptics&&navigator.vibrate)navigator.vibrate(pattern)}catch(e){}}
+
+let state='menu',t=0,roadOffset=0,score=0,runCoins=0,speed=5,nitro=100,boosting=false,combo=0,comboTimer=0,shake=0,heat=0;
+let mission={type:'distance',target:1400,done:false},player={x:W/2,y:H-145,w:46,h:84,vx:0,tilt:0};
+let traffic=[],pickups=[],particles=[],hazards=[],rain=[],stars=[];
+for(let i=0;i<65;i++)stars.push({x:Math.random()*W,y:Math.random()*H,s:Math.random()*1.8+.3,a:Math.random()*.7+.2});
+for(let i=0;i<90;i++)rain.push({x:Math.random()*W,y:Math.random()*H,l:Math.random()*18+8});
+let spawnTraffic=0,spawnCoin=0,spawnHazard=0,spawnRival=1000,spawnPolice=1600,lastZone='';
+let lastFrame=performance.now(),acc=0;
+const STEP=1000/60;
+
+function rnd(a,b){return a+Math.random()*(b-a)}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function currentZone(){let z=ZONES[0];for(const zone of ZONES)if(score>=zone.at)z=zone;return z}
+function chooseMission(){
+const pool=[{type:'distance',target:1400,text:'Reach 1,400 m'},{type:'coins',target:16,text:'Collect 16 credits'},{type:'near',target:7,text:'Get 7 near misses'},{type:'heat',target:25,text:'Build 25 heat'}];
+mission=pool[(Math.random()*pool.length)|0];mission.progress=0;mission.done=false;
+}
+function missionText(){const p=Math.min(mission.progress||0,mission.target);return `Mission: ${mission.text} (${Math.floor(p)}/${mission.target})`}
+function resetRun(){
+t=0;roadOffset=0;score=0;runCoins=0;speed=5;nitro=100;boosting=false;combo=0;comboTimer=0;shake=0;heat=0;lastZone='';
+player.x=W/2;player.vx=0;player.tilt=0;traffic=[];pickups=[];particles=[];hazards=[];
+spawnTraffic=20;spawnCoin=120;spawnHazard=500;spawnRival=900;spawnPolice=1500;
+chooseMission();ui.mission.textContent=missionText();forgeEvent('run_start',{car:profile.selected});
+}
+function start(){
+ensureAudio();resetRun();state='play';ui.overlay.style.display='none';beep(560,.05,.025,'square');haptic(18);
+}
+function pause(){
+if(state==='play'){state='pause';boosting=false;forgeEvent('pause',{score:Math.floor(score)});showPause()}
+}
+function resume(){
+if(state==='pause'){state='play';ui.overlay.style.display='none';forgeEvent('resume',{score:Math.floor(score)});beep(420,.04,.02,'square')}
+}
+function showMenu(){
+state='menu';ui.overlay.style.display='flex';
+const hostText=integration.hostReady?'<span class="ok">HOST LINKED</span>':'<span class="warn">STANDALONE MODE</span>';
+ui.card.innerHTML=`<div class="tiny">FORGE ARCADE // NIGHT SERIES // v0.5.1</div>
+<h1>NIGHT RUN:<br><span class="accent">FORGE</span></h1>
+<p>Thread traffic, build heat, outrun rivals and police, and upgrade your garage between runs.</p>
+<div class="row"><div class="stat"><b>${Math.floor(profile.best)} m</b><span class="tiny">BEST</span></div><div class="stat"><b>${profile.credits}</b><span class="tiny">BANK</span></div></div>
+<div class="row"><div class="stat"><b>${currentCar().name}</b><span class="tiny">SELECTED CAR</span></div></div>
+<button id="startBtn">START RUN</button><button class="secondary" id="garageBtn">OPEN GARAGE</button><button class="secondary" id="settingsBtn">SETTINGS</button><button class="secondary" id="diagBtn">DIAGNOSTICS</button>
+<div class="callout" style="margin-top:10px">${hostText}<br>Save schema ${profile.schema} • Event API ${GAME_META.version}</div>`;
+document.getElementById('startBtn').onclick=()=>profile.settings.onboarded?start():showOnboarding();
+document.getElementById('garageBtn').onclick=showGarage;document.getElementById('settingsBtn').onclick=showSettings;document.getElementById('diagBtn').onclick=showDiagnostics;
+forgeEvent('menu_open',{best:Math.floor(profile.best),credits:profile.credits,hostReady:integration.hostReady});
+}
+function showDiagnostics(){
+state='diagnostics';ui.overlay.style.display='flex';
+const diag=[
+`game=${GAME_META.id}`,
+`version=${GAME_META.version}`,
+`saveSchema=${profile.schema}`,
+`hostSeen=${integration.hostSeen}`,
+`hostReady=${integration.hostReady}`,
+`eventsSent=${integration.eventsSent}`,
+`messagesReceived=${integration.messagesReceived}`,
+`selectedCar=${profile.selected}`,
+`best=${Math.floor(profile.best)}`,
+`credits=${profile.credits}`,
+`state=${state}`
+].join('\n');
+ui.card.innerHTML=`<div class="tiny">INTEGRATION DIAGNOSTICS</div><h2>Readiness Check</h2><div class="diag">${diag}</div>
+<div class="callout" style="margin-top:10px">Host handshake expects <b>forge-arcade-host</b> messages. Standalone mode remains fully playable.</div>
+<button class="secondary" id="diagBack">BACK</button>`;
+document.getElementById('diagBack').onclick=showMenu;
+}
+function showOnboarding(){
+state='onboarding';ui.overlay.style.display='flex';
+ui.card.innerHTML=`<div class="tiny">FIRST RUN</div><h2>Three things. That’s it.</h2>
+<div class="callout"><b>STEER</b><br>Tap the lower left or right side.</div>
+<div class="callout" style="margin-top:8px"><b>BOOST</b><br>Hold the upper half to burn nitro.</div>
+<div class="callout" style="margin-top:8px"><b>SURVIVE</b><br>Near misses build score and heat. Too much heat attracts police.</div>
+<button id="gotIt" style="margin-top:12px">GOT IT — DRIVE</button>`;
+document.getElementById('gotIt').onclick=()=>{profile.settings.onboarded=true;persist();start()};
+}
+function showSettings(){
+state='settings';ui.overlay.style.display='flex';
+ui.card.innerHTML=`<div class="tiny">SETTINGS</div><h2>Game Feel</h2>
+<div class="settings">
+<div class="toggle"><span>Audio cues</span><button id="audioToggle">${profile.settings.audio?'ON':'OFF'}</button></div>
+<div class="toggle"><span>Haptics</span><button id="hapticToggle">${profile.settings.haptics?'ON':'OFF'}</button></div>
+<div class="toggle"><span>Onboarding</span><button id="resetOnboard">RESET</button></div>
+</div><button class="secondary" id="settingsBack">BACK</button>`;
+document.getElementById('audioToggle').onclick=()=>{profile.settings.audio=!profile.settings.audio;persist();showSettings()};
+document.getElementById('hapticToggle').onclick=()=>{profile.settings.haptics=!profile.settings.haptics;persist();showSettings()};
+document.getElementById('resetOnboard').onclick=()=>{profile.settings.onboarded=false;persist();showSettings()};
+document.getElementById('settingsBack').onclick=showMenu;
+}
+function showGarage(){
+state='garage';ui.overlay.style.display='flex';
+let html=`<div class="tiny">GARAGE // ${profile.credits} CREDITS</div><h2>Choose your machine</h2><div class="garageGrid">`;
+for(const car of CARS){
+const owned=profile.owned.includes(car.id),selected=profile.selected===car.id;
+html+=`<div class="carCard ${selected?'selected':''} ${owned?'':'locked'}">
+<div class="carHead"><div><div class="carName">${car.name}</div><div class="tiny">${car.desc}</div></div><div class="badge">${selected?'SELECTED':owned?'OWNED':car.cost+' C'}</div></div>
+<div class="stats">
+<div class="statMini">SPEED<div class="progress"><i style="width:${Math.min(100,statVal(car,'speed')/1.3*100)}%"></i></div></div>
+<div class="statMini">HANDLING<div class="progress"><i style="width:${Math.min(100,statVal(car,'steer')/1.3*100)}%"></i></div></div>
+<div class="statMini">NITRO<div class="progress"><i style="width:${Math.min(100,statVal(car,'nitro')/1.3*100)}%"></i></div></div>
+</div><div class="actionRow">`;
+if(!owned)html+=`<button onclick="buyCar('${car.id}')">UNLOCK</button>`;
+else if(!selected)html+=`<button onclick="selectCar('${car.id}')">SELECT</button>`;
+else html+=`<button disabled>ACTIVE</button>`;
+if(owned)html+=`<button class="secondary" onclick="upgradeCar('${car.id}')">UPGRADE</button>`;
+html+=`</div></div>`;
+}
+html+=`</div><button class="secondary" id="backBtn">BACK</button>`;
+ui.card.innerHTML=html;document.getElementById('backBtn').onclick=showMenu;
+}
+window.buyCar=function(id){
+const car=CARS.find(c=>c.id===id);if(!car||profile.owned.includes(id))return;
+if(profile.credits>=car.cost){profile.credits-=car.cost;profile.owned.push(id);profile.selected=id;persist();beep(620,.08,.025,'square');haptic([18,30,18]);forgeEvent('car_unlock',{car:id});showGarage()}
+}
+window.selectCar=function(id){if(profile.owned.includes(id)){profile.selected=id;persist();forgeEvent('car_select',{car:id});showGarage()}}
+window.upgradeCar=function(id){
+if(!profile.owned.includes(id))return;
+const u=profile.upgrades[id],key=['engine','handling','nitro'].sort((a,b)=>u[a]-u[b])[0],cost=upgradeCost(u[key]);
+if(u[key]<5&&profile.credits>=cost){profile.credits-=cost;u[key]++;persist();beep(700,.06,.02,'square');forgeEvent('upgrade',{car:id,stat:key,level:u[key]});showGarage()}
+}
+function showPause(){
+ui.overlay.style.display='flex';ui.card.innerHTML=`<div class="tiny">RUN PAUSED</div><h1>HOLD THE LINE</h1><p>${Math.floor(score)} m • Heat ${Math.floor(heat)}</p>
+<button id="resumeBtn">RESUME</button><button class="secondary" id="restartBtn">RESTART RUN</button><button class="secondary" id="quitBtn">QUIT RUN</button>`;
+document.getElementById('resumeBtn').onclick=resume;document.getElementById('restartBtn').onclick=start;document.getElementById('quitBtn').onclick=showMenu;
+}
+function gameOver(){
+if(state==='over')return;
+state='over';profile.best=Math.max(profile.best,score);profile.credits+=runCoins;persist();boosting=false;
+forgeEvent('run_end',{score:Math.floor(score),distance:Math.floor(score),credits:runCoins,best:Math.floor(profile.best),car:profile.selected,mission:mission.done,heat:Math.floor(heat)});
+beep(120,.18,.04,'sawtooth');haptic([35,45,70]);
+ui.overlay.style.display='flex';
+ui.card.innerHTML=`<div class="tiny">RUN ENDED</div><h1>${Math.floor(score)} m</h1><p>${runCoins} credits banked • Heat ${Math.floor(heat)}${mission.done?' • Mission cleared':''}.</p>
+<div class="row"><div class="stat"><b>${Math.floor(profile.best)} m</b><span class="tiny">BEST</span></div><div class="stat"><b>${profile.credits}</b><span class="tiny">TOTAL CREDITS</span></div></div>
+<button id="retryBtn">RUN AGAIN</button><button class="secondary" id="garageOverBtn">GARAGE</button><button class="secondary" id="menuBtn">MENU</button>`;
+document.getElementById('retryBtn').onclick=start;document.getElementById('garageOverBtn').onclick=showGarage;document.getElementById('menuBtn').onclick=showMenu;
+}
+function hit(a,b,pad=5){return Math.abs(a.x-b.x)<(a.w+b.w)/2-pad&&Math.abs(a.y-b.y)<(a.h+b.h)/2-pad}
+function lanes(){return [W/2-101,W/2,W/2+101]}
+function addTraffic(kind='car'){
+if(traffic.length>14)return;
+const l=lanes();let x=l[(Math.random()*3)|0]+rnd(-10,10),type=kind==='car'?(Math.random()<.16?'truck':'car'):kind;
+traffic.push({x,y:-110,w:type==='truck'?52:type==='rival'?45:type==='police'?46:43,h:type==='truck'?100:78,vy:type==='rival'?rnd(3.3,4.4):type==='police'?rnd(3.8,4.8):rnd(1.5,3.5),type,passed:false,laneTimer:rnd(40,100)});
+}
+function addCoin(){if(pickups.length>8)return;const l=lanes();pickups.push({x:l[(Math.random()*3)|0],y:-20,r:11,spin:Math.random()*6})}
+function addHazard(){if(hazards.length>5)return;const l=lanes(),type=Math.random()<.55?'barrier':'oil';hazards.push({x:l[(Math.random()*3)|0],y:-60,w:type==='barrier'?58:62,h:24,type})}
+function burst(x,y,n=10){for(let i=0;i<n&&particles.length<80;i++)particles.push({x,y,vx:rnd(-2.4,2.4),vy:rnd(-2.8,.5),life:rnd(20,40),r:rnd(1,3)})}
+function nearMiss(tg){
+if(tg.passed)return;
+if(tg.y>player.y&&Math.abs(tg.x-player.x)<(tg.w+player.w)/2+28){
+tg.passed=true;combo++;comboTimer=120;score+=35*combo;heat+=2.5*combo;nitro=clamp(nitro+9*statVal(currentCar(),'nitro'),0,100);
+ui.combo.textContent=`NEAR MISS ×${combo}`;ui.combo.style.opacity=1;beep(760+combo*35,.035,.018,'square');haptic(8);
+forgeEvent('near_miss',{combo,score:Math.floor(score),heat:Math.floor(heat)});
+if(mission.type==='near'&&!mission.done){mission.progress++;checkMission()}
+}else if(tg.y>player.y+60)tg.passed=true;
+}
+function checkMission(){
+if(mission.done)return;
+if(mission.type==='distance')mission.progress=score;
+if(mission.type==='coins')mission.progress=runCoins;
+if(mission.type==='heat')mission.progress=heat;
+if((mission.progress||0)>=mission.target){
+mission.done=true;runCoins+=14;burst(W/2,130,22);ui.mission.textContent='Mission complete +14 credits';beep(940,.12,.025,'triangle');haptic([12,24,12]);forgeEvent('mission_complete',{type:mission.type,target:mission.target})
+}else ui.mission.textContent=missionText();
+}
+function update(){
+if(state!=='play')return;t++;
+const car=currentCar(),zone=currentZone(),natural=Math.min(8.8*statVal(car,'speed'),5+score/1800);
+const target=boosting&&nitro>0?11.5*statVal(car,'nitro'):natural;
+speed+=(target-speed)*.055;if(boosting&&nitro>0){nitro-=.72/statVal(car,'nitro');heat+=.018}else nitro=Math.min(100,nitro+.08*statVal(car,'nitro'));
+player.x+=player.vx;player.vx*=.87;player.x=clamp(player.x,72,W-72);player.tilt=player.vx*.055;roadOffset+=speed;score+=speed*.095;
+if(zone.name!==lastZone){lastZone=zone.name;forgeEvent('zone_enter',{zone:zone.name,distance:Math.floor(score)});beep(330,.06,.018,'triangle')}
+spawnTraffic-=speed*zone.traffic;spawnCoin-=speed;spawnHazard-=speed;spawnRival-=speed;spawnPolice-=speed;
+if(spawnTraffic<=0){addTraffic();spawnTraffic=rnd(170,300)-Math.min(85,score/32)}
+if(spawnCoin<=0){addCoin();spawnCoin=rnd(250,450)}
+if(score>700&&spawnHazard<=0){addHazard();spawnHazard=rnd(700,1100)}
+if(score>1200&&spawnRival<=0){addTraffic('rival');spawnRival=rnd(1200,1700)}
+if(heat>18&&spawnPolice<=0){addTraffic('police');spawnPolice=rnd(900,1400);forgeEvent('police_spawn',{heat:Math.floor(heat)})}
+traffic.forEach(o=>{
+o.y+=speed+o.vy;
+if((o.type==='rival'||o.type==='police')&&--o.laneTimer<=0){o.laneTimer=rnd(55,110);const dx=player.x-o.x;o.x+=clamp(dx*.18,-32,32)}
+nearMiss(o);if(hit(player,o,8)){shake=16;burst(player.x,player.y,26);gameOver()}
+});
+hazards.forEach(h=>{h.y+=speed;if(hit(player,h,6)){if(h.type==='oil'){player.vx+=rnd(-8,8);shake=8;heat+=3;beep(180,.08,.025,'sawtooth');haptic(20)}else{shake=16;burst(player.x,player.y,24);gameOver()}}});
+pickups.forEach(p=>{p.y+=speed;p.spin+=.14;if(Math.hypot(player.x-p.x,player.y-p.y)<35){p.dead=true;runCoins++;score+=18;nitro=clamp(nitro+5,0,100);burst(p.x,p.y,8);beep(880,.03,.02,'triangle');if(mission.type==='coins')mission.progress=runCoins;checkMission()}});
+traffic=traffic.filter(o=>o.y<H+130);pickups=pickups.filter(p=>p.y<H+30&&!p.dead);hazards=hazards.filter(h=>h.y<H+80);
+particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.05;p.life--});particles=particles.filter(p=>p.life>0);
+if(comboTimer>0)comboTimer--;else{combo=0;ui.combo.style.opacity=0}
+heat=Math.max(0,heat-.0035);checkMission();
+ui.distance.textContent=Math.floor(score)+' m';ui.coins.textContent=runCoins;ui.nitro.style.width=nitro+'%';ui.zone.textContent=zone.name;ui.heat.textContent='HEAT '+Math.floor(heat);
+if(t%120===0)forgeEvent('score_update',{score:Math.floor(score),credits:runCoins,heat:Math.floor(heat)});
+}
+function roadEdges(y){const persp=.72+(y/H)*.28,half=(W*.36)*persp;return[W/2-half,W/2+half]}
+function drawCar(o,playerCar=false){
+ctx.save();ctx.translate(o.x,o.y);if(playerCar)ctx.rotate(player.tilt);ctx.shadowBlur=playerCar?18:8;ctx.shadowColor=playerCar?'#6de6ff':'rgba(0,0,0,.6)';
+let g=ctx.createLinearGradient(0,-o.h/2,0,o.h/2);
+if(playerCar){const car=currentCar();g.addColorStop(0,car.colorA);g.addColorStop(1,car.colorB)}
+else if(o.type==='police'){g.addColorStop(0,'#dbeeff');g.addColorStop(1,'#2c4f75')}
+else if(o.type==='rival'){g.addColorStop(0,'#ff7d88');g.addColorStop(1,'#7a2330')}
+else{g.addColorStop(0,o.type==='truck'?'#e6a447':'#d94b58');g.addColorStop(1,'#67222b')}
+ctx.fillStyle=g;ctx.fillRect(-o.w/2,-o.h/2,o.w,o.h);ctx.fillStyle='#10151c';ctx.fillRect(-o.w/2+7,-o.h/2+12,o.w-14,20);ctx.fillRect(-o.w/2+7,o.h/2-31,o.w-14,19);
+ctx.fillStyle=playerCar?'#6de6ff':'#ffd66d';ctx.fillRect(-o.w/2+4,-o.h/2-3,5,17);ctx.fillRect(o.w/2-9,-o.h/2-3,5,17);
+if(o.type==='police'){ctx.fillStyle=t%20<10?'#55a7ff':'#ff4e65';ctx.fillRect(-10,-o.h/2+3,20,5)}
+if(playerCar&&boosting&&nitro>0){ctx.fillStyle='#a98cff';ctx.fillRect(-10,o.h/2+2,7,rnd(18,34));ctx.fillRect(3,o.h/2+2,7,rnd(18,34))}
+ctx.restore();
+}
+function draw(){
+ctx.save();if(shake>0){ctx.translate(rnd(-shake,shake),rnd(-shake,shake));shake*=.8}
+const zone=currentZone(),sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#09111e');sky.addColorStop(.55,'#111928');sky.addColorStop(1,'#070a0f');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+ctx.fillStyle='#b8dcff';stars.forEach(s=>{ctx.globalAlpha=s.a*(1-zone.fog);ctx.fillRect(s.x,(s.y+roadOffset*.08)%H,s.s,s.s)});ctx.globalAlpha=1;
+const[l0,r0]=roadEdges(0),[l1,r1]=roadEdges(H);ctx.beginPath();ctx.moveTo(l0,0);ctx.lineTo(r0,0);ctx.lineTo(r1,H);ctx.lineTo(l1,H);ctx.closePath();ctx.fillStyle='#20262f';ctx.fill();
+ctx.strokeStyle='rgba(255,255,255,.75)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(l0,0);ctx.lineTo(l1,H);ctx.moveTo(r0,0);ctx.lineTo(r1,H);ctx.stroke();
+ctx.setLineDash([30,34]);ctx.lineDashOffset=roadOffset;ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=4;
+for(let i=1;i<3;i++){const xt=W/2+(i-1.5)*202*.74,xb=W/2+(i-1.5)*202;ctx.beginPath();ctx.moveTo(xt,0);ctx.lineTo(xb,H);ctx.stroke()}ctx.setLineDash([]);
+hazards.forEach(h=>{ctx.save();ctx.translate(h.x,h.y);if(h.type==='barrier'){ctx.fillStyle='#f4b942';ctx.fillRect(-h.w/2,-h.h/2,h.w,h.h);ctx.fillStyle='#222';for(let i=-20;i<25;i+=16)ctx.fillRect(i,-h.h/2,7,h.h)}else{ctx.fillStyle='rgba(10,10,10,.75)';ctx.beginPath();ctx.ellipse(0,0,30,11,0,0,Math.PI*2);ctx.fill()}ctx.restore()});
+pickups.forEach(p=>{ctx.save();ctx.translate(p.x,p.y);ctx.scale(.55+Math.abs(Math.sin(p.spin))*.45,1);ctx.shadowBlur=14;ctx.shadowColor='#ffe173';ctx.fillStyle='#ffd75e';ctx.beginPath();ctx.arc(0,0,p.r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#8e6414';ctx.font='bold 11px Arial';ctx.textAlign='center';ctx.fillText('F',0,4);ctx.restore()});
+traffic.forEach(o=>drawCar(o,false));drawCar(player,true);
+ctx.fillStyle='#7ee7ff';particles.forEach(p=>{ctx.globalAlpha=p.life/40;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill()});ctx.globalAlpha=1;
+if(zone.rain>0){ctx.strokeStyle=`rgba(150,190,230,${.18*zone.rain})`;ctx.lineWidth=1;rain.forEach(r=>{const y=(r.y+roadOffset*2.2)%H;ctx.beginPath();ctx.moveTo(r.x,y);ctx.lineTo(r.x-4,y+r.l);ctx.stroke()})}
+if(zone.fog>0){ctx.fillStyle=`rgba(180,195,210,${zone.fog})`;ctx.fillRect(0,0,W,H)}
+ctx.restore();
+}
+function frame(ts){
+const delta=Math.min(100,ts-lastFrame);lastFrame=ts;acc+=delta;
+let loops=0;
+while(acc>=STEP&&loops<4){update();acc-=STEP;loops++}
+draw();requestAnimationFrame(frame);
+}
+function steer(px){if(state!=='play')return;player.vx+=px<W/2?-4.6*statVal(currentCar(),'steer'):4.6*statVal(currentCar(),'steer')}
+c.addEventListener('pointerdown',e=>{
+if(state!=='play')return;ensureAudio();
+const r=c.getBoundingClientRect(),px=(e.clientX-r.left)*W/r.width,py=(e.clientY-r.top)*H/r.height;
+if(py<H*.44)boosting=true;else steer(px)
+},{passive:true});
+c.addEventListener('pointerup',()=>boosting=false,{passive:true});
+c.addEventListener('pointercancel',()=>boosting=false,{passive:true});
+window.addEventListener('keydown',e=>{
+if(state!=='play')return;
+if(['ArrowLeft','ArrowRight','ArrowUp',' ','a','d','w'].includes(e.key))e.preventDefault();
+if(e.key==='ArrowLeft'||e.key==='a')player.vx-=4.6*statVal(currentCar(),'steer');
+if(e.key==='ArrowRight'||e.key==='d')player.vx+=4.6*statVal(currentCar(),'steer');
+if(e.key==='ArrowUp'||e.key==='w'||e.key===' ')boosting=true;
+if(e.key==='Escape')pause();
+},{passive:false});
+window.addEventListener('keyup',e=>{if(['ArrowUp','w',' '].includes(e.key))boosting=false});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&state==='play')pause()});
+window.addEventListener('blur',()=>{if(state==='play')pause()});
+window.addEventListener('pagehide',()=>{if(state==='play')forgeEvent('suspend',{score:Math.floor(score)})});
+window.addEventListener('beforeunload',()=>persist());
+
+window.addEventListener('message',e=>{
+const m=e.data||{};
+if(!m||m.source!=='forge-arcade-host')return;
+integration.messagesReceived++;integration.hostSeen=true;integration.lastHostAt=Date.now();
+if(m.origin&&typeof m.origin==='string')integration.origin=m.origin;
+if(m.type==='host_hello'){
+integration.hostReady=true;
+forgeEvent('game_ready',{meta:GAME_META,state:window.NightRunForge.getState()});
+}
+if(m.type==='pause')pause();
+if(m.type==='resume')resume();
+if(m.type==='restart')start();
+if(m.type==='request_state')forgeEvent('state_response',window.NightRunForge.getState());
+if(m.type==='request_profile')forgeEvent('profile_response',window.NightRunForge.getProfile());
+if(m.type==='ping')forgeEvent('pong',{at:Date.now()});
+});
+
+ui.pause.onclick=pause;
+forgeEvent('game_boot',{meta:GAME_META});
+setTimeout(()=>forgeEvent('game_ready',{meta:GAME_META,state:window.NightRunForge.getState()}),0);
+showMenu();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
