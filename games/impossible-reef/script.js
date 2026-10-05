@@ -501,6 +501,20 @@ function drawOrganism(o, mood){
   fn(o, col, clamp(o.growth,0,1), glow, darkMode);
   ctx.globalAlpha = 1;
 
+  if(o.nurturePulse > 0){
+    const progress = 1 - o.nurturePulse;
+    const radius = state.reducedMotion ? 34 : 24 + progress * 58;
+    ctx.save();
+    ctx.beginPath();
+    ctx.strokeStyle = hsla(col.hue, 75, 85, o.nurturePulse * 0.85);
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = hsla(col.hue, 75, 80, 0.8);
+    ctx.shadowBlur = 18;
+    ctx.arc(o.x, o.y - 30, radius, 0, TAU);
+    ctx.stroke();
+    ctx.restore();
+  }
+
   if(o.selected){
     ctx.save();
     ctx.translate(o.x,o.y);
@@ -777,10 +791,26 @@ function selectOrganism(o){
 }
 
 function nurtureSelected(){
+  const button = document.getElementById('btn-nurture');
+  // Restart feedback on every press, including rapid taps and keyboard input.
+  button.getAnimations().forEach(animation => animation.cancel());
+  const scale = state.reducedMotion ? 1 : 1.08;
+  button.animate([
+    { transform: 'scale(1)', color: 'var(--dim)', boxShadow: '0 0 0 transparent' },
+    { transform: `scale(${scale})`, color: 'var(--ink)', boxShadow: '0 0 24px rgba(120, 225, 240, 0.65)', offset: 0.35 },
+    { transform: 'scale(1)', color: 'var(--dim)', boxShadow: '0 0 0 transparent' }
+  ], { duration: 650, easing: 'ease-out' });
+
   const o = state.selectedOrganism;
-  if(!o) return;
+  if(!o){
+    showBanner('select a coral first');
+    return;
+  }
   o.growth = clamp(o.growth + 0.06, 0, 1);
   o.bloomPulse = 1;
+  o.nurturePulse = 1;
+  selectOrganism(o);
+  showBanner('coral nurtured');
 }
 function removeSelected(){
   const o = state.selectedOrganism;
@@ -1109,6 +1139,7 @@ function frame(now){
     o.growth = clamp(o.growth + dt/mt, 0, 1);
     o.age += dt;
     if(o.bloomPulse>0) o.bloomPulse = Math.max(0, o.bloomPulse-dt*0.6);
+    if(o.nurturePulse>0) o.nurturePulse = Math.max(0, o.nurturePulse-dt/0.9);
   }
 
   tryCrossbreed(dt);
