@@ -11,6 +11,7 @@ const key = 'forge-arcade-moonlit-terrarium-v1';
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   await page.goto(origin);
   await page.locator('#grid [data-game="moonlit-terrarium"]').click();
+  await page.waitForFunction(() => document.getElementById('pauseBtn')?.disabled === true);
   await page.locator('#startBtn').focus(); await page.keyboard.press('Enter');
   await page.locator('#btnFood').focus(); await page.keyboard.press('Enter');
   await page.keyboard.press('ArrowLeft'); await page.keyboard.press('Enter');
