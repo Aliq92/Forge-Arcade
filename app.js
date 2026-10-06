@@ -95,7 +95,7 @@ const GAMES = [
   {
     id: 'moonlit-terrarium',
     title: 'Moonlit Terrarium',
-    description: 'A slow, atmospheric terrarium to tend across seven quiet nights.',
+    description: 'Seven quiet nights with four glowing Motes. Final v1.0: saved stories, keyboard care, and optional sound.',
     category: 'Simulations',
     palette: ['#8f8cff', '#e6d5ff'],
   },

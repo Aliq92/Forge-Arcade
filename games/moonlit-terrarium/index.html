@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Moonlit Terrarium — Seven Quiet Nights</title>
-<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="styles.css?v=1.0.0" />
 </head>
 <body>
   <div class="app">
 
     <header class="topbar">
-      <h1 class="title">Moonlit Terrarium</h1>
+      <h1 class="title">Moonlit Terrarium <small>v1.0 · Seven Quiet Nights</small></h1>
       <div class="stat-strip">
         <div class="stat-chip">
           <span class="stat-label">Night</span>
@@ -31,7 +31,7 @@
 
       <section class="stage-wrapper">
         <div class="stage" id="stage">
-          <canvas id="terrarium" width="960" height="600"></canvas>
+          <canvas id="terrarium" width="960" height="600" tabindex="0" aria-label="Terrarium. Choose a gift, then use arrow keys to aim and Enter to place. Escape cancels."></canvas>
 
           <!-- Start overlay -->
           <div class="overlay" id="startOverlay">
@@ -44,6 +44,7 @@
                 gift — food, water, shelter, or a moon lamp — to help them through
                 until dawn. Keep at least one Mote glowing through all seven nights.
               </p>
+              <button class="btn btn-primary hidden" id="continueBtn">Continue</button>
               <button class="btn btn-primary" id="startBtn">Begin Night 1</button>
             </div>
           </div>
@@ -73,6 +74,7 @@
           <div class="pause-banner hidden" id="pauseBanner">Paused</div>
         </div>
 
+        <p class="night-summary" id="nightSummary" aria-live="polite"></p>
         <div class="happenings" id="happenings" aria-live="polite">
           <span class="happenings-label">Happenings</span>
           <div class="happenings-list" id="happeningsList"></div>
@@ -106,11 +108,24 @@
 
         <div class="panel-block">
           <h2 class="panel-title">Selected Mote</h2>
+          <div class="mote-picker" aria-label="Select a Mote">
+            <button class="btn" data-mote="0">Ember</button><button class="btn" data-mote="1">Pip</button>
+            <button class="btn" data-mote="2">Sable</button><button class="btn" data-mote="3">Wren</button>
+          </div>
           <div id="moteInfo" class="mote-info mote-info--empty">
             <p>Tap a Mote in the terrarium to see how it's doing.</p>
           </div>
         </div>
 
+        <div class="panel-block">
+          <h2 class="panel-title">Comfort</h2>
+          <div class="comfort-controls">
+            <button class="btn btn-secondary" id="soundBtn" aria-pressed="false">Sound: Off</button>
+            <button class="btn btn-secondary" id="motionBtn" aria-pressed="false">Motion: Full</button>
+          </div>
+          <p class="panel-hint" id="saveStatus" role="status">Progress saves automatically</p>
+          <p class="panel-hint">Food eases hunger. Water eases thirst. Shelter restores energy. Moon lamps slow nearby energy drain.</p>
+        </div>
         <div class="panel-block panel-controls">
           <button class="btn btn-secondary" id="pauseBtn">Pause</button>
           <button class="btn btn-ghost" id="restartBtn">Restart</button>
@@ -121,6 +136,6 @@
     </main>
   </div>
 
-<script src="script.js"></script>
+<script src="script.js?v=1.0.0"></script>
 <a href="../../index.html" id="forge-back-link" style="position:fixed;right:12px;bottom:12px;z-index:2147483000;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;font:500 12px/1.2 system-ui,-apple-system,sans-serif;color:#e8e8ec;background:rgba(10,10,14,.55);border:1px solid rgba(255,255,255,.14);border-radius:999px;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:.55;transition:opacity .15s ease;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.55">← Arcade</a></body>
 </html>

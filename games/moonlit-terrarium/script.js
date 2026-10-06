@@ -1,7 +1,7 @@
 "use strict";
 /*
  * Moonlit Terrarium — Seven Quiet Nights
- * v0.1 — plain HTML/CSS/JS, no frameworks, no external assets.
+ * v1.0 — plain HTML/CSS/JS, no frameworks, no external assets.
  *
  * File layout of this module (top to bottom):
  *   1. Constants & tuning numbers
@@ -25,6 +25,8 @@
   const WORLD_H = 600;
   const NIGHT_DURATION = 40; // seconds per night
   const TOTAL_NIGHTS = 7;
+  const SAVE_KEY = 'forge-arcade-moonlit-terrarium-v1';
+  const PREFS_KEY = 'forge-arcade-moonlit-terrarium-settings-v1';
   const MAX_DT = 0.12; // clamp large frame gaps (tab suspend, etc.)
 
   // Habitable area inside the glass frame (keeps decorations/critters off the frame).
@@ -58,10 +60,10 @@
   };
 
   const MOTE_DEFS = [
-    { name: "Ember", color: "#ffb35c", glow: "rgba(255,179,92,0.55)", size: 11 },
-    { name: "Pip", color: "#7fe0c4", glow: "rgba(127,224,196,0.55)", size: 9 },
-    { name: "Sable", color: "#c9a4ff", glow: "rgba(201,164,255,0.55)", size: 10 },
-    { name: "Wren", color: "#ff9db5", glow: "rgba(255,157,181,0.55)", size: 9.5 },
+    { name: "Ember", color: "#ffb35c", glow: "rgba(255,179,92,0.55)", size: 11, speed: 49, temperament: "Curious" },
+    { name: "Pip", color: "#7fe0c4", glow: "rgba(127,224,196,0.55)", size: 9, speed: 54, temperament: "Lively" },
+    { name: "Sable", color: "#c9a4ff", glow: "rgba(201,164,255,0.55)", size: 10, speed: 40, temperament: "Gentle" },
+    { name: "Wren", color: "#ff9db5", glow: "rgba(255,157,181,0.55)", size: 9.5, speed: 45, temperament: "Sociable" },
   ];
 
   const ACTIVITY_LABEL = {
@@ -109,6 +111,8 @@
       color: def.color,
       glow: def.glow,
       size: def.size,
+      speed: def.speed,
+      temperament: def.temperament,
       x: cx + Math.cos(angle) * 90,
       y: cy + Math.sin(angle) * 50,
       vx: 0,
@@ -147,11 +151,125 @@
       messages: [],
       messageCooldowns: {},
 
+      elapsed: 0,
+      summaries: [],
       lastFrameTime: null,
     };
   }
 
   let state = createState();
+  let saveTimer = 0;
+  let savedRun = null;
+  let placementCursor = { x: WORLD_W / 2, y: WORLD_H / 2 };
+  let preferences = { sound: false, reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches };
+  let audio = null;
+
+  function saveGame() {
+    if (!state.started) return;
+    try {
+      const motes = state.motes.map(({ gatherBuddy, ...m }) => ({ ...m, buddyId: gatherBuddy?.id ?? null }));
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ version: 1, night: state.night,
+        timeLeft: state.timeLeft, elapsed: state.elapsed, ended: state.ended, outcome: state.outcome,
+        manualPause: state.manualPause, interventionUsedThisNight: state.interventionUsedThisNight,
+        interventions: state.interventions, selectedMoteId: state.selectedMoteId,
+        motes, summaries: state.summaries, messages: state.messages }));
+      document.getElementById('saveStatus').textContent = 'Progress saved on this browser';
+      return true;
+    } catch {
+      document.getElementById('saveStatus').textContent = 'Saving unavailable — keep this tab open';
+      return false;
+    }
+  }
+
+  function readSave() {
+    try {
+      const data = JSON.parse(localStorage.getItem(SAVE_KEY));
+      const validNumber = (v, lo, hi) => typeof v === 'number' && Number.isFinite(v) && v >= lo && v <= hi;
+      if (!data || data.version !== 1 || !Number.isInteger(data.night) || !validNumber(data.night, 1, 7) ||
+          !validNumber(data.timeLeft, 0, NIGHT_DURATION) || !validNumber(data.elapsed, 0, 281) ||
+          typeof data.ended !== 'boolean' || typeof data.manualPause !== 'boolean' ||
+          typeof data.interventionUsedThisNight !== 'boolean' ||
+          ![null, 'victory', 'loss'].includes(data.outcome) || data.ended !== (data.outcome !== null) ||
+          !Array.isArray(data.motes) || data.motes.length !== 4 ||
+          !data.motes.every((m, i) => m.id === i && ['hunger', 'thirst', 'energy'].every(k => validNumber(m[k], 0, 100)) &&
+            validNumber(m.x, 0, WORLD_W) && validNumber(m.y, 0, WORLD_H)) ||
+          !Array.isArray(data.interventions) || data.interventions.length > 1 ||
+          data.interventions.length !== Number(data.interventionUsedThisNight) ||
+          !data.interventions.every(iv => ['food', 'water', 'shelter', 'lamp'].includes(iv.type) &&
+            validNumber(iv.x, 50, 910) && validNumber(iv.y, 50, 560))) return null;
+      return data;
+    } catch { return null; }
+  }
+
+  function restoreRun() {
+    if (!savedRun) return;
+    const data = savedRun;
+    state = createState();
+    for (const key of ['night', 'timeLeft', 'elapsed', 'ended', 'outcome', 'manualPause', 'interventionUsedThisNight']) state[key] = data[key];
+    state.started = true;
+    state.paused = state.manualPause || document.hidden;
+    state.autoPaused = document.hidden && !state.manualPause;
+    state.interventions = data.interventions.map(iv => ({ type: iv.type, x: iv.x, y: iv.y }));
+    state.motes.forEach((m, i) => {
+      for (const key of ['x', 'y', 'hunger', 'thirst', 'energy']) m[key] = data.motes[i][key];
+    });
+    state.selectedMoteId = Number.isInteger(data.selectedMoteId) ? data.selectedMoteId : null;
+    state.messages = Array.isArray(data.messages) ? data.messages.filter(m => typeof m === 'string').slice(-40) : [];
+    state.summaries = Array.isArray(data.summaries) ? data.summaries.filter(m => typeof m === 'string').slice(-7) : [];
+    dom.startOverlay.classList.add('hidden');
+    if (state.ended) showOutcome();
+    updateInterventionButtons(); updatePauseUI(); renderMoteInfo(); renderHappenings(); renderSummary();
+    syncAudio();
+  }
+
+  function syncAudio() {
+    if (!audio && preferences.sound) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) {
+        preferences.sound = false;
+        document.getElementById('soundBtn').textContent = 'Sound unavailable';
+        return;
+      }
+      try {
+        const context = new AudioContext();
+        const gain = context.createGain();
+        gain.gain.value = 0;
+        gain.connect(context.destination);
+        const voices = [110, 164.81, 220].map(frequency => {
+          const voice = context.createOscillator();
+          voice.type = 'sine'; voice.frequency.value = frequency;
+          voice.connect(gain); voice.start(); return voice;
+        });
+        audio = { context, gain, voices };
+      } catch { return; }
+    }
+    if (!audio) return;
+    const audible = preferences.sound && state.started && !state.paused && !state.ended && !document.hidden;
+    if (audible) audio.context.resume().catch(() => {});
+    audio.gain.gain.setTargetAtTime(audible ? 0.018 : 0, audio.context.currentTime, 0.2);
+  }
+
+  function savePreferences() {
+    try { localStorage.setItem(PREFS_KEY, JSON.stringify(preferences)); } catch {}
+  }
+
+  function renderSummary() {
+    document.getElementById('nightSummary').textContent = state.summaries.at(-1) || 'A new story begins. One gift each night; all four Motes can share it.';
+  }
+
+  function recordNight() {
+    const active = state.motes.filter(m => m.energy > 0).length;
+    const gift = state.interventions[0]?.type || 'no gift';
+    state.summaries.push(`Night ${state.night}: ${active} of 4 glowing · ${gift} · average energy ${Math.round(state.motes.reduce((sum, m) => sum + m.energy, 0) / 4)}.`);
+    renderSummary();
+  }
+
+  function showOutcome() {
+    const active = state.motes.filter(m => m.energy > 0).length;
+    document.getElementById('victoryText').textContent = `${active} of 4 Motes kept their glow through seven quiet nights. Your completed story is saved.`;
+    dom.victoryOverlay.classList.toggle('hidden', state.outcome !== 'victory');
+    dom.lossOverlay.classList.toggle('hidden', state.outcome !== 'loss');
+  }
 
   function pushMessage(text, key, cooldown = 6) {
     const now = (state.night - 1) * NIGHT_DURATION + (NIGHT_DURATION - state.timeLeft);
@@ -302,8 +420,10 @@
         return;
       }
       mote.activity = "wandering";
+      mote.wanderTarget = randomHabitatPoint();
     }
 
+    mote.activity = "wandering";
     mote.wanderTimer -= dt;
     if (mote.wanderTimer <= 0 || !mote.wanderTarget) {
       if (Math.random() < 0.18) {
@@ -332,7 +452,7 @@
 
   function moveToward(mote, tx, ty, dt, speedMul) {
     const d = dist(mote.x, mote.y, tx, ty);
-    const baseSpeed = 46; // px/sec
+    const baseSpeed = mote.speed; // px/sec
     const speed = baseSpeed * speedMul;
     if (d > 1.5) {
       const dx = (tx - mote.x) / d;
@@ -407,7 +527,7 @@
   }
 
   function spawnParticle(x, y, color) {
-    if (state.particles.length > 60) return;
+    if (preferences.reducedMotion || state.particles.length >= 60) return;
     state.particles.push({
       x: x + rand(-6, 6),
       y: y + rand(-4, 4),
@@ -472,6 +592,14 @@
     drawParticles();
     drawMotes(t);
     drawGlassOverlay();
+    if (state.pendingInterventionType && !state.paused && !state.ended) {
+      ctx.strokeStyle = '#ffcf7a'; ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]); ctx.beginPath();
+      ctx.arc(placementCursor.x, placementCursor.y, INTERACTION_RADIUS, 0, Math.PI * 2);
+      ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = '#ffcf7a'; ctx.font = '16px system-ui'; ctx.textAlign = 'center';
+      ctx.fillText('Enter to place', placementCursor.x, placementCursor.y - 55);
+    }
   }
 
   function drawBackground(t) {
@@ -787,18 +915,52 @@
   function setupInput() {
     canvas.addEventListener("pointerdown", onCanvasPointerDown);
 
-    document.getElementById("btnFood").addEventListener("pointerdown", () => selectIntervention("food"));
-    document.getElementById("btnWater").addEventListener("pointerdown", () => selectIntervention("water"));
-    document.getElementById("btnShelter").addEventListener("pointerdown", () => selectIntervention("shelter"));
-    document.getElementById("btnLamp").addEventListener("pointerdown", () => selectIntervention("lamp"));
+    document.getElementById("btnFood").addEventListener("click", () => selectIntervention("food"));
+    document.getElementById("btnWater").addEventListener("click", () => selectIntervention("water"));
+    document.getElementById("btnShelter").addEventListener("click", () => selectIntervention("shelter"));
+    document.getElementById("btnLamp").addEventListener("click", () => selectIntervention("lamp"));
 
-    document.getElementById("pauseBtn").addEventListener("pointerdown", togglePause);
-    document.getElementById("restartBtn").addEventListener("pointerdown", restartGame);
-    document.getElementById("restartBtnVictory").addEventListener("pointerdown", restartGame);
-    document.getElementById("restartBtnLoss").addEventListener("pointerdown", restartGame);
-    document.getElementById("startBtn").addEventListener("pointerdown", beginGame);
+    document.getElementById("pauseBtn").addEventListener("click", togglePause);
+    document.getElementById("restartBtn").addEventListener("click", restartGame);
+    document.getElementById("restartBtnVictory").addEventListener("click", restartGame);
+    document.getElementById("restartBtnLoss").addEventListener("click", restartGame);
+    document.getElementById("startBtn").addEventListener("click", beginGame);
 
+    document.getElementById('continueBtn').addEventListener('click', restoreRun);
+    document.getElementById('soundBtn').addEventListener('click', () => {
+      preferences.sound = !preferences.sound;
+      document.getElementById('soundBtn').textContent = preferences.sound ? 'Sound: On' : 'Sound: Off';
+      document.getElementById('soundBtn').setAttribute('aria-pressed', String(preferences.sound));
+      savePreferences(); syncAudio();
+    });
+    document.getElementById('motionBtn').addEventListener('click', () => {
+      preferences.reducedMotion = !preferences.reducedMotion;
+      document.getElementById('motionBtn').textContent = preferences.reducedMotion ? 'Motion: Reduced' : 'Motion: Full';
+      document.getElementById('motionBtn').setAttribute('aria-pressed', String(preferences.reducedMotion));
+      if (preferences.reducedMotion) state.particles = [];
+      savePreferences();
+    });
+    document.querySelectorAll('[data-mote]').forEach(button => button.addEventListener('click', () => {
+      state.selectedMoteId = Number(button.dataset.mote); renderMoteInfo();
+    }));
+    canvas.addEventListener('keydown', event => {
+      if (!state.started || state.ended || state.paused) return;
+      const direction = { ArrowLeft: [-20, 0], ArrowRight: [20, 0], ArrowUp: [0, -20], ArrowDown: [0, 20] }[event.key];
+      if (direction && state.pendingInterventionType) {
+        event.preventDefault();
+        placementCursor.x = clamp(placementCursor.x + direction[0], 50, 910);
+        placementCursor.y = clamp(placementCursor.y + direction[1], 50, 560);
+      } else if ((event.key === 'Enter' || event.key === ' ') && state.pendingInterventionType) {
+        event.preventDefault(); placeIntervention(state.pendingInterventionType, placementCursor.x, placementCursor.y);
+      } else if (event.key === 'Escape') {
+        state.pendingInterventionType = null; updateInterventionButtons();
+      }
+    });
+    window.addEventListener('pagehide', () => { saveGame(); if (audio) audio.context.suspend().catch(() => {}); });
+    window.addEventListener('pageshow', () => { state.lastFrameTime = null; syncAudio(); });
     document.addEventListener("visibilitychange", () => {
+      saveGame();
+      state.lastFrameTime = null;
       if (document.hidden) {
         state.autoPaused = state.started && !state.ended && !state.paused;
         if (state.autoPaused) state.paused = true;
@@ -806,13 +968,14 @@
         state.autoPaused = false;
         if (!state.manualPause) state.paused = false;
       }
-      updatePauseUI();
+      updatePauseUI(); syncAudio();
     });
   }
 
   function onCanvasPointerDown(evt) {
     if (!state.started || state.ended || state.paused) return;
     const p = worldPointFromEvent(evt);
+    placementCursor = { x: clamp(p.x, 50, 910), y: clamp(p.y, 50, 560) };
 
     if (state.pendingInterventionType && !state.interventionUsedThisNight) {
       if (p.x >= HABITAT.x + 20 && p.x <= HABITAT.x + HABITAT.w - 20 &&
@@ -837,18 +1000,22 @@
   }
 
   function selectIntervention(type) {
-    if (state.interventionUsedThisNight || !state.started || state.ended) return;
+    if (state.interventionUsedThisNight || !state.started || state.ended || state.paused) return;
     state.pendingInterventionType = state.pendingInterventionType === type ? null : type;
     updateInterventionButtons();
+    if (state.pendingInterventionType) canvas.focus({ preventScroll: true });
   }
 
   function placeIntervention(type, x, y) {
-    state.interventions.push({ type, x, y, id: Date.now() + Math.random() });
+    if (!state.started || state.paused || state.ended || state.interventionUsedThisNight ||
+        !['food', 'water', 'shelter', 'lamp'].includes(type)) return;
+    state.interventions.push({ type, x, y });
     state.interventionUsedThisNight = true;
     state.pendingInterventionType = null;
     updateInterventionButtons();
     const label = { food: "Food", water: "Water", shelter: "Shelter", lamp: "A moon lamp" }[type];
     pushMessage(`${label} placed for the colony tonight.`, null);
+    saveGame();
   }
 
   // ---------------------------------------------------------------------
@@ -880,13 +1047,14 @@
   function updateInterventionButtons() {
     const map = { food: dom.btnFood, water: dom.btnWater, shelter: dom.btnShelter, lamp: dom.btnLamp };
     for (const [type, btn] of Object.entries(map)) {
-      btn.disabled = state.interventionUsedThisNight;
+      btn.disabled = !state.started || state.ended || state.paused || state.interventionUsedThisNight;
+      btn.setAttribute("aria-pressed", String(state.pendingInterventionType === type));
       btn.classList.toggle("selected", state.pendingInterventionType === type);
     }
     dom.interventionHint.textContent = state.interventionUsedThisNight
       ? "Tonight's gift has been placed. More choices arrive at dawn."
       : state.pendingInterventionType
-        ? "Tap inside the terrarium to place it."
+        ? "Tap to place, or use arrow keys and Enter. Escape cancels."
         : "Choose a gift, then tap inside the terrarium to place it.";
   }
 
@@ -901,7 +1069,7 @@
     const activityText = ACTIVITY_LABEL[m.activity] || "Wandering";
     dom.moteInfo.innerHTML = `
       <div class="mote-info-name" style="color:${m.color}">${m.name}</div>
-      <div class="mote-info-activity">${activityText}</div>
+      <div class="mote-info-activity">${m.temperament} · ${activityText}</div>
       ${meterRow("Hunger", m.hunger, "hunger")}
       ${meterRow("Thirst", m.thirst, "thirst")}
       ${meterRow("Energy", m.energy, "energy")}
@@ -940,6 +1108,8 @@
   }
 
   function updatePauseUI() {
+    updateInterventionButtons();
+    dom.pauseBtn.disabled = !state.started || state.ended;
     dom.pauseBtn.textContent = state.paused ? "Resume" : "Pause";
     dom.pauseBanner.classList.toggle("hidden", !state.paused || state.ended || !state.started);
   }
@@ -950,21 +1120,31 @@
 
   function beginGame() {
     if (state.started) return;
+    if (savedRun && !confirm('Start a new story and replace your saved terrarium?')) return;
+    savedRun = null;
     state.started = true;
     dom.startOverlay.classList.add("hidden");
     pushMessage("Night 1 begins. The terrarium stirs to life.", null);
-    updateTopBar();
+    updateTopBar(); updatePauseUI(); saveGame(); syncAudio();
   }
 
   function togglePause() {
     if (!state.started || state.ended) return;
     state.manualPause = !state.manualPause;
-    state.paused = state.manualPause;
-    updatePauseUI();
+    state.paused = state.manualPause || document.hidden;
+    state.lastFrameTime = null;
+    updatePauseUI(); saveGame(); syncAudio();
   }
 
   function restartGame() {
+    if (state.started && !state.ended && !confirm('Restart and replace this terrarium?')) return;
     state = createState();
+    savedRun = null;
+    try { localStorage.removeItem(SAVE_KEY); } catch {}
+    document.getElementById('continueBtn').classList.add('hidden');
+    document.getElementById('startBtn').textContent = 'Begin Night 1';
+    document.getElementById('saveStatus').textContent = 'Progress saves automatically';
+    renderSummary(); syncAudio();
     cacheDomInvalidateSelection();
     dom.startOverlay.classList.remove("hidden");
     dom.victoryOverlay.classList.add("hidden");
@@ -974,7 +1154,7 @@
     updateInterventionButtons();
     renderMoteInfo();
     renderHappenings();
-    updateTopBar();
+    updateTopBar(); updatePauseUI();
   }
 
   function cacheDomInvalidateSelection() {
@@ -982,6 +1162,7 @@
   }
 
   function advanceNight() {
+    recordNight();
     if (state.night >= TOTAL_NIGHTS) {
       endGame(checkAnyActive() ? "victory" : "loss");
       return;
@@ -994,6 +1175,7 @@
     state.pendingInterventionType = null;
     updateInterventionButtons();
     pushMessage(`Night ${state.night} begins.`, null);
+    saveGame();
   }
 
   function checkAnyActive() {
@@ -1003,11 +1185,7 @@
   function endGame(outcome) {
     state.ended = true;
     state.outcome = outcome;
-    if (outcome === "victory") {
-      dom.victoryOverlay.classList.remove("hidden");
-    } else {
-      dom.lossOverlay.classList.remove("hidden");
-    }
+    showOutcome(); updatePauseUI(); saveGame(); syncAudio();
   }
 
   // ---------------------------------------------------------------------
@@ -1022,7 +1200,7 @@
     state.lastFrameTime = now;
     dt = clamp(dt, 0, MAX_DT);
 
-    const tSec = now / 1000;
+    const tSec = preferences.reducedMotion ? 0 : state.elapsed;
 
     if (state.started && !state.paused && !state.ended) {
       update(dt);
@@ -1034,6 +1212,9 @@
   }
 
   function update(dt) {
+    state.elapsed += dt;
+    saveTimer += dt;
+    if (saveTimer >= 2) { saveTimer = 0; saveGame(); }
     for (const m of state.motes) {
       decideActivity(m, dt);
       updateNeeds(m, dt);
@@ -1051,7 +1232,7 @@
       return;
     }
 
-    state.timeLeft -= dt;
+    state.timeLeft = Math.max(0, state.timeLeft - dt);
     if (state.timeLeft <= 0) {
       advanceNight();
     }
@@ -1063,6 +1244,22 @@
 
   function boot() {
     cacheDom();
+    try {
+      const savedPreferences = JSON.parse(localStorage.getItem(PREFS_KEY));
+      if (savedPreferences && typeof savedPreferences.sound === 'boolean' && typeof savedPreferences.reducedMotion === 'boolean') preferences = savedPreferences;
+    } catch {}
+    document.getElementById('soundBtn').textContent = preferences.sound ? 'Sound: On' : 'Sound: Off';
+    document.getElementById('soundBtn').setAttribute('aria-pressed', String(preferences.sound));
+    document.getElementById('motionBtn').textContent = preferences.reducedMotion ? 'Motion: Reduced' : 'Motion: Full';
+    document.getElementById('motionBtn').setAttribute('aria-pressed', String(preferences.reducedMotion));
+    savedRun = readSave();
+    if (savedRun) {
+      const button = document.getElementById('continueBtn');
+      button.classList.remove('hidden');
+      button.textContent = savedRun.ended ? 'View saved story' : `Continue Night ${savedRun.night}`;
+      document.getElementById('startBtn').textContent = 'Start a new story';
+    }
+    renderSummary();
     setupCanvas();
     setupInput();
     updateInterventionButtons();

@@ -441,3 +441,22 @@ body {
     padding: 10px 10px 18px;
   }
 }
+
+/* Final release: visible focus, compact mobile flow, reachable overlays. */
+.hidden { display: none !important; }
+.title small { display: block; font-size: 0.7rem; color: var(--ink-dim); margin-top: 4px; }
+button:focus-visible, a:focus-visible, canvas:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.night-summary { margin: 0; padding: 10px 14px; border-left: 2px solid var(--accent); color: var(--ink-dim); font-size: 0.8rem; line-height: 1.5; }
+.mote-picker { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 12px; }
+.mote-picker .btn { padding: 5px; background: var(--panel-bg-2); color: var(--ink); font-size: 0.75rem; }
+.comfort-controls { display: flex; gap: 8px; flex-wrap: wrap; }
+.overlay-card .btn { margin: 4px; }
+@media (max-width: 860px) {
+  .stage-wrapper { flex: none; width: 100%; }
+  .stage:has(.overlay:not(.hidden)) .overlay-card { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; }
+}
+
+#forge-back-link { position: static !important; margin: 0 16px 16px; opacity: 1 !important; }

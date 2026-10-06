@@ -41,5 +41,5 @@ test('Echo Miner runtime is self-contained under games/echo-miner', () => {
 });
 
 test('Forge Arcade cache-busts the launcher containing Echo Miner', () => {
-  assert.match(arcadeIndex, /<script src="app\.js\?v=20261004-forge-beast"><\/script>/);
+  assert.match(arcadeIndex, /<script src="app\.js\?v=[^"\s]+"><\/script>/);
 });

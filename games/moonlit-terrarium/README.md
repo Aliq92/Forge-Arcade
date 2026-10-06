@@ -1,128 +1,62 @@
-# Moonlit Terrarium — Seven Quiet Nights (v0.1)
+# Moonlit Terrarium — Seven Quiet Nights (v1.0 final update)
 
-A calm, autonomous ecosystem in a compact glass terrarium. Four glowing
-nocturnal creatures — **Motes** — forage, drink, rest, seek shelter, and
-gather on their own. Each night you may place exactly one gift to help
-them through. Keep at least one Mote glowing after seven nights and you win.
+A calm autonomous ecosystem with four glowing Motes: Ember, Pip, Sable,
+and Wren. Keep at least one glowing through seven 40-second nights.
+No dependencies or build step: open `index.html` in a modern browser,
+or launch Moonlit Terrarium from Forge Arcade.
 
-## Running it
+Each night, choose one gift and tap the glass to place it. Food eases
+hunger; Water eases thirst; Shelter restores energy; a Moon Lamp slows
+nearby energy drain. All four Motes can share a gift. Gifts disappear at
+dawn, when a new choice unlocks. Dawn summaries record how the colony did.
 
-No build step, no dependencies. Just open `index.html` in a modern
-desktop or mobile browser (double-click it, or drag it into a browser tab).
+For keyboard care, activate a gift button with Enter or Space, aim with
+the arrow keys, then press Enter or Space to place. Escape cancels. The
+Ember/Pip/Sable/Wren buttons inspect each Mote without requiring a precise
+canvas click. Pause freezes active play. Restart asks before replacing
+an unfinished run.
 
-Files:
+Progress saves every two seconds, immediately on care, dawn, pause and
+completion, and when the page hides or exits. Reopen and choose Continue
+to resume the same night and gift. Closed-tab time never advances the
+simulation. Completed stories can also be reopened. Saves are local to
+the browser and origin; blocked storage shows a message while play
+continues. Invalid or unsupported saves safely offer a new story.
 
-- `index.html` — page structure and overlays
-- `styles.css` — visual styling and responsive layout
-- `script.js` — the entire simulation (state, behaviour, rendering, input, UI)
-- `README.md` — this file
+Optional ambient sound starts only after interaction and fades while
+paused, hidden or finished. Sound defaults off. Reduced motion honors
+the system preference and can be toggled; it freezes decorative motion
+and suppresses particles without changing Mote movement or simulation.
+Preferences persist separately from each story.
 
-## How to play
+## Final release fixes
 
-1. Read the start overlay and click **Begin Night 1**.
-2. Watch the four Motes — **Ember, Pip, Sable, Wren** — wander, forage,
-   drink, and rest on their own.
-3. Pick one gift from the panel: **Food, Water, Shelter,** or **Moon Lamp**.
-4. Tap or click inside the terrarium to place it. You get one placement
-   per night; the controls lock afterward. At the next dawn that gift is
-   removed and the controls unlock again for a new choice.
-5. Tap any Mote to see its name, activity, Hunger, Thirst, and Energy.
-6. Each night lasts about 40 seconds. Survive all seven.
+- Safe wander targets after social gathering; satisfied care ends cleanly.
+- Native button click activation works for keyboard, pointer and touch.
+- Gift controls correctly lock before starting, while paused and after ending.
+- Manual pause survives save/reopen and hidden-tab pause respects it.
+- Restored Motes use validated needs/positions and rebuild behavior references,
+  avoiding cyclic social references in saves.
+- Final dawn clamps the countdown to zero so completed saves remain valid.
+- Mobile stage uses its actual aspect ratio without a 640px flex spacer;
+  small overlays scroll, browser zoom remains available, and focus is visible.
+- Distinct Mote personalities and movement speeds, accessible inspection,
+  dawn summaries, saved stories, optional ambient audio and reduced motion.
 
-**Win:** at least one Mote is still active (Energy above 0) after Night 7.
-**Lose:** all four Motes become exhausted (Energy at 0) at the same time.
+## Verification
 
-Gifts last only for the night they're placed in: at most one may be placed
-per night, and it is removed from the terrarium (its effect ending with it)
-the moment the next night begins, when the controls unlock for a fresh
-choice. Gifts never accumulate across nights.
+From the Arcade root:
 
-## Gameplay & architecture decisions
+```sh
+node tests/moonlit-terrarium.test.mjs
+python -m http.server 8420
+# In another terminal, with Playwright and Chromium installed:
+node tests/moonlit-terrarium.browser.cjs
+node build.mjs
+```
 
-- **Care commitment.** Once a Mote commits to eating, drinking, or
-  resting, it stays until the need is meaningfully resolved (Hunger ≤ 25,
-  Thirst ≤ 25, Energy ≥ 80), the gift disappears, or a genuinely more
-  urgent need overrides it — and "genuinely" is strict: the more urgent
-  need must have its own gift actually present in the terrarium. Urgent
-  Hunger or Thirst can't pull a Mote out of Shelter (or vice versa) if
-  there's nothing placed to satisfy that more urgent need, since that
-  would just abandon a working gift for nothing. The same rule applies
-  when picking a fresh activity: a Mote works down its priority list
-  (exhaustion, urgent thirst, urgent hunger, low energy, then ordinary
-  seeking) and acts on the first need in that list whose gift actually
-  exists, rather than fixating on its single top want and idling if that
-  one isn't available. Ambient wandering/gathering never interrupts care.
-- **Exhaustion has a way out.** A Mote at 0 Energy doesn't decay further
-  and always prioritises finding Shelter above anything else once it
-  exists in the world. If no Shelter has been placed yet, it drifts
-  slowly instead of freezing, so it's never stuck in a dead state.
-- **Moon Lamp** doesn't fill a meter directly — it slows nearby Motes'
-  Energy drain and gently draws content Motes in for peaceful gathering,
-  making it a good "buy time" pick when the colony is already fed and
-  watered.
-- **Delta-time simulation.** All movement, timers, and need changes are
-  driven by elapsed real time (`dt`), clamped to a maximum step per
-  frame. Returning from a backgrounded/suspended browser tab can't
-  cause the colony to jump straight to exhaustion.
-- **Single persistent loop.** One `requestAnimationFrame` loop runs for
-  the lifetime of the page. Restarting the game replaces the in-memory
-  state object and resets the DOM; it never spawns a second loop,
-  listener set, or canvas.
-- **World-space canvas.** The simulation runs in a fixed 960×600 logical
-  coordinate space. The canvas is resized and rescaled to fit its
-  container (respecting device pixel ratio) without ever stretching or
-  distorting the simulated world, on desktop or mobile, portrait or
-  landscape.
-- **Scrollable overlays.** The start/victory/loss cards can scroll inside
-  their frame if a very small or unusually shaped viewport can't fit
-  their full height, so the title and button always stay reachable
-  instead of being cropped by the terrarium's fixed aspect ratio.
-- **Pointer Events.** Mouse, touch, and stylus input all go through the
-  same `pointerdown` handlers, so behaviour is identical across devices.
-- **Auto-pause.** The `visibilitychange` event pauses the simulation the
-  moment the tab is hidden and resumes it on return, unless the player
-  had already paused manually (that preference is respected).
-
-## Balance notes (v0.1 tuning)
-
-- Hunger/Thirst rise slowly on their own (~0.8–0.9 per second); Food and
-  Water reduce them quickly (9/second) once a Mote is in range, so care
-  has an obvious, satisfying effect within the same night.
-- Energy drains slowly and is *not* restored by Food or Water directly —
-  only Shelter (and, indirectly, the Moon Lamp slowing the drain) restores
-  it, so Shelter placement becomes a meaningful strategic decision across
-  the seven nights rather than a guaranteed daily pick.
-- Several Motes can use the same Food, Water, or Shelter simultaneously —
-  nothing is depleted or exclusive.
-
-## Known limitations (v0.1)
-
-- No audio.
-- No persistence between browser sessions — refreshing the page starts a
-  new run (this is by design for v0.1's scope).
-- Balance was hand-tuned and tested via an automated no-intervention run
-  (predictably ends in a loss) and a "care every night" run (ends in a
-  win); it has not been tested against every possible mix of player
-  choices.
-- Very old browsers without `Canvas 2D`, `Pointer Events`, or
-  `requestAnimationFrame` support are not targeted.
-
-## Suggested manual checks
-
-- Resize the browser window slowly across the desktop/mobile breakpoint
-  (~860px) and confirm the layout re-stacks cleanly with no overlap or
-  horizontal scrollbar.
-- Rotate a mobile device between portrait and landscape mid-game.
-- Switch to another browser tab for 10+ seconds mid-night and confirm
-  the simulation pauses and resumes smoothly on return.
-- Click Pause, then Restart, then Pause again, to confirm state doesn't
-  leak between runs.
-
-## Recommended focus for v0.2
-
-- Optional ambient audio (soft night sounds, muted per-Mote chirps).
-- A gentle end-of-night summary instead of only a live Happenings feed.
-- More Mote personality: distinct wander speeds/temperaments per Mote.
-- Accessibility pass: keyboard-operable intervention placement, and a
-  reduced-motion mode for the drifting particles and camera-free canvas
-  animation.
+Simulation regressions cover safe wandering, care completion, gift limits,
+dawn cleanup, cyclic-reference saves, corruption recovery, seven-night
+victory, unattended loss, restart cancellation and unavailable storage.
+Browser playtests cover keyboard care, pause, Arcade exit/re-entry,
+preferences, dawn, persisted victory and mobile/landscape layouts.
