@@ -1,0 +1,9 @@
+/* Wildform artwork is scoped to its two native Arcade cards. */
+.art-custom-wildform {
+  background: #74967e url('wildform-card.svg') center 56% / cover no-repeat;
+}
+.art-custom-wildform::before {
+  background: linear-gradient(180deg, transparent 60%, rgba(28, 47, 35, .18));
+}
+.art-custom-wildform::after,
+.art-custom-wildform .art-code { display: none; }

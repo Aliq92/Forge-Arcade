@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#243b31"><meta name="description" content="Shape a miniature living world. Watch ten autonomous species survive, migrate and adapt in an interconnected ecosystem."><title>Wildform — Life finds a way</title><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="arcade.css"></head>
+<body>
+  <svg class="symbols" aria-hidden="true"><defs>
+    <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M19 4C8 2 3 7 5 14c2 7 14 5 14-10Z M5 20 16 8 M10 15V9 M10 15h5"/></symbol>
+    <symbol id="i-hand" viewBox="0 0 24 24"><path d="M7 12V7a2 2 0 0 1 4 0v5-8a2 2 0 0 1 4 0v8-6a2 2 0 0 1 4 0v6-3a2 2 0 0 1 4 0v7c0 5-4 7-8 7-3 0-5-1-7-4l-4-6a2 2 0 0 1 3-2l2 2Z" transform="translate(-2 -1) scale(.94)"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="m2 20 7-11 5 7 4-6 4 10 M12 10V2 M8 6l4-4 4 4"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="m2 20 7-7 5 6 4-5 4 6 M12 2v8 M8 6l4 4 4-4"/></symbol>
+    <symbol id="i-water" viewBox="0 0 24 24"><path d="M12 2C9 7 5 10 5 15a7 7 0 0 0 14 0c0-5-4-8-7-13Z M8 15c0 2 1 3 3 3"/></symbol>
+    <symbol id="i-life" viewBox="0 0 24 24"><path d="M7 14c0-5 10-5 10 0 0 2 3 3 2 5-1 3-4 1-7 1s-6 2-7-1c-1-2 2-3 2-5Z"/><ellipse cx="5" cy="8" rx="2" ry="3"/><ellipse cx="11" cy="5" rx="2" ry="3"/><ellipse cx="17" cy="7" rx="2" ry="3"/><ellipse cx="21" cy="12" rx="1.5" ry="2"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 1v3 M12 20v3 M1 12h3 M20 12h3 M4 4l2 2 M18 18l2 2 M4 20l2-2 M18 6l2-2"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 3h14a2 2 0 0 1 2 2v16H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3 M3 17h17 M8 7h8 M8 11h6"/></symbol>
+    <symbol id="i-film" viewBox="0 0 24 24"><rect x="3" y="5" width="13" height="14" rx="3"/><path d="m16 10 5-4v12l-5-4 M6 2l3 3 M12 2l3 3"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18 M7 16v-4 M12 16V6 M17 16v-7"/></symbol>
+    <symbol id="i-save" viewBox="0 0 24 24"><path d="M4 3h13l4 4v14H3V3h1Z M7 3v6h9V3 M7 21v-8h10v8"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="M3 9h4l5-5v16l-5-5H3V9 M16 8c3 2 3 6 0 8 M19 4c6 4 6 12 0 16"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 6h16 M4 12h16 M4 18h16"/><circle cx="8" cy="6" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="10" cy="18" r="2"/></symbol>
+  </defs></svg>
+  <main id="game">
+    <canvas id="world" aria-label="Wildform ecosystem. Select a tool to paint; use Navigate to pan. Scroll or pinch to zoom." tabindex="0"></canvas>
+    <header class="topbar chrome">
+      <a class="brand" href="#" aria-label="Wildform home view"><svg viewBox="0 0 44 44" class="brand-mark" aria-hidden="true"><path d="M22 36V17 M22 24C8 25 6 17 6 10c10 0 16 4 16 14Z M22 20C35 21 39 13 37 5c-10 0-15 6-15 15Z M13 36h18"/></svg><span><strong>WILDFORM<span class="brand-dot">®</span></strong><small>LIFE FINDS A WAY</small></span></a>
+      <div class="world-time"><span class="time-icon">◐</span><div><strong id="day">Day 1</strong><span id="season">Spring · Dawn</span></div></div>
+      <div class="speed" role="group" aria-label="Simulation speed"><button data-speed="0" aria-label="Pause simulation">Ⅱ</button><button data-speed="1" class="active">1×</button><button data-speed="2">2×</button><button data-speed="4">4×</button><button data-speed="8">8×</button></div>
+      <button class="population-pill" id="population-button" aria-label="Open species populations"><span class="status-dot"></span><strong id="population">76</strong><span>living</span></button>
+      <nav class="top-actions" aria-label="World panels"><button id="ecology-button" title="Ecosystem overview" aria-label="Ecosystem overview"><svg><use href="#i-chart"/></svg></button><button id="journal-button" title="Ecosystem journal" aria-label="Ecosystem journal"><svg><use href="#i-book"/></svg></button><button id="cinema-button" title="Cinematic mode" aria-label="Cinematic mode"><svg><use href="#i-film"/></svg></button><button id="settings-button" title="Settings & save" aria-label="Settings and save"><svg><use href="#i-settings"/></svg></button></nav>
+    </header>
+    <div class="map-heading chrome"><span class="eyebrow">A LIVING ECOSYSTEM</span><p>Small lives. Endless possibilities.</p></div>
+    <div class="view-controls chrome"><label class="overlay-label" for="overlay"><svg><use href="#i-eye"/></svg><select id="overlay" aria-label="Environmental overlay"><option value="normal">Natural view</option><option value="moisture">Moisture</option><option value="temperature">Temperature</option><option value="population">Population</option><option value="biodiversity">Biodiversity</option><option value="territory">Territories</option></select></label><div id="legend" hidden></div></div>
+    <div class="zoom-controls chrome" aria-label="Camera controls"><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="home" aria-label="Fit world" title="Fit world">⌖</button></div>
+    <aside id="panel" class="panel chrome" hidden aria-label="Information panel"><div class="panel-header"><span class="eyebrow" id="panel-kicker">FIELD NOTES</span><button id="close-panel" aria-label="Close panel">×</button></div><div id="panel-content"></div></aside>
+    <aside id="welcome" class="welcome chrome"><button id="dismiss-welcome" aria-label="Dismiss introduction">×</button><span class="eyebrow">THE WORLD IS ALREADY ALIVE</span><h1>Change the world.<br><em>Watch life respond.</em></h1><p>Make a pond. Plant a meadow. Introduce life.<br>The creatures will find their own way.</p><button id="help-button" class="text-button">A little field guide <span>↗</span></button></aside>
+    <div id="toast" role="status" aria-live="polite" hidden></div>
+    <section class="bottom-dock chrome" aria-label="World shaping tools">
+      <div id="tool-context" class="tool-context"><span id="tool-hint">Tap a creature to meet it. Drag to look around.</span><div class="context-inputs"><label id="species-label" hidden>Species <select id="species-select" aria-label="Species to introduce"></select></label><label id="plant-label" hidden>Plant <select id="plant-select" aria-label="Plant type"><option value="auto">Habitat mix</option><option value="0">Grass</option><option value="1">Shrubs</option><option value="2">Trees</option><option value="3">Algae</option><option value="4">Fungi</option></select></label><label id="brush-label" hidden>Brush <input id="brush" type="range" min="1" max="4" step=".5" value="1.8" aria-label="Brush radius"></label></div></div>
+      <div class="toolbar"><div class="tool-group"><button data-tool="inspect" class="tool active" aria-label="Observe creatures"><svg><use href="#i-eye"/></svg><span>Observe</span></button><button data-tool="pan" class="tool" aria-label="Navigate camera"><svg><use href="#i-hand"/></svg><span>Navigate</span></button></div><span class="divider"></span><div class="tool-group shaping"><button data-tool="raise" class="tool" aria-label="Raise terrain"><svg><use href="#i-up"/></svg><span>Raise</span></button><button data-tool="lower" class="tool" aria-label="Lower terrain"><svg><use href="#i-down"/></svg><span>Lower</span></button><button data-tool="water" class="tool" aria-label="Add water"><svg><use href="#i-water"/></svg><span>Water</span></button><button data-tool="plant" class="tool" aria-label="Plant vegetation"><svg><use href="#i-leaf"/></svg><span>Plant</span></button><button data-tool="species" class="tool" aria-label="Introduce species"><svg><use href="#i-life"/></svg><span>Life</span></button></div><span class="divider"></span><button id="climate-button" class="tool" aria-label="Adjust climate"><svg><use href="#i-sun"/></svg><span>Climate</span></button><div class="dock-caption"><span class="eyebrow">SHAPE. OBSERVE. DISCOVER.</span><span id="save-status">Your world is saved locally.</span></div></div>
+    </section>
+    <div class="footer-note chrome"><span>FORGE ARCADE <i>/</i> WILDFORM</span><span id="world-seed">WORLD 48271</span></div>
+    <button id="exit-cinema" hidden>Exit cinematic <span>Esc</span></button><div id="cinema-caption" hidden><span>WILDFORM</span><p>Life finds a way.</p></div>
+    <dialog id="confirm-dialog"><span class="eyebrow">A NEW BEGINNING</span><h2 id="confirm-title">Reset this world?</h2><p id="confirm-text">This replaces your locally saved ecosystem.</p><div class="dialog-actions"><button id="cancel-reset">Keep exploring</button><button id="confirm-reset" class="primary">Create world</button></div></dialog>
+  </main>
+  <a id="forge-back-link" href="../../index.html" aria-label="Return to Forge Arcade">← Forge Arcade</a>
+  <script src="simulation.js"></script><script src="renderer.js"></script><script src="script.js"></script>
+</body></html>

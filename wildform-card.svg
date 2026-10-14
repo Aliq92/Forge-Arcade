@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360">
+ <defs>
+  <linearGradient id="land" x2="1" y2="1"><stop stop-color="#abc18a"/><stop offset="1" stop-color="#678d73"/></linearGradient>
+  <linearGradient id="water" x2=".4" y2="1"><stop stop-color="#8bc6c1"/><stop offset="1" stop-color="#559d9e"/></linearGradient>
+  <radialGradient id="light"><stop stop-color="#f3ecc0" stop-opacity=".35"/><stop offset="1" stop-color="#f3ecc0" stop-opacity="0"/></radialGradient>
+  <g id="tree"><ellipse cy="12" rx="18" ry="7" fill="#345844" opacity=".18"/><path d="M0 8V-16" stroke="#746e51" stroke-width="5"/><circle cx="-10" cy="-18" r="15" fill="#557b59"/><circle cx="10" cy="-20" r="17" fill="#709662"/><circle cy="-32" r="16" fill="#97af76"/><ellipse cx="-4" cy="-36" rx="6" ry="3" fill="#c7d298" opacity=".55"/></g>
+  <g id="fungus"><path d="M0 4v-15" stroke="#e1cfc3" stroke-width="4"/><ellipse cy="-16" rx="12" ry="7" fill="#ba9eb9"/><circle cx="-4" cy="-19" r="2" fill="#e3d4d0"/></g>
+  <g id="crystal"><ellipse cy="5" rx="15" ry="5" fill="#335d52" opacity=".2"/><path d="m-8 0 1-31 7-12 10 14-1 31Z" fill="#b5e1d6"/><path d="M0-43 10-29 9 2 0-5Z" fill="#7fb5b8"/><path d="m7 4 6-24 6-8 8 12-4 19Z" fill="#c5e7d6"/></g>
+  <g id="mossback"><ellipse cy="5" rx="15" ry="6" fill="#426746" opacity=".3"/><path d="M-9 6v5M4 6v5" stroke="#7f835b" stroke-width="5"/><ellipse rx="15" ry="10" fill="#73935b"/><ellipse cx="13" cy="1" rx="7" ry="6" fill="#c1cf8e"/><path d="m-7-6 2 12m6-14 2 15" stroke="#a7bd79" stroke-width="4"/><circle cx="17" r="1.4" fill="#334c3b"/></g>
+  <g id="hopper"><ellipse rx="10" ry="6" fill="#c6a47e"/><ellipse cx="9" rx="5" ry="4" fill="#d6ba93"/><path d="m7-3-1-10m6 10 3-8" stroke="#d6ba93" stroke-width="4" stroke-linecap="round"/><circle cx="12" r="1" fill="#354736"/><circle cx="-10" r="3" fill="#e5dac0"/></g>
+  <g id="grass" fill="none" stroke="#6c8f5c" stroke-width="2" stroke-linecap="round"><path d="m-6 3 2-7 4 8 3-11 3 9"/></g>
+ </defs>
+ <path fill="url(#land)" d="M0 0h640v360H0z"/>
+ <path fill="#9394a5" opacity=".75" d="M0 240c70-20 125 18 170 65l25 55H0Z"/>
+ <path fill="#91b8a3" d="M426 0h214v205c-60 10-100-12-140-39s-97-48-74-166Z"/>
+ <path fill="#b2ad8b" d="M490 215c66-7 97 40 150 17v128H470c30-42 11-99 20-145Z"/>
+ <path fill="url(#water)" d="M-20 126c110-49 170 53 278 16s134-22 134 52c0 42 43 59 71 88s3 54-40 64c-66 16-133-3-158-46s-68-66-112-84S47 215-20 171Z"/>
+ <path fill="none" stroke="#c6e1c8" stroke-width="3" opacity=".35" d="M-12 140c118-33 184 54 278 18m41 35c-41 17-35 51-4 78m56 48c20 7 57 8 80-3"/>
+ <g><use href="#tree" x="44" y="79"/><use href="#tree" x="91" y="70"/><use href="#tree" x="142" y="88"/><use href="#tree" x="206" y="53"/><use href="#tree" x="298" y="73"/><use href="#tree" x="346" y="57"/><use href="#tree" x="437" y="98"/><use href="#tree" x="499" y="62"/><use href="#tree" x="557" y="112"/><use href="#tree" x="618" y="77"/><use href="#tree" x="101" y="248"/><use href="#tree" x="160" y="268"/><use href="#tree" x="235" y="240"/><use href="#tree" x="56" y="215"/></g>
+ <g><use href="#fungus" x="29" y="284"/><use href="#fungus" x="72" y="319"/><use href="#fungus" x="126" y="343"/><use href="#fungus" x="19" y="339"/><use href="#crystal" x="472" y="151"/><use href="#crystal" x="581" y="161"/><use href="#crystal" x="612" y="207"/></g>
+ <g fill="#d0ceae"><path d="m504 251 17-20 23 15-7 21-26 1Z"/><path d="m567 302 15-13 22 10-4 18-27-1Z"/><path d="m612 266 13-20 23 19-9 11Z"/></g>
+ <g><use href="#grass" x="179" y="118"/><use href="#grass" x="229" y="92"/><use href="#grass" x="350" y="132"/><use href="#grass" x="74" y="195"/><use href="#grass" x="215" y="195"/><use href="#grass" x="152" y="208"/><use href="#grass" x="317" y="324"/><use href="#grass" x="474" y="303"/><use href="#grass" x="406" y="250"/><use href="#grass" x="419" y="154"/></g>
+ <g><use href="#mossback" x="242" y="111"/><use href="#mossback" x="180" y="185"/><use href="#hopper" x="332" y="111"/><use href="#hopper" x="364" y="282"/></g>
+ <g fill="#e6e7c5"><ellipse cx="527" cy="125" rx="5" ry="3" transform="rotate(-30 527 125)"/><ellipse cx="533" cy="125" rx="5" ry="3" transform="rotate(30 533 125)"/><ellipse cx="115" cy="294" rx="4" ry="2"/><ellipse cx="122" cy="294" rx="4" ry="2"/></g>
+ <circle cx="165" cy="50" r="260" fill="url(#light)"/>
+</svg>
