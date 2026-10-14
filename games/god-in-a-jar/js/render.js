@@ -10,6 +10,7 @@ export class Renderer {
     this.ctx = canvas.getContext("2d");
     this.zoom = 1;
     this.pan = { x: 0, y: 0 };
+    this.plantSprites = new WeakMap();
     this.resize();
     window.addEventListener("resize", () => this.resize());
   }
@@ -17,7 +18,9 @@ export class Renderer {
     const r = this.canvas.getBoundingClientRect();
     this.width = r.width;
     this.height = r.height;
-    const d = Math.min(devicePixelRatio || 1, 2);
+    // Bound fill cost on phones and large/high-density displays.
+    const d = Math.min(devicePixelRatio || 1, r.width < 600 ? 1.5 : 2,
+      Math.sqrt(2000000 / Math.max(1, r.width * r.height)));
     this.canvas.width = r.width * d;
     this.canvas.height = r.height * d;
     this.dpr = d;
@@ -347,6 +350,34 @@ export class Renderer {
     c.setLineDash([]);
   }
   plant(q, p, night, t) {
+    // Plants grow slowly. Rasterize their glow once per visible growth/light
+    // band, then sway the cached artwork rather than blurring paths each frame.
+    const h = Math.round(p.size * (0.65 + (p.food / p.capacity) * 0.55));
+    const light = Math.round(night * 8) / 8;
+    const key = `${h}:${light}:${p.color}`;
+    let sprite = this.plantSprites.get(p);
+    if (!sprite || sprite.key !== key) {
+      const pad = 24, width = Math.ceil(h * 1.2 + pad * 2), height = h + pad * 2;
+      const image = document.createElement("canvas");
+      image.width = width * 2; image.height = height * 2;
+      const original = this.ctx;
+      try {
+        this.ctx = image.getContext("2d");
+        this.ctx.scale(2, 2);
+        this.paintPlant({x: width / 2, y: height - pad},
+          {...p, size: h / (0.65 + (p.food / p.capacity) * 0.55)}, light, -p.id / 1.3);
+      } finally { this.ctx = original; }
+      sprite = {key, image, width, height, pad};
+      this.plantSprites.set(p, sprite);
+    }
+    const c = this.ctx;
+    c.save(); c.translate(q.x, q.y);
+    c.rotate(Math.sin(t * 1.3 + p.id) * 2 / Math.max(1, h));
+    c.drawImage(sprite.image, -sprite.width / 2, -sprite.height + sprite.pad,
+      sprite.width, sprite.height);
+    c.restore();
+  }
+  paintPlant(q, p, night, t) {
     const c = this.ctx;
     const growth = 0.65 + (p.food / p.capacity) * 0.55,
       h = p.size * growth;

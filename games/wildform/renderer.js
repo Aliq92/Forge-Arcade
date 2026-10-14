@@ -17,7 +17,7 @@
     }
     resize() {
       const rect=this.canvas.getBoundingClientRect();this.width=rect.width;this.height=rect.height;
-      this.dpr=Math.min(devicePixelRatio||1,2);this.canvas.width=Math.round(rect.width*this.dpr);this.canvas.height=Math.round(rect.height*this.dpr);
+      this.dpr=Math.min(devicePixelRatio||1,rect.width<600?1.5:2,Math.sqrt(2000000/Math.max(1,rect.width*rect.height)));this.canvas.width=Math.round(rect.width*this.dpr);this.canvas.height=Math.round(rect.height*this.dpr);
       this.fit=Math.min((this.width-50)/W.COLS,(this.height-170)/W.ROWS);
       this.fit=Math.max(5,this.fit);this.dirty=true;
     }
@@ -159,7 +159,10 @@
         labels.forEach(([x,y,t])=>{ctx.fillStyle='rgba(231,239,209,.57)';ctx.fillRect(x-t.length*.16,y-.55,t.length*.32,.85);ctx.fillStyle='rgba(37,62,52,.8)';ctx.fillText(t,x,y);});ctx.textAlign='left';
       }
       if(this.overlay!=='normal')this.drawOverlay(ctx,w);
-      const living=[...w.organisms].sort((a,b)=>a.y-b.y);living.forEach(a=>this.drawCreature(ctx,a,w,clock,a.id===this.selected));
+      // Keep offscreen creatures simulating, but avoid their paths and glows.
+      const margin=2,minX=-o.x/scale-margin,maxX=(this.width-o.x)/scale+margin,
+        minY=-o.y/scale-margin,maxY=(this.height-o.y)/scale+margin;
+      const living=w.organisms.filter(a=>a.x>=minX&&a.x<=maxX&&a.y>=minY&&a.y<=maxY).sort((a,b)=>a.y-b.y);living.forEach(a=>this.drawCreature(ctx,a,w,clock,a.id===this.selected));
       ctx.fillStyle=`rgba(20,39,63,${night*.25})`;ctx.fillRect(0,0,w.cols,w.rows);
       if(night>.5)for(const a of living)if(a.species==='glowmoth'||a.species==='luminant'||a.traits.marking===2){const g=ctx.createRadialGradient(a.x,a.y,0,a.x,a.y,.7);g.addColorStop(0,`rgba(236,242,173,${night*.32})`);g.addColorStop(1,'rgba(236,242,173,0)');ctx.fillStyle=g;ctx.fillRect(a.x-.7,a.y-.7,1.4,1.4);}
       if(this.hover&&this.tool!=='inspect'&&this.tool!=='pan'){const {x,y}=this.hover;ctx.strokeStyle='#f8edb5';ctx.lineWidth=.055;ctx.setLineDash([.12,.12]);ctx.beginPath();ctx.arc(x,y,this.tool==='species'?.8:this.brush,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);}

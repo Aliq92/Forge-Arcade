@@ -7,7 +7,7 @@
   world=world||S.createWorld(48271);
   const renderer=new WildformRenderer($('#world')),canvas=$('#world');
   let tool='inspect',panelType=null,panelSpecies=null,selected=null,toastUntil=0,lastEvent=world.events[0],lastUi=0,lastFrame=performance.now(),autosave=0;
-  let pendingReset=null,space=false,frameCounter=0,simulationMs=0;
+  let pendingReset=null,space=false,frameCounter=0,simulationMs=0,lastRender=0;
   const seasons=['Spring','Summer','Autumn','Winter'];
   const icons={mossback:'◒',duskstalker:'◈',spritebeetle:'✧',glowmoth:'⋈',hopper:'⌁',reedskipper:'≈',ridgeclaw:'△',sporekeeper:'♧',crystalfinch:'◇',luminant:'✦'};
   const roles={grazer:'Herbivore',predator:'Predator',decomposer:'Decomposer',pollinator:'Night pollinator',omnivore:'Wetland omnivore',seeder:'Seed spreader'};
@@ -219,6 +219,11 @@
   document.addEventListener('visibilitychange',()=>{if(document.hidden){save();if(audio)audio.suspend();}else{lastFrame=performance.now();if(audio&&!world.settings.muted)audio.resume();}});
   window.addEventListener('pagehide',()=>save());
   function frame(now){
+    if(document.hidden){lastFrame=now;requestAnimationFrame(frame);return;}
+    // Retain lastFrame until an actual update so skipped display refreshes
+    // contribute their elapsed time to the fixed-step simulation.
+    if(now-lastRender<1000/60-.5){requestAnimationFrame(frame);return;}
+    lastRender=now;
     const dt=Math.min(.25,(now-lastFrame)/1000);lastFrame=now;
     if(!document.hidden){const t=performance.now();S.advance(world,dt);simulationMs=performance.now()-t;renderer.draw(world,world.time,dt);frameCounter++;
       if(now-lastUi>400){lastUi=now;updateHud();updatePanel();}

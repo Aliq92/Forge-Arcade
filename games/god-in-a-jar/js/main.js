@@ -43,6 +43,7 @@ let speedBeforeHistory = 1,
   lastSavedEvent = 0,
   cooldownUntil = 0,
   last = performance.now(),
+  lastRender = 0,
   uiAcc = 0,
   effectiveSteps = 0,
   effectiveReal = 0,
@@ -408,6 +409,17 @@ document.addEventListener("visibilitychange", () => {
 });
 window.addEventListener("pagehide", () => saveNow());
 function frame(now) {
+  if (document.hidden) {
+    last = now;
+    clock.reset();
+    requestAnimationFrame(frame);
+    return;
+  }
+  if (now - lastRender < 1000 / 60 - 0.5) {
+    requestAnimationFrame(frame);
+    return;
+  }
+  lastRender = now;
   const elapsed = Math.max(0, (now - last) / 1000);
   last = now;
   const running = state.snapshot === null && !document.hidden ? state.speed : 0;
