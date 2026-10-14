@@ -33,10 +33,9 @@ test("God in a Jar registers exactly one featured simulation and preserves the e
   assert.equal(ctx.footerCount.textContent, "2");
   assert.match(ctx.heroStatus.textContent, /2 playable/);
 });
-test("launcher includes the registry once and scopes its jar artwork", async () => {
+test("launcher excludes retired simulations and keeps archived jar artwork scoped", async () => {
   const html = await read("index.html");
-  assert.equal((html.match(/src="god-in-a-jar-register.js/g) || []).length, 1);
-  assert.match(html, /god-in-a-jar-card.css/);
+  assert.doesNotMatch(html, /(?:wildform|god-in-a-jar)-(?:register\.js|card\.css)/);
   const css = await read("god-in-a-jar-card.css");
   assert.match(css, /\.art-custom-god-in-a-jar/);
   assert.doesNotMatch(css, /(^|\n)(body|html|:root|button)\s*\{/);
