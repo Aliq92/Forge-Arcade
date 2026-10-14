@@ -1,0 +1,41 @@
+/* Native document integration: the game continues to own its layout and saves. */
+#forge-back-link {
+  position: absolute;
+  bottom: 24px;
+  left: 4%;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid #afe2cd20;
+  border-radius: 8px;
+  background: #0b151bbc;
+  color: #a5c4bb;
+  font-size: 11px;
+  text-decoration: none;
+  z-index: 3;
+}
+#forge-back-link:hover {
+  background: #17272d;
+  color: #dcefe6;
+}
+#forge-back-link:focus-visible {
+  outline: 2px solid #afe2cd;
+  outline-offset: 3px;
+}
+#toast {
+  bottom: 85px;
+}
+.observing #forge-back-link {
+  display: none;
+}
+@media (max-width: 650px) {
+  #forge-back-link {
+    bottom: 84px;
+    left: 5%;
+    font-size: 10px;
+  }
+  #toast {
+    bottom: 125px;
+  }
+}

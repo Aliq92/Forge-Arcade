@@ -1,0 +1,11 @@
+/* Artwork is isolated to this game's native catalog and featured cards. */
+.art-custom-god-in-a-jar {
+  background: #0b1118 url("god-in-a-jar-card.svg") center / cover no-repeat;
+}
+.art-custom-god-in-a-jar::before {
+  background: linear-gradient(180deg, transparent 65%, rgba(8, 17, 23, 0.2));
+}
+.art-custom-god-in-a-jar::after,
+.art-custom-god-in-a-jar .art-code {
+  display: none;
+}
