@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="420" viewBox="0 0 720 420">
+  <defs>
+    <radialGradient id="space"><stop stop-color="#183b4c"/><stop offset="1" stop-color="#080c17"/></radialGradient>
+    <radialGradient id="field"><stop stop-color="#67e8e2" stop-opacity=".14"/><stop offset="1" stop-color="#67e8e2" stop-opacity="0"/></radialGradient>
+    <linearGradient id="trail" x1="0" x2="1"><stop stop-color="#67e8e2" stop-opacity="0"/><stop offset="1" stop-color="#c3fff7"/></linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="5"/></filter>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="#7e9ab3" stroke-opacity=".045"/></pattern>
+  </defs>
+  <path fill="url(#space)" d="M0 0h720v420H0z"/><path fill="url(#grid)" d="M0 0h720v420H0z"/>
+  <g fill="#9ec6d6" opacity=".4"><circle cx="100" cy="90" r="1"/><circle cx="605" cy="73" r="1.3"/><circle cx="567" cy="325" r="1"/><circle cx="149" cy="302" r="1"/><circle cx="238" cy="108" r=".8"/><circle cx="446" cy="62" r="1"/><circle cx="495" cy="285" r=".9"/><circle cx="395" cy="363" r="1"/></g>
+  <g fill="none" stroke="#526d86"><circle cx="360" cy="210" r="180" opacity=".36"/><circle cx="360" cy="210" r="174" opacity=".24"/><circle cx="360" cy="210" r="168" stroke="#67e8e2" opacity=".65"/><circle cx="360" cy="210" r="110" stroke-dasharray="2 8" opacity=".2"/></g>
+  <path d="M225 110a168 168 0 0 1 121-67" fill="none" stroke="#67e8e2" stroke-width="2.5"/>
+  <path d="M512 282a168 168 0 0 1-40 52" fill="none" stroke="#ff8984" stroke-width="3"/>
+  <circle cx="338" cy="210" r="120" fill="url(#field)"/>
+  <g fill="none" stroke="#67e8e2"><circle cx="338" cy="210" r="25" opacity=".5"/><circle cx="338" cy="210" r="65" opacity=".18"/><circle cx="338" cy="210" r="103" opacity=".1"/><path d="M310 210h10m36 0h10m-28-28v10m0 36v10" opacity=".7"/></g>
+  <path d="M248 267C226 180 309 131 367 156S456 230 456 141" fill="none" stroke="url(#trail)" stroke-width="5" stroke-linecap="round" opacity=".3" filter="url(#glow)"/>
+  <path d="M248 267C226 180 309 131 367 156S456 230 456 141" fill="none" stroke="url(#trail)" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="456" cy="141" r="12" fill="#a6fff0" opacity=".6" filter="url(#glow)"/><circle cx="456" cy="141" r="5" fill="#effffc"/>
+  <g fill="none" stroke="#f5c878" stroke-width="1.6"><circle cx="270" cy="109" r="10"/><circle cx="270" cy="109" r="5" opacity=".4"/><circle cx="483" cy="252" r="10"/><circle cx="483" cy="252" r="5" opacity=".4"/></g>
+  <g fill="#f5c878"><circle cx="270" cy="109" r="2.5"/><circle cx="483" cy="252" r="2.5"/></g>
+  <g fill="none" stroke="#aa8cf6"><path d="m301 321 11-11 11 11-11 11zm54-1 11-11 11 11-11 11z" stroke-width="1.6"/><path d="M323 321h32" stroke-dasharray="3 5" opacity=".4"/></g>
+  <circle cx="408" cy="84" r="14" fill="none" stroke="#ff8984" stroke-width="1.6"/><circle cx="408" cy="84" r="10" fill="none" stroke="#ff8984" opacity=".25"/>
+  <circle cx="217" cy="227" r="10" fill="none" stroke="#67e8e2" stroke-width="1.6"/><path d="m218 220-5 8h4l-1 6 6-9h-5z" fill="#67e8e2"/>
+  <g opacity=".85"><path fill="#f5c878" d="m445 115 3-4 4 3-3 4z"/><path fill="#aa8cf6" d="m471 128 3 4-5 2-2-3z"/><path fill="#67e8e2" d="m433 133 3-2 1 6-3 1z"/><path fill="#ff8984" d="m464 107 2-2 4 5-2 2z"/></g>
+  <g font-family="monospace" font-size="8" letter-spacing="2" fill="#7c9db0"><text x="33" y="36">GRAVITY LAB / 001</text><text x="520" y="390">BEND. BREAK. REPEAT.</text></g>
+</svg>

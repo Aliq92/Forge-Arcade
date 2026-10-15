@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#080c17"><meta name="description" content="Bend gravity. Break the rules. A one-touch orbital physics arcade.">
+  <title>Orbit Breaker · Forge Arcade</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='26' fill='%23080c17' stroke='%2358e6e3' stroke-width='3'/%3E%3Ccircle cx='43' cy='19' r='7' fill='%23ffce76'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./styles.css"><link rel="stylesheet" href="./arcade.css">
+  <script defer src="./physics.js"></script><script defer src="./chambers.js"></script><script defer src="./game.js"></script><script defer src="./script.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <a id="forge-back-link" class="brand" href="../../index.html" aria-label="Back to Forge Arcade" title="Back to Forge Arcade"><span class="forge-mark">F<span>↗</span></span> FORGE<span class="brand-light">ARCADE</span><span class="edition">← ARCADE</span></a>
+      <div class="header-right"><span class="live-dot"></span><span class="version">SYSTEM ONLINE</span><button id="settings" class="icon-button" aria-label="Open settings">⚙</button></div>
+    </header>
+    <main>
+      <section class="heading"><div class="eyebrow"><span></span> ONE TOUCH. INFINITE POSSIBILITIES.</div><h1>ORBIT <span>BREAKER</span><i>®</i></h1><p>BEND GRAVITY. BREAK THE RULES.</p></section>
+      <nav class="modes" aria-label="Game mode"><button data-mode="arcade" class="selected"><span>01</span> ARCADE</button><button data-mode="chambers"><span>02</span> CHAMBERS</button><button data-mode="chaos"><span>03</span> CHAOS</button></nav>
+      <section class="game-shell" aria-label="Orbit Breaker game">
+        <div class="hud"><div class="stat score-stat"><span>SCORE</span><strong id="score">00000</strong></div><div class="stat combo-stat"><span>COMBO</span><strong id="combo">×1</strong></div><div class="shield-stat"><span id="resource-label">SHIELDS</span><div id="shields" aria-label="3 shields">◆ ◆ ◆</div></div><div class="hud-actions"><button id="restart" class="icon-button" aria-label="Restart run" title="Restart · R">↻</button><button id="sound" class="icon-button" aria-label="Mute sound" title="Sound">♪</button><button id="pause" class="icon-button" aria-label="Pause game" title="Pause · Space">Ⅱ</button></div></div>
+        <div class="arena-wrap"><canvas id="arena" aria-label="Gravity arena. Press and hold to pull the ball; release to slingshot." tabindex="0"></canvas><div class="arena-corner top-left"><span class="tiny-square"></span> <span id="sector">SECTOR 01</span><small id="sector-name">THE FIRST ORBIT</small></div><div class="arena-corner top-right"><span id="run-status">FREE FLIGHT</span><small id="best">BEST 00000</small></div><div class="arena-corner bottom-left"><span class="axis">+ X / Y</span><small>GRAVITY LAB / 001</small></div><div class="arena-corner bottom-right"><span id="field-status">FIELD OFFLINE</span><small>G = <span id="gravity-readout">0.00</span></small></div><div id="toast" role="status" aria-live="polite"></div><div id="overlay" class="overlay" hidden></div></div>
+        <div class="play-instruction"><span class="mouse-icon"></span><span id="instruction"><b>PRESS AND HOLD</b> TO PULL THE BALL<span class="instruction-divider">/</span> RELEASE TO SLINGSHOT</span><span class="key-hint">SPACE <span>PAUSE</span></span></div>
+        <div id="chaos-toolbar" class="chaos-toolbar" hidden><button id="add-ball">+ ADD BALL</button><button id="remove-ball">− REMOVE BALL</button><label>GRAVITY <input id="strength" type="range" min="50" max="150" value="100" aria-label="Gravity strength"></label><span id="ball-count">3 / 5 BALLS</span></div>
+      </section>
+      <section class="under-arena"><div><span class="legend normal"></span> TARGET <span class="legend energy"></span> ENERGY <span class="legend chain"></span> CHAIN <span class="legend ring"></span> BONUS RING</div><span class="physics-note"><span class="live-dot"></span> PHYSICS IN MOTION</span></section>
+      <section class="mode-caption"><span id="mode-number">01 / ARCADE RUN</span><p id="mode-description">Find your flow. Chain your hits. Stay in orbit.</p><button id="chamber-picker" hidden>SELECT CHAMBER ↗</button><span class="caption-arrow">↗</span></section>
+    </main>
+    <footer><span>BUILT FOR THE MOMENT.</span><span>FORGE ARCADE <b>✦</b> ORBIT BREAKER <span class="footer-version">V 1.0</span></span><span>HOLD. BEND. RELEASE.</span></footer>
+  </div>
+</body>
+</html>
