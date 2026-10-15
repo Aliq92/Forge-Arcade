@@ -93,13 +93,6 @@ const GAMES = [
     palette: ['#ff8264', '#e8ff70'],
   },
   {
-    id: 'moonlit-terrarium',
-    title: 'Moonlit Terrarium',
-    description: 'Seven quiet nights with four glowing Motes. Final v1.0: saved stories, keyboard care, and optional sound.',
-    category: 'Simulations',
-    palette: ['#8f8cff', '#e6d5ff'],
-  },
-  {
     id: 'particle-lab',
     title: 'Particle Lab',
     description: 'An interactive particle-physics playground for experimenting with forces and motion.',
