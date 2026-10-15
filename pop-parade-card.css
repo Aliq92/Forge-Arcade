@@ -1,0 +1,11 @@
+/* Only Pop Parade's featured and archive cards use this artwork. */
+.art-custom-pop-parade {
+  background: #090d17 url("pop-parade-card.svg") center / cover no-repeat;
+}
+.art-custom-pop-parade::before {
+  background: linear-gradient(180deg, transparent 65%, rgba(9, 13, 23, .2));
+}
+.art-custom-pop-parade::after,
+.art-custom-pop-parade .art-code {
+  display: none;
+}

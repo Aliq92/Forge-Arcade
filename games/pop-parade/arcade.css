@@ -1,0 +1,29 @@
+/* Native Forge navigation, scoped to this game document. */
+#forge-back-link {
+  color: #f4f3ef;
+  text-decoration: none;
+  min-height: 44px;
+  border-radius: 6px;
+}
+#forge-back-link:focus-visible { outline: 2px solid #ff7849; outline-offset: 5px; }
+#forge-back-link .brand-icon {
+  display: grid;
+  place-items: center;
+  transform: none;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 9px;
+  background: linear-gradient(145deg,#242731,#0e1015);
+}
+#forge-back-link .brand-icon i {
+  width: 13px;
+  height: 15px;
+  border: 2px solid #ff7849;
+  border-top-color: #ffc857;
+  transform: skew(-8deg);
+}
+#forge-back-link .brand-light { font-family: ui-monospace, Consolas, monospace; }
+#forge-back-link .back-arrow { color: #8993a4; font-size: 16px; margin-left: 3px; transition: color .2s; }
+#forge-back-link:hover .back-arrow { color: #ff7849; }
+@media(max-width:680px) { #forge-back-link .brand-icon { width:29px; height:29px; } }

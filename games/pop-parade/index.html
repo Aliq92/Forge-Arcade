@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#090d17">
+  <meta name="description" content="A little tap. A beautiful chain reaction. Play Pop Parade, a one-touch balloon arcade game.">
+  <title>POP PARADE — Forge Arcade</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23090d17'/%3E%3Cellipse cx='32' cy='27' rx='19' ry='23' fill='%23ff826f'/%3E%3Cpath d='M32 49q-10 6 0 13' fill='none' stroke='%23ff826f'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="arcade.css">
+</head>
+<body>
+  <main class="arcade">
+    <header class="masthead">
+      <a id="forge-back-link" class="brand" href="../../index.html" aria-label="Back to Forge Arcade" title="Back to Forge Arcade"><span class="brand-icon" aria-hidden="true"><i></i></span><span>FORGE<span class="brand-light">ARCADE</span></span><span class="back-arrow" aria-hidden="true">&#8592;</span></a>
+      <span class="masthead-note"><i></i> LITTLE GAMES. GOOD TIMES.</span>
+      <span class="edition">THE ONE-TOUCH COLLECTION <span> / 01</span></span>
+    </header>
+
+    <section class="intro" aria-labelledby="game-title">
+      <div><p class="eyebrow"><span></span> A CHAIN REACTION OF JOY</p><h1 id="game-title">POP PARADE<span class="title-dot">.</span></h1><p class="subtitle">One little pop. Endless possibilities.</p></div>
+      <div class="mode-picker" role="group" aria-label="Game mode"><button id="classic" aria-pressed="true">Classic <span>3 TAPS</span></button><button id="zen" aria-pressed="false">Zen <span>NO LIMITS</span></button></div>
+    </section>
+
+    <section class="game-shell" aria-label="Pop Parade game">
+      <div class="hud">
+        <div class="score-block"><span class="label">SCORE</span><div id="score" class="score">0<span class="score-zero">0000</span></div></div>
+        <div class="tap-block"><span class="label" id="tap-label">TAPS REMAINING</span><div id="taps" class="taps" aria-label="3 taps remaining"><i></i><i></i><i></i></div><span id="zen-label" hidden>TAKE YOUR TIME <span>∞</span></span></div>
+        <div class="best-block"><span class="label">BEST CHAIN</span><div class="best-value"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 14 4-4M8 16l-1 1a3.5 3.5 0 0 1-5-5l4-4a3.5 3.5 0 0 1 5 0m2 0 1-1a3.5 3.5 0 0 1 5 5l-4 4a3.5 3.5 0 0 1-5 0"/></svg><span id="best-chain">0</span></div></div>
+        <div class="tools">
+          <button class="icon-button" id="pause" aria-label="Pause game" title="Pause (P)"><svg viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></svg></button>
+          <button class="icon-button" id="sound" aria-label="Mute sound" aria-pressed="false" title="Sound (M)"><svg viewBox="0 0 24 24"><path d="m11 5-5 4H3v6h3l5 4zM15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></svg></button>
+          <button class="icon-button" id="restart" aria-label="Restart game" title="Restart (R)"><svg viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 1 8M4 4v6h6"/></svg></button>
+        </div>
+      </div>
+      <div class="playfield" id="playfield">
+        <canvas id="game" tabindex="0" role="img" aria-label="Balloon playfield. Tap a balloon to start a same-color chain. Keyboard: arrow keys select, Enter or Space pops.">Your browser needs Canvas to play Pop Parade.</canvas>
+        <div class="field-top"><span><i></i> <span id="field-mode">CLASSIC SESSION</span></span><span id="field-status">MAKE IT A CHAIN</span></div>
+        <div id="chain-callout" class="chain-callout" aria-live="polite"></div>
+        <div id="hint" class="hint"><span class="hint-cross" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20M5 5l14 14M5 19 19 5"/></svg></span><span>TAP A BALLOON. START A CHAIN.</span><span class="hint-line"></span></div>
+        <div class="overlay" id="pause-overlay" hidden><div class="overlay-card"><p class="eyebrow">A LITTLE BREATHER</p><h2>On pause<span>.</span></h2><p>Your next great chain can wait.</p><button class="primary-button" id="resume">LET’S POP <span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 18 18 6M6 6h12v12"/></svg></span></button></div></div>
+        <div class="overlay" id="result-overlay" hidden><div class="overlay-card results"><p class="eyebrow" id="result-kicker">THAT WAS A GOOD POP</p><h2>Lovely chain<span>.</span></h2><span class="label">FINAL SCORE</span><div id="final-score">0</div><div class="result-stats"><div><span class="label">BIGGEST CHAIN</span><strong id="final-chain">0</strong></div><div><span class="label">PERSONAL BEST</span><strong id="final-best">0</strong></div></div><button class="primary-button" id="play-again">PLAY AGAIN <span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 18 18 6M6 6h12v12"/></svg></span></button><p class="result-note">Three more taps. A whole new possibility.</p></div></div>
+      </div>
+      <div class="game-bottom"><span id="mode-description">3 taps. Make them count.</span><span class="record">PERSONAL BEST <strong id="record">0</strong></span><button id="help-toggle" class="text-button" aria-expanded="false" aria-controls="how-to">HOW TO PLAY <span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 18 18 6M6 6h12v12"/></svg></span></button></div>
+    </section>
+
+    <section id="how-to" class="how-to" hidden><h2>A little strategy. A lot of confetti.</h2><p>Tap a balloon. Its shockwave pops nearby balloons of the same color, and each one sends out another wave. Bigger chains earn more per pop. Lightning reaches farther through the same color. Freeze holds nearby balloons still for 2.8 seconds. Rainbow receives and sends shockwaves of any color.</p><p><strong>Classic:</strong> three taps per round; missed taps don’t count. A full clear earns 2,000 bonus points. <strong>Zen:</strong> unlimited taps and fresh balloons, for as long as you like.</p><p>Keyboard: arrow keys select a balloon, Enter or Space pops it. P pauses, M mutes, R restarts.</p></section>
+    <div class="below-game"><div class="specials"><span class="specials-label">A LITTLE EXTRA MAGIC</span><span title="Lightning sends a wider shockwave through the same color."><b class="lightning" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m14 2-9 12h7l-2 8 9-13h-7z"/></svg></b> Wider waves</span><span title="Freeze holds nearby balloons still for a moment."><b class="freeze" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2v20M3 7l18 10M3 17 21 7M8 4l4 4 4-4M8 20l4-4 4 4"/></svg></b> A moment of calm</span><span title="Rainbow receives and sends shockwaves of any color."><b class="rainbow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20M5 5l14 14M5 19 19 5"/></svg></b> Every color connects</span></div><span class="sound-note">BEST ENJOYED WITH SOUND <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14v-3a8 8 0 0 1 16 0v3M4 12H2v7h5v-7zm16 0h2v7h-5v-7z"/></svg></span></div>
+    <footer><span>A LITTLE TAP. A LOT OF JOY.</span><span>MADE FOR THE MOMENT<span class="footer-star" aria-hidden="true">✧</span></span></footer>
+  </main>
+  <script type="module" src="game.js"></script>
+</body>
+</html>
