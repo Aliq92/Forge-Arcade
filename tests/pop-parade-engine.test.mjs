@@ -101,3 +101,27 @@ test('resizing a full desktop board reflows balloons into tappable mobile spacin
     assert.ok(Math.hypot(a.x-b.x,a.y-b.y)>=36);
   }
 });
+
+test('seeded boards vary connected cluster shapes while retaining rewarding opening chains',()=>{
+  const signatures=new Set();
+  for(let seed=1;seed<=36;seed++){
+    const g=new Game({width:1000,height:500,seed});
+    const palette=new Map();
+    signatures.add(g.balloons.map(b=>{if(!palette.has(b.color))palette.set(b.color,palette.size);return palette.get(b.color);}).join(''));
+    g.tap(g.balloons[0].x,g.balloons[0].y);settle(g);
+    assert.ok(g.bestChain>=5,`seed ${seed} has an opening chain`);
+  }
+  assert.ok(signatures.size>=12,`only ${signatures.size} distinct arrangements`);
+});
+
+test('chain events expose their own identity, score, centroid, and completion exactly once',()=>{
+  const events=[];const g=new Game({onEvent:e=>events.push(e)});
+  g.setBoard(Array.from({length:6},(_,i)=>({x:100+i*45,y:100,color:0})),20,65);
+  g.tap(100,100);settle(g);
+  const start=events.find(e=>e.type==='chainStart');assert.ok(start);
+  const finish=events.filter(e=>e.type==='chainEnd');assert.equal(finish.length,1);
+  assert.equal(finish[0].chainId,start.chainId);assert.equal(finish[0].count,6);
+  assert.equal(finish[0].score,975);assert.ok(finish[0].x>100&&finish[0].x<325);
+  assert.equal(events.find(e=>e.type==='milestone').chainId,start.chainId);
+  assert.equal(events.filter(e=>e.type==='pop').at(-1).chain.score,975);
+});
