@@ -1,0 +1,11 @@
+/* Orbit Breaker artwork is isolated to its featured and archive cards. */
+.art-custom-orbit-breaker {
+  background: #080c17 url("orbit-breaker-card.svg") center / cover no-repeat;
+}
+.art-custom-orbit-breaker::before {
+  background: linear-gradient(180deg, transparent 65%, rgba(8, 12, 23, .2));
+}
+.art-custom-orbit-breaker::after,
+.art-custom-orbit-breaker .art-code {
+  display: none;
+}

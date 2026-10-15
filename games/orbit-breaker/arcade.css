@@ -1,0 +1,10 @@
+/* Native return navigation, scoped to this game document. */
+#forge-back-link { min-height: 44px; border-radius: 6px; }
+#forge-back-link:focus-visible { outline: 2px solid #67e8e2; outline-offset: 5px; }
+#forge-back-link:hover .edition { color: #67e8e2; border-color: #427b77; }
+@media (max-width: 700px) {
+  #forge-back-link .edition { display: inline; font-size: 7px; margin-left: 4px; padding: 4px; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  #forge-back-link .edition { display: none; }
+}
