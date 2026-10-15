@@ -22,10 +22,35 @@ export class Game {
     const sx = (this.width - 36) / cols, sy = (this.height - 80) / rows;
     const r = Math.max(18, Math.min(31, Math.min(sx, sy) * .35));
     this.range = Math.max(sx, sy) * 1.34;
-    const offset = Math.floor(this.random() * 5), items = [];
-    const broad = this.random() > .65 && cols >= 8;
+    // Partition a connected path into seeded clusters. Each cluster has at least
+    // five neighbors to discover, but its boundary changes between rounds.
+    const palette = [0,1,2,3,4], path = [], items = [];
+    for(let i=4;i>0;i--){const j=Math.floor(this.random()*(i+1));[palette[i],palette[j]]=[palette[j],palette[i]];}
+    const pattern = Math.floor(this.random()*3);
+    if(pattern===0){
+      for(let row=0;row<rows;row++)for(let col=0;col<cols;col++)path.push(row*cols+(row%2?cols-1-col:col));
+    }else if(pattern===1){
+      for(let col=0;col<cols;col++)for(let row=0;row<rows;row++)path.push((col%2?rows-1-row:row)*cols+col);
+    }else{
+      let left=0,right=cols-1,top=0,bottom=rows-1;
+      while(left<=right&&top<=bottom){
+        for(let col=left;col<=right;col++)path.push(top*cols+col);top++;
+        for(let row=top;row<=bottom;row++)path.push(row*cols+right);right--;
+        if(top<=bottom){for(let col=right;col>=left;col--)path.push(bottom*cols+col);bottom--;}
+        if(left<=right){for(let row=bottom;row>=top;row--)path.push(row*cols+left);left++;}
+      }
+    }
+    const groups=Math.min(8,Math.max(2,Math.floor(path.length/6)));
+    const sizes=Array(groups).fill(Math.floor(path.length/groups));
+    for(let i=0;i<path.length%groups;i++)sizes[i]++;
+    for(let i=0;i<groups*2;i++){
+      const from=Math.floor(this.random()*groups),to=Math.floor(this.random()*groups);
+      if(sizes[from]>5&&from!==to){sizes[from]--;sizes[to]++;}
+    }
+    const assignments=[];let cursor=0;
+    sizes.forEach((size,group)=>{for(let i=0;i<size;i++)assignments[path[cursor++]]=palette[group%5];});
     for (let row = 0; row < rows; row++) for (let col = 0; col < cols; col++) {
-      const color = (Math.floor(col / (broad ? 5 : 3)) + Math.floor(row / 3) * 2 + offset) % 5;
+      const color = assignments[row*cols+col];
       items.push({ x: 18 + sx * (col + .5) + (this.random() - .5) * sx * .24,
         y: 39 + sy * (row + .5) + (this.random() - .5) * sy * .18, color,
         r: r * (.92 + this.random() * .13),
@@ -53,9 +78,10 @@ export class Game {
     if (!target) return false;
     if (this.mode === 'classic') this.taps--;
     this.quiet = 0;
-    const chain = { id: this.nextChain++, count: 0, x: 0, y: 0 };
+    const chain = { id: this.nextChain++, count: 0, score: 0, x: 0, y: 0 };
     this.chains.set(chain.id, chain);
     this.reserve(target, chain.id);
+    this.onEvent({type:'chainStart',chainId:chain.id,x:target.x,y:target.y,color:target.color});
     return true;
   }
   reserve(b, chainId) {
@@ -68,6 +94,7 @@ export class Game {
     chain.count++; chain.x += b.x; chain.y += b.y;
     this.totalPopped++;
     const points = 100 + Math.min(chain.count - 1, 30) * 25 + (b.special ? 150 : 0);
+    chain.score += points;
     this.score += points; this.bestChain = Math.max(this.bestChain, chain.count);
     this.waves.push({ x: b.x, y: b.y, color: b.color, chainId: b.chainId,
       rainbow: b.special === 'rainbow', special: b.special,
@@ -78,7 +105,7 @@ export class Game {
       }
     }
     this.onEvent({ type: 'pop', balloon: b, chain: { ...chain }, points });
-    if ([5,10,25].includes(chain.count)) this.onEvent({type:'milestone',count:chain.count,x:chain.x/chain.count,y:chain.y/chain.count,color:b.color});
+    if ([5,10,25].includes(chain.count)) this.onEvent({type:'milestone',chainId:chain.id,count:chain.count,x:chain.x/chain.count,y:chain.y/chain.count,color:b.color});
   }
   update(dt) {
     if (this.paused || this.ended) return;
@@ -100,7 +127,7 @@ export class Game {
     for (const chain of this.chains.values()) {
       if (!chain.finished && !this.waves.some(w=>w.chainId===chain.id) && !this.balloons.some(b=>b.state==='popping'&&b.chainId===chain.id)) {
         chain.finished = true;
-        this.onEvent({type:'chainEnd',count:chain.count});
+        this.onEvent({type:'chainEnd',chainId:chain.id,count:chain.count,score:chain.score,x:chain.x/chain.count,y:chain.y/chain.count});
       }
     }
     const active = this.waves.length || this.balloons.some(b=>b.state==='popping');

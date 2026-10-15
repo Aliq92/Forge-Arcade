@@ -32,6 +32,6 @@ test('the game launches with relative assets and has an accessible native return
   assert.match(html,/id="forge-back-link"/);assert.match(html,/href="\.\.\/\.\.\/index.html"/);
   assert.match(html,/href="arcade.css"/);assert.match(html,/type="module" src="game.js"/);
   assert.doesNotMatch(html,/<iframe|localhost|\/workspace/);
-  for(const file of ['style.css','arcade.css','game.js','engine.mjs'])assert.ok(read(`games/pop-parade/${file}`).length);
+  for(const file of ['style.css','arcade.css','game.js','engine.mjs','balloon-atlas.mjs'])assert.ok(read(`games/pop-parade/${file}`).length);
   assert.match(read('games/pop-parade/game.js'),/popParade_/);assert.doesNotMatch(read('games/pop-parade/game.js'),/localStorage.clear/);
 });
