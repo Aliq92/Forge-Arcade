@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 380" fill="none">
+  <defs>
+    <radialGradient id="bg"><stop stop-color="#1c3040"/><stop offset="1" stop-color="#090d17"/></radialGradient>
+    <radialGradient id="balloon" cx=".29" cy=".23" r=".9"><stop stop-color="white" stop-opacity=".35"/><stop offset=".25" stop-color="white" stop-opacity=".12"/><stop offset=".75" stop-color="white" stop-opacity=".02"/><stop offset="1" stop-color="white" stop-opacity=".12"/></radialGradient>
+    <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r=".7" fill="#a7c3dc" opacity=".14"/></pattern>
+    <g id="b">
+      <path d="M0 36c-10 14 10 15-1 31" stroke="currentColor" stroke-opacity=".32"/>
+      <ellipse rx="29" ry="34" fill="currentColor" fill-opacity=".32"/>
+      <ellipse rx="29" ry="34" fill="url(#balloon)" stroke="currentColor" stroke-opacity=".75"/>
+      <ellipse cx="-10" cy="-14" rx="4" ry="9" transform="rotate(30 -10 -14)" fill="white" opacity=".4"/>
+      <path d="m0 32-3 6h6z" fill="currentColor" fill-opacity=".7"/>
+    </g>
+  </defs>
+  <path fill="url(#bg)" d="M0 0h640v380H0z"/><path fill="url(#dots)" d="M0 0h640v380H0z"/>
+  <g stroke="#72d9ee"><circle cx="314" cy="181" r="79" opacity=".46"/><circle cx="314" cy="181" r="88" opacity=".12"/><circle cx="314" cy="181" r="46" opacity=".18"/></g>
+  <g color="#72d9ee"><use href="#b" transform="translate(140 110) rotate(-8)"/><use href="#b" transform="translate(216 145) rotate(8)"/><use href="#b" transform="translate(169 233) rotate(-5)"/></g>
+  <g color="#ff8c79"><use href="#b" transform="translate(425 93) rotate(7)"/><use href="#b" transform="translate(498 157) rotate(-9)"/><use href="#b" transform="translate(427 233) rotate(-4)"/></g>
+  <g color="#b39aee"><use href="#b" transform="translate(295 80) scale(.85)"/><use href="#b" transform="translate(353 294) scale(.88)"/></g>
+  <g color="#90dfbe"><use href="#b" transform="translate(80 284) scale(.8)"/><use href="#b" transform="translate(552 288) scale(.85)"/></g>
+  <g color="#f4ce80"><use href="#b" transform="translate(80 44) scale(.7)"/><use href="#b" transform="translate(559 49) scale(.75)"/></g>
+  <g stroke-linecap="round" stroke-width="3">
+    <path d="m305 166 4 8m27-18-5 7m-26 38-5 6" stroke="#72d9ee"/>
+    <path d="m286 182 8-2m44 13 8 4m-35 30 2-8" stroke="#ff8c79"/>
+    <path d="m319 141 1 9m-42 70 6-5m71-48-7 4" stroke="#f4ce80"/>
+    <path d="m331 212 4 8m-8-35 5-2m-33-34-5-7" stroke="#b39aee"/>
+    <path d="m272 162 3 5m80 56 5 6m-15-93 2-8" stroke="#90dfbe"/>
+  </g>
+  <g stroke="#f4f1e9" stroke-width="1.3"><path d="M314 174v14m-7-7h14M373 115v8m-4-4h8M243 259v8m-4-4h8"/></g>
+</svg>
