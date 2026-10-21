@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" fill="none">
+<defs><linearGradient id="sky" x2="0" y2="360" gradientUnits="userSpaceOnUse"><stop stop-color="#101e28"/><stop offset="1" stop-color="#30474b"/></linearGradient><linearGradient id="water" x2="0" y2="360" gradientUnits="userSpaceOnUse"><stop stop-color="#244c4d"/><stop offset="1" stop-color="#10232c"/></linearGradient><radialGradient id="lamp"><stop stop-color="#ffd496" stop-opacity=".24"/><stop offset="1" stop-color="#ffd496" stop-opacity="0"/></radialGradient></defs>
+<path fill="url(#sky)" d="M0 0h640v360H0z"/>
+<g fill="#b8c7b7" opacity=".5"><circle cx="104" cy="34" r="1"/><circle cx="337" cy="28" r="1"/><circle cx="410" cy="75" r="1"/><circle cx="564" cy="47" r="1"/></g>
+<path d="M528 34a15 15 0 1 1-12 25 17 17 0 0 0 12-25" fill="#d3d3ae"/>
+<path d="M0 213h36v-31h50v30h19v-57h58v59h18v-36h50v41h27v-72h51v69h27v-49h58v45h24v-72h54v74h22v-46h46v47h26v-35h60v36h34v55H0Z" fill="#172b32"/>
+<g stroke="#395359" stroke-width="2"><path d="M307 200V125m-53 22h119l-66-40-53 40m180 62V118m-57 24h126l-69-45-57 45"/></g>
+<path fill="url(#water)" d="M0 260h640v100H0z"/>
+<g stroke="#83b5a8" opacity=".2"><path d="M23 317h45m105 20h76m60-17h57m45 22h40m70-18h54m-458 31h86m283 0h41m70-49h26"/></g>
+<path d="M33 71h12v229H33z" fill="#ab683e"/><path d="M34 72h3v227h-3z" fill="#e6a76c"/>
+<path d="m44 224 64 70H96l-52-57m549-164h10v240h-10z" fill="#a26945"/>
+<path d="M25 61h587v21H25z" fill="#9e6541" stroke="#dfaa71" stroke-width="2"/>
+<path d="m29 65 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13" stroke="#e2a873" stroke-width="2"/>
+<path d="M23 56h590m-575 0v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6" stroke="#889885"/>
+<path d="M0 280h223v22H0z" fill="#596155"/><path d="M0 280h223v4H0z" fill="#dfd0a5"/>
+<path d="M278 290h318l-12 35-24 9H310l-22-13z" fill="#193638" stroke="#7f9b89"/><path d="M278 287h318v7H278z" fill="#d9d4a9"/><path d="M285 307h304" stroke="#bba46c" stroke-width="2"/>
+<g fill="#0c2029" stroke="#56746b" stroke-width="3"><ellipse cx="300" cy="310" rx="6" ry="11"/><ellipse cx="570" cy="310" rx="6" ry="11"/></g>
+<g fill="#747b65" stroke="#e7dab1" stroke-width="2"><path d="M62 249h49v30H62zM122 249h49v30h-49zM333 255h53v31h-53zM394 255h53v31h-53zM346 220h53v31h-53z"/></g>
+<g fill="#ece1bf" font-family="monospace" font-size="11" text-anchor="middle"><text x="87" y="269">04</text><text x="147" y="269">05</text><text x="360" y="275">01</text><text x="420" y="275">02</text><text x="373" y="240">03</text></g>
+<path d="M432 82 460 179" stroke="#bdc8b4" stroke-width="1.5"/><g transform="rotate(-9 465 190)"><path d="M445 179h36v9h-36z" fill="#dc9a60"/><path d="M441 188h44v5h-44z" fill="#b5dec3"/><path d="M441 198h48v31h-48z" fill="#7a725b" stroke="#e9dcb1" stroke-width="2"/><path d="M458 195h14" stroke="#d8dec3" stroke-width="3"/></g>
+<path d="M415 70h34v12h-34z" fill="#e0a16b"/><path d="M424 82h16v11h-16z" fill="#889c8a"/>
+<circle cx="224" cy="240" r="43" fill="url(#lamp)"/><path d="M213 239v42m0-42h15" stroke="#89917b" stroke-width="2"/><path d="M223 240h10" stroke="#ffd59a" stroke-width="3"/>
+<text x="48" y="119" fill="#e2b17c" font-family="monospace" font-size="9" letter-spacing="2">NORTH QUAY / 23:48</text>
+<text x="399" y="324" fill="#adbdab" font-family="monospace" font-size="10" letter-spacing="2">NIGHTJAR</text>
+</svg>

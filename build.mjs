@@ -12,6 +12,8 @@ for (const entry of await readdir(root)) {
     const relative = path.relative(root, item).replaceAll(path.sep, '/');
     return !relative.includes('/node_modules/') && !relative.includes('/tests/') &&
       !/games\/forge-beast\/(src|tests|node_modules)(\/|$)/.test(relative) &&
+      !/games\/night-freight\/(tests|scripts|dist|evidence|node_modules)(\/|$)/.test(relative) &&
+      !/games\/night-freight\/(package.*\.json|.*\.md)$/.test(relative) &&
       !/games\/forge-beast\/(package.*\.json|tsconfig.json|playwright.config.ts|build.mjs|.*\.md)$/.test(relative);
   } });
 }
