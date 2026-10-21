@@ -1,0 +1,11 @@
+/* Only NIGHT FREIGHT's featured and archive card artwork. */
+.art-custom-night-freight {
+  background: #13262e url("night-freight-card.svg") center / cover no-repeat;
+}
+.art-custom-night-freight::before {
+  background: linear-gradient(180deg, transparent 65%, rgba(8, 20, 26, .3));
+}
+.art-custom-night-freight::after,
+.art-custom-night-freight .art-code {
+  display: none;
+}

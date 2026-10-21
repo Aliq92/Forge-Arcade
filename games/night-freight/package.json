@@ -1,0 +1,22 @@
+{
+  "name": "night-freight",
+  "version": "1.0.0",
+  "description": "Standalone magnetic crane game for Forge Arcade",
+  "scripts": {
+    "build": "node scripts/build.cjs",
+    "start": "node scripts/serve.cjs",
+    "test": "node tests/qa.cjs",
+    "check": "node --check src/simulation.js && node --check src/render.js && node --check src/app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "matter-js": "0.20.0"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
+  },
+  "private": true
+}

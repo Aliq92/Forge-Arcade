@@ -20,3 +20,7 @@ node_modules/
 /dist/
 /test-results/
 /playwright-report/
+
+# NIGHT FREIGHT developer output
+/games/night-freight/dist/
+/games/night-freight/evidence/
