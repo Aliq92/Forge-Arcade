@@ -16,9 +16,21 @@ export class ParticleSystem {
   constructor(maxParticles = 600) {
     this.pool = new Array(maxParticles).fill(null).map(() => new Particle());
     this.cursor = 0;
+    this.density = 1;
+    this.spawnBudget = 0;
   }
 
   spawn(opts) {
+    this.spawnBudget += this.density;
+    let particle = null;
+    while (this.spawnBudget >= 1) {
+      this.spawnBudget--;
+      particle = this._emit(opts);
+    }
+    return particle;
+  }
+
+  _emit(opts) {
     const p = this.pool[this.cursor];
     this.cursor = (this.cursor + 1) % this.pool.length;
     p.reset();

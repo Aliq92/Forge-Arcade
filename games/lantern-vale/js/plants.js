@@ -40,7 +40,7 @@ export class PlantManager {
 
     for (const hp of this.world.objects.hiddenPaths) {
       if (hp.discovered) continue;
-      const near = hp.points.some(p => dist(p.x, p.y, px, py) < lr * 0.8);
+      const near = hp.points.some(p => dist(p.x, p.y, px, py) < lr * 0.8 + player.guidingLight * 40);
       if (near) { hp.discovered = true; this.hiddenPathsFound++; this._burst(px, py, COLORS.magic.cyan, 6); }
     }
 

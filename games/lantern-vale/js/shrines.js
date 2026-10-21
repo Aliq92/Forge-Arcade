@@ -21,15 +21,23 @@ export class ShrineManager {
   }
 
   nearestUnactivated(player, reach = 60) {
+    let nearest = null;
+    let closest = reach;
     for (const s of this.shrines) {
-      if (!s.activated && dist(s.x, s.y, player.x, player.y) < reach) return s;
+      const distance = dist(s.x, s.y, player.x, player.y);
+      if (!s.activated && distance < closest) { nearest = s; closest = distance; }
     }
+    if (nearest) return nearest;
     if (this.activatedCount >= SHRINE_COUNT && !this.heart.activated &&
         dist(this.heart.x, this.heart.y, player.x, player.y) < reach) return this.heart;
     return null;
   }
 
   activate(shrine) {
+    if (!shrine || shrine.activated) return null;
+    if (shrine === this.heart) {
+      if (this.activatedCount < SHRINE_COUNT) return null;
+    } else if (!this.shrines.includes(shrine)) return null;
     shrine.activated = true;
     shrine.safeRadius = 0;
     this._burst(shrine.x, shrine.y);

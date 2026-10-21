@@ -14,6 +14,8 @@ export class InputSystem {
 
   _bind() {
     window.addEventListener('keydown', e => {
+      // Let menus and settings keep native keyboard activation and slider keys.
+      if (e.key !== 'Escape' && e.target?.closest?.('button, input, a, select, textarea')) return;
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
       const k = e.key.toLowerCase();
       if (!this.keys.has(k)) this.pressedOnce.add(k);
@@ -22,7 +24,7 @@ export class InputSystem {
     window.addEventListener('keyup', e => {
       this.keys.delete(e.key.toLowerCase());
     });
-    window.addEventListener('blur', () => { this.keys.clear(); });
+    window.addEventListener('blur', () => this.reset());
   }
 
   consumePressed(key) {
@@ -68,13 +70,19 @@ export class InputSystem {
   wantsModeToggle() { return this.consumePressed('f'); }
 
   clearFrame() { this.pressedOnce.clear(); }
+
+  reset() {
+    this.keys.clear();
+    this.pressedOnce.clear();
+    this.touch.move = { active: false, dx: 0, dy: 0 };
+    this.touch.flare = this.touch.interact = this.touch.pause = false;
+    this.onReset?.();
+  }
 }
 
 export function setupTouchControls(input) {
   const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
   if (!isTouch) return;
-  const layer = document.getElementById('touch-controls');
-  layer.classList.remove('hidden');
   document.body.classList.add('touch-active');
 
   const stickZone = document.getElementById('touch-stick-zone');
@@ -85,6 +93,7 @@ export function setupTouchControls(input) {
   let maxR = 44;
 
   function stickStart(e) {
+    if (stickTouchId !== null) return;
     const t = e.changedTouches[0];
     stickTouchId = t.identifier;
     const rect = stick.getBoundingClientRect();
@@ -92,6 +101,7 @@ export function setupTouchControls(input) {
     originY = rect.top + rect.height / 2;
     maxR = rect.width * 0.42;
     input.touch.move.active = true;
+    stickMove(e);
     e.preventDefault();
   }
   function stickMove(e) {
@@ -122,22 +132,26 @@ export function setupTouchControls(input) {
   stickZone.addEventListener('touchmove', stickMove, { passive: false });
   stickZone.addEventListener('touchend', stickEnd, { passive: false });
   stickZone.addEventListener('touchcancel', stickEnd, { passive: false });
+  input.onReset = () => {
+    stickTouchId = null;
+    stickKnob.style.transform = 'translate(0px, 0px)';
+  };
 
   const btnFlare = document.getElementById('touch-flare');
   const btnInteract = document.getElementById('touch-interact');
   const btnPause = document.getElementById('touch-pause');
   // Pointer events cover fingers, pens and mice, including hybrid devices.
   // Use touchstart only on older browsers so a tap is never queued twice.
-  const flareEvent = window.PointerEvent ? 'pointerdown' : 'touchstart';
-  btnFlare.addEventListener(flareEvent, e => {
-    if (e.button !== undefined && e.button !== 0) return;
-    input.touch.flare = true;
-    e.preventDefault();
-  }, { passive: false });
-  btnFlare.addEventListener('click', e => {
-    // Keyboard/assistive activation has no preceding pointer event.
-    if (e.detail === 0) input.touch.flare = true;
-  });
-  btnInteract.addEventListener('touchstart', e => { input.touch.interact = true; e.preventDefault(); }, { passive: false });
-  btnPause.addEventListener('touchstart', e => { input.touch.pause = true; e.preventDefault(); }, { passive: false });
+  const pressEvent = window.PointerEvent ? 'pointerdown' : 'touchstart';
+  for (const [button, action] of [[btnFlare, 'flare'], [btnInteract, 'interact'], [btnPause, 'pause']]) {
+    button.addEventListener(pressEvent, e => {
+      if (e.button !== undefined && e.button !== 0) return;
+      input.touch[action] = true;
+      e.preventDefault();
+    }, { passive: false });
+    button.addEventListener('click', e => {
+      // Keyboard/assistive activation has no preceding pointer event.
+      if (e.detail === 0) input.touch[action] = true;
+    });
+  }
 }

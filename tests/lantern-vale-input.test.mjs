@@ -81,3 +81,30 @@ test('a compatibility click after pointerdown does not queue a second flare', ()
   button.dispatchEvent(click);
   assert.equal(input.wantsFlare(), false);
 }));
+
+test('Use and Pause support pointer and assistive activation without duplicates', () => harness((input, elements) => {
+  for (const [id, consume] of [['touch-interact', 'wantsInteract'], ['touch-pause', 'wantsPause']]) {
+    const button = elements.get(id);
+    button.dispatchEvent(new Event('pointerdown', { cancelable: true }));
+    assert.equal(input[consume](), true, id);
+    const click = new Event('click');
+    Object.defineProperty(click, 'detail', { value: 1 });
+    button.dispatchEvent(click);
+    assert.equal(input[consume](), false);
+    const assistive = new Event('click');
+    Object.defineProperty(assistive, 'detail', { value: 0 });
+    button.dispatchEvent(assistive);
+    assert.equal(input[consume](), true);
+  }
+}));
+
+test('losing focus clears movement and queued actions', () => harness(input => {
+  input.keys.add('w');
+  input.pressedOnce.add('e');
+  input.touch.move = { active: true, dx: 1, dy: 0 };
+  input.touch.flare = true;
+  window.dispatchEvent(new Event('blur'));
+  assert.deepEqual(input.getMoveAxis(), { x: 0, y: 0 });
+  assert.equal(input.wantsInteract(), false);
+  assert.equal(input.wantsFlare(), false);
+}));

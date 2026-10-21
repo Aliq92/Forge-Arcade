@@ -35,7 +35,7 @@ export class UI {
       case 'pause-settings': this.show('screen-settings', true); break;
       case 'pause-howto': this.show('screen-howto', true); break;
       case 'modes': this.show('screen-modes'); break;
-      case 'back-title': this.show('screen-title'); break;
+      case 'back-title': this.screenStack.length ? this.showPrevious() : this.show('screen-title'); break;
       case 'back-prev': this.showPrevious(); break;
       case 'resume': g.resume(); break;
       case 'restart': g.restartJourney(); break;
@@ -72,6 +72,7 @@ export class UI {
   }
 
   show(id, trackPrev = false) {
+    document.getElementById('touch-controls').classList.add('hidden');
     if (trackPrev) {
       const current = Object.values(this.screens).find(s => !s.classList.contains('hidden'));
       if (current) this.screenStack.push(current.id);
@@ -90,8 +91,11 @@ export class UI {
   }
 
   showHUD() {
+    this.screenStack = [];
+    document.activeElement?.blur();
     for (const key in this.screens) this.screens[key].classList.add('hidden');
     this.hud.classList.remove('hidden');
+    document.getElementById('touch-controls').classList.toggle('hidden', !document.body.classList.contains('touch-active'));
   }
 
   setBestJourney(progress) {
@@ -207,7 +211,8 @@ export class UI {
     const wrap = document.getElementById('upgrade-cards');
     wrap.innerHTML = '';
     for (const opt of options) {
-      const card = document.createElement('div');
+      const card = document.createElement('button');
+      card.type = 'button';
       card.className = 'upgrade-card';
       card.innerHTML = `<div class="upgrade-card-name">${opt.name}</div><div class="upgrade-card-desc">${opt.desc}</div>`;
       card.addEventListener('click', () => onPick(opt));

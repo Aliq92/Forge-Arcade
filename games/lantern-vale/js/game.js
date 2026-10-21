@@ -22,6 +22,7 @@ export class Game {
   constructor(canvas) {
     this.canvas = canvas;
     this.settings = loadSettings();
+    document.body.classList.toggle('reduced-motion', this.settings.reducedMotion);
     this.progress = loadProgress();
     this.achievements = loadAchievements();
     this.stats = freshStats();
@@ -41,6 +42,12 @@ export class Game {
     this.darkWalkerDist = 0;
 
     window.addEventListener('resize', () => this.renderer.resize());
+    window.addEventListener('blur', () => {
+      if (this.state === 'playing') this.pauseToggle();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && this.state === 'playing') this.pauseToggle();
+    });
     window.addEventListener('keydown', () => this.audio.init(), { once: true });
     window.addEventListener('pointerdown', () => this.audio.init(), { once: true });
     document.getElementById('fps-counter').classList.toggle('hidden', !this.settings.showFPS);
@@ -51,10 +58,15 @@ export class Game {
     this.settings[key] = value;
     saveSettings(this.settings);
     this.audio.setVolumes(this.settings);
+    document.body.classList.toggle('reduced-motion', this.settings.reducedMotion);
+    if (this.particles) this.particles.density = this.settings.particleDensity;
+    if (this.settings.reducedMotion) this.shake.time = 0;
     document.getElementById('fps-counter').classList.toggle('hidden', !this.settings.showFPS);
   }
 
   startJourney(mode) {
+    this.input.reset();
+    document.getElementById('toast-container').replaceChildren();
     this.mode = mode || 'journey';
     this._newGame();
     this.state = 'playing';
@@ -69,6 +81,7 @@ export class Game {
     this.rng = mulberry32(seed ^ 0x9e3779b9);
     this.world = new World(seed);
     this.particles = new ParticleSystem();
+    this.particles.density = this.settings.particleDensity;
     this.player = new Player(this.world.spawn.x, this.world.spawn.y);
     this.fireflies = new FireflyManager(this.world, this.particles, this.rng);
     this.plants = new PlantManager(this.world, this.particles);
@@ -91,13 +104,15 @@ export class Game {
   }
 
   pauseToggle() {
-    if (this.state === 'playing') { this.state = 'paused'; this.ui.show('screen-pause'); }
+    if (this.state === 'playing') { this.input.reset(); this.state = 'paused'; this.ui.show('screen-pause'); }
     else if (this.state === 'paused') { this.resume(); }
   }
 
-  resume() { this.state = 'playing'; this.ui.showHUD(); }
+  resume() { this.input.reset(); this.state = 'playing'; this.ui.showHUD(); }
 
   returnToTitle() {
+    this.input.reset();
+    saveProgress(this.progress);
     this.state = 'title';
     this.world = null;
     this.ui.setBestJourney(this.progress);
@@ -106,6 +121,7 @@ export class Game {
   }
 
   continueExploring() {
+    this.input.reset();
     this.state = 'playing';
     this.ui.showHUD();
   }
@@ -115,7 +131,12 @@ export class Game {
     dt = Math.min(dt, 0.05);
     this._updateFps(dt);
 
-    if (this.state === 'playing') this._updatePlaying(dt);
+    // Pause must be consumed while paused too; discard menu input every frame.
+    const wasPlaying = this.state === 'playing';
+    if (this.input.wantsPause()) {
+      if (this.state === 'playing' || this.state === 'paused') this.pauseToggle();
+    } else if (wasPlaying) this._updatePlaying(dt);
+    this.input.clearFrame();
 
     if (this.settings.showFPS) {
       document.getElementById('fps-counter').textContent = `${Math.round(this._fps || 0)} FPS`;
@@ -134,7 +155,7 @@ export class Game {
 
     const inSafeZone = shrines.safeZones.some(z => dist(player.x, player.y, z.x, z.y) < z.radius);
     player.inSafeZone = inSafeZone;
-    player.lantern.update(dt, { inSafeZone, flickerEnabled: this.settings.lanternFlicker, lastEmber: player.lastEmber });
+    player.lantern.update(dt, { inSafeZone, flickerEnabled: this.settings.lanternFlicker && !this.settings.reducedMotion, lastEmber: player.lastEmber });
 
     if (this.input.wantsFlare()) {
       if (player.lantern.tryFlare()) {
@@ -149,14 +170,14 @@ export class Game {
     const reedNear = world.objects.emberReeds.find(er => er.ready && dist(er.x, er.y, player.x, player.y) < 46);
     if (shrineNear) interactHint = shrineNear.id === 'heart' ? 'Activate the <b>Heart Lantern</b>' : 'Activate the Shrine';
     else if (reedNear) interactHint = 'Draw energy from the Ember Reed';
-    this.ui.setInteractPrompt(!!interactHint, interactHint ? `Press <span class="key">E</span> — ${interactHint}` : '');
+    const interactKey = document.body.classList.contains('touch-active') ? 'Tap Use' : 'Press <span class="key">E</span>';
+    this.ui.setInteractPrompt(!!interactHint, interactHint ? `${interactKey} — ${interactHint}` : '');
 
     if (this.input.wantsInteract()) {
       if (shrineNear) this._activateShrine(shrineNear);
       else if (reedNear) plants.tryInteract(player);
     }
 
-    if (this.input.wantsPause()) this.pauseToggle();
     if (this.state !== 'playing') return; // an interaction may have opened the upgrade/pause screen
 
     fireflies.update(dt, player, (energy) => {
@@ -217,24 +238,33 @@ export class Game {
   _activateShrine(shrine) {
     const wasCritical = this.player.lantern.criticalEnergy;
     const result = this.shrines.activate(shrine);
+    if (!result) return;
+    this.player.lantern.recharge(this.player.lantern.maxEnergy);
+    this.input.reset();
     this.audio.shrineActivate();
 
     if (result === 'shrine') {
       this.stats.shrinesActivated = this.shrines.activatedCount;
+      this.progress.bestShrines = Math.max(this.progress.bestShrines || 0, this.shrines.activatedCount);
+      saveProgress(this.progress);
       if (this.stats.shrinesActivated === 1) this._unlockAchievement('first_light');
       if (wasCritical) this._unlockAchievement('no_shadow_fears');
 
       const options = pickUpgrades(this.rng, 3);
       this.state = 'upgrade';
       this.ui.showUpgradeChoice('Shrine Awakened', options, (opt) => {
+        if (this.state !== 'upgrade') return;
         opt.apply(this.player);
+        this.input.reset();
         this.audio.upgrade();
         this.state = 'playing';
         this.ui.showHUD();
       });
     } else if (result === 'heart') {
-      this._unlockAchievement('keeper_of_light');
-      this._triggerVictory();
+      if (this.mode !== 'endless') {
+        this._unlockAchievement('keeper_of_light');
+        this._triggerVictory();
+      }
     }
   }
 
@@ -265,7 +295,7 @@ export class Game {
   }
 
   _triggerShake(time, mag) {
-    if (!this.settings.screenShake) return;
+    if (!this.settings.screenShake || this.settings.reducedMotion) return;
     this.shake.time = time; this.shake.mag = mag;
   }
 
@@ -330,6 +360,7 @@ export class Game {
   }
 
   _compassTarget() {
+    if (this.mode === 'endless') return null;
     const near = this.shrines.nearestUnactivated(this.player, Infinity);
     if (near) return near;
     if (this.shrines.activatedCount >= SHRINE_COUNT && !this.shrines.heart.activated) return this.shrines.heart;
@@ -337,6 +368,7 @@ export class Game {
   }
 
   _objectiveText() {
+    if (this.mode === 'endless') return 'Wander freely. Explore the Vale at your own pace.';
     const count = this.shrines.activatedCount;
     if (count < SHRINE_COUNT) return `Activate the shrines (${count}/${SHRINE_COUNT})`;
     if (!this.shrines.heart.activated) return 'The path has opened. Find the Heart Lantern.';
