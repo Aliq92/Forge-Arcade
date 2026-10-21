@@ -1,25 +1,60 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" fill="none">
-<defs><linearGradient id="sky" x2="0" y2="360" gradientUnits="userSpaceOnUse"><stop stop-color="#101e28"/><stop offset="1" stop-color="#30474b"/></linearGradient><linearGradient id="water" x2="0" y2="360" gradientUnits="userSpaceOnUse"><stop stop-color="#244c4d"/><stop offset="1" stop-color="#10232c"/></linearGradient><radialGradient id="lamp"><stop stop-color="#ffd496" stop-opacity=".24"/><stop offset="1" stop-color="#ffd496" stop-opacity="0"/></radialGradient></defs>
-<path fill="url(#sky)" d="M0 0h640v360H0z"/>
-<g fill="#b8c7b7" opacity=".5"><circle cx="104" cy="34" r="1"/><circle cx="337" cy="28" r="1"/><circle cx="410" cy="75" r="1"/><circle cx="564" cy="47" r="1"/></g>
-<path d="M528 34a15 15 0 1 1-12 25 17 17 0 0 0 12-25" fill="#d3d3ae"/>
-<path d="M0 213h36v-31h50v30h19v-57h58v59h18v-36h50v41h27v-72h51v69h27v-49h58v45h24v-72h54v74h22v-46h46v47h26v-35h60v36h34v55H0Z" fill="#172b32"/>
-<g stroke="#395359" stroke-width="2"><path d="M307 200V125m-53 22h119l-66-40-53 40m180 62V118m-57 24h126l-69-45-57 45"/></g>
-<path fill="url(#water)" d="M0 260h640v100H0z"/>
-<g stroke="#83b5a8" opacity=".2"><path d="M23 317h45m105 20h76m60-17h57m45 22h40m70-18h54m-458 31h86m283 0h41m70-49h26"/></g>
-<path d="M33 71h12v229H33z" fill="#ab683e"/><path d="M34 72h3v227h-3z" fill="#e6a76c"/>
-<path d="m44 224 64 70H96l-52-57m549-164h10v240h-10z" fill="#a26945"/>
-<path d="M25 61h587v21H25z" fill="#9e6541" stroke="#dfaa71" stroke-width="2"/>
-<path d="m29 65 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13 20 13 20-13" stroke="#e2a873" stroke-width="2"/>
-<path d="M23 56h590m-575 0v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6m25-6v6" stroke="#889885"/>
-<path d="M0 280h223v22H0z" fill="#596155"/><path d="M0 280h223v4H0z" fill="#dfd0a5"/>
-<path d="M278 290h318l-12 35-24 9H310l-22-13z" fill="#193638" stroke="#7f9b89"/><path d="M278 287h318v7H278z" fill="#d9d4a9"/><path d="M285 307h304" stroke="#bba46c" stroke-width="2"/>
-<g fill="#0c2029" stroke="#56746b" stroke-width="3"><ellipse cx="300" cy="310" rx="6" ry="11"/><ellipse cx="570" cy="310" rx="6" ry="11"/></g>
-<g fill="#747b65" stroke="#e7dab1" stroke-width="2"><path d="M62 249h49v30H62zM122 249h49v30h-49zM333 255h53v31h-53zM394 255h53v31h-53zM346 220h53v31h-53z"/></g>
-<g fill="#ece1bf" font-family="monospace" font-size="11" text-anchor="middle"><text x="87" y="269">04</text><text x="147" y="269">05</text><text x="360" y="275">01</text><text x="420" y="275">02</text><text x="373" y="240">03</text></g>
-<path d="M432 82 460 179" stroke="#bdc8b4" stroke-width="1.5"/><g transform="rotate(-9 465 190)"><path d="M445 179h36v9h-36z" fill="#dc9a60"/><path d="M441 188h44v5h-44z" fill="#b5dec3"/><path d="M441 198h48v31h-48z" fill="#7a725b" stroke="#e9dcb1" stroke-width="2"/><path d="M458 195h14" stroke="#d8dec3" stroke-width="3"/></g>
-<path d="M415 70h34v12h-34z" fill="#e0a16b"/><path d="M424 82h16v11h-16z" fill="#889c8a"/>
-<circle cx="224" cy="240" r="43" fill="url(#lamp)"/><path d="M213 239v42m0-42h15" stroke="#89917b" stroke-width="2"/><path d="M223 240h10" stroke="#ffd59a" stroke-width="3"/>
-<text x="48" y="119" fill="#e2b17c" font-family="monospace" font-size="9" letter-spacing="2">NORTH QUAY / 23:48</text>
-<text x="399" y="324" fill="#adbdab" font-family="monospace" font-size="10" letter-spacing="2">NIGHTJAR</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" fill="none">
+  <title>Night Freight — midnight cargo at North Quay</title>
+  <desc>An amber-lit gantry crane lifts a steel container over a barge, with a navy harbour and reflected dock lights behind it.</desc>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="540" gradientUnits="userSpaceOnUse"><stop stop-color="#030917"/><stop offset=".58" stop-color="#132e43"/><stop offset="1" stop-color="#071421"/></linearGradient>
+    <linearGradient id="sea" x1="0" y1="330" x2="0" y2="540" gradientUnits="userSpaceOnUse"><stop stop-color="#163d50"/><stop offset="1" stop-color="#030b17"/></linearGradient>
+    <linearGradient id="steel" x1="290" y1="110" x2="680" y2="400" gradientUnits="userSpaceOnUse"><stop stop-color="#ffd29a"/><stop offset=".28" stop-color="#e7a05b"/><stop offset="1" stop-color="#754331"/></linearGradient>
+    <linearGradient id="cargo" x1="474" y1="267" x2="570" y2="340" gradientUnits="userSpaceOnUse"><stop stop-color="#dca368"/><stop offset="1" stop-color="#634631"/></linearGradient>
+    <radialGradient id="aura"><stop stop-color="#ffb65e" stop-opacity=".38"/><stop offset="1" stop-color="#ffb65e" stop-opacity="0"/></radialGradient>
+    <radialGradient id="haze"><stop stop-color="#5b9cac" stop-opacity=".23"/><stop offset="1" stop-color="#5b9cac" stop-opacity="0"/></radialGradient>
+    <radialGradient id="vignette"><stop offset=".35" stop-color="#020713" stop-opacity="0"/><stop offset="1" stop-color="#020713" stop-opacity=".65"/></radialGradient>
+    <pattern id="ribs" width="12" height="60" patternUnits="userSpaceOnUse"><path d="M3 0v60" stroke="#ffe0ac" stroke-opacity=".25"/><path d="M5 0v60" stroke="#241f21" stroke-opacity=".4"/></pattern>
+    <pattern id="ripples" width="128" height="29" patternUnits="userSpaceOnUse"><path d="M4 8h23m30 13h43m12-18h10" stroke="#729ca9" stroke-opacity=".18"/></pattern>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5"/></filter>
+  </defs>
+  <path fill="url(#sky)" d="M0 0h960v540H0z"/>
+  <ellipse cx="590" cy="270" rx="430" ry="190" fill="url(#haze)"/>
+  <g fill="#c4dfed"><circle cx="176" cy="68" r="1" opacity=".45"/><circle cx="279" cy="44" r="1.3" opacity=".6"/><circle cx="474" cy="62" r="1" opacity=".4"/><circle cx="645" cy="41" r="1.1" opacity=".6"/><circle cx="794" cy="118" r="1" opacity=".4"/></g>
+  <circle cx="753" cy="88" r="35" fill="url(#haze)"/><circle cx="753" cy="88" r="15" fill="#bcd3d9" opacity=".8"/><circle cx="747" cy="83" r="15" fill="#0b1b2c"/>
+  <!-- Quiet port silhouettes leave the foreground crane readable. -->
+  <g stroke="#315366" stroke-width="3" opacity=".5"><path d="M84 314V185l105 45H47m38-45 65 45v84m-48-84v62m692 24V167l123 57H744m50-57 72 57v90m-46-90v65"/></g>
+  <path d="M0 300h39v-43h68v49h27v-31h78v32h28v-55h87v58h34v-30h76v33h29v-55h75v51h39v-39h80v40h40v-49h87v52h35v-29h88v29h50v55H0z" fill="#0b1c2a"/>
+  <g fill="#f8bc73" opacity=".7"><path d="M53 274h4v3h-4zm18 0h4v3h-4zm87 17h6v3h-6zm112-21h5v3h-5zm19 0h5v3h-5zm344 13h6v3h-6zm86-6h5v3h-5zm20 0h5v3h-5zm107 21h6v3h-6z"/></g>
+  <path d="M0 330h960v210H0z" fill="url(#sea)"/><path d="M0 344h960v196H0z" fill="url(#ripples)"/>
+  <g stroke="#e7ad71" opacity=".18"><path d="M148 361h35m-25 8h53m492-16h38m-49 12h64M376 439h63m-41 11h45m64-67h65m-48 9h33m-24 76h77m-47 12h38m-240 24h94"/></g>
+  <ellipse cx="522" cy="302" rx="175" ry="154" fill="url(#aura)"/>
+  <!-- Heavy gantry: warm edge lighting against the blue harbour. -->
+  <path d="M311 121h26v281h-26zm342 0h26v281h-26z" fill="url(#steel)"/>
+  <path d="M316 129h4v266h-4zm342 0h4v266h-4z" fill="#ffd397"/>
+  <path d="m336 328 43 70h-13l-30-48m317-24-42 72h13l29-49" fill="#9a6140"/>
+  <path d="M287 106h416v32H287z" fill="#573c30" stroke="#e6a160" stroke-width="2"/>
+  <path d="m294 111 24 22 24-22 24 22 24-22 24 22 24-22 24 22 24-22 24 22 24-22 24 22 24-22 24 22 24-22 24 22 24-22 24 22" stroke="#e5a363" stroke-width="3"/>
+  <path d="M286 105h418M298 96h395m-385 0v8m32-8v8m32-8v8m32-8v8m32-8v8m32-8v8m32-8v8m32-8v8m32-8v8m32-8v8m32-8v8m32-8v8m32-8v8" stroke="#adc0be" stroke-opacity=".55" stroke-width="2"/>
+  <path d="M499 137h48v14h-48z" fill="#e1a46c"/><path d="M507 151h32v15h-32z" fill="#3a535b" stroke="#b8c8bd"/>
+  <g stroke="#c5d0c8" stroke-width="2"><path d="M514 166v77m18-77v77"/></g>
+  <path d="M502 242h42v12h-42z" fill="#ffc176"/><path d="M498 254h50v8h-50z" fill="#263d48" stroke="#d5e3d7"/>
+  <path d="m508 262-17 14m29-14 39 14" stroke="#f1c997" stroke-width="2"/>
+  <!-- Suspended cargo is the central focal point, including in portrait crops. -->
+  <path d="m478 277 73-9 25 14-73 10z" fill="#edb983"/><path d="M478 277v53l25 14v-52z" fill="#6e4934"/>
+  <path d="m503 292 73-10v52l-73 10z" fill="url(#cargo)" stroke="#ffd59a" stroke-width="1.5"/>
+  <path d="m503 292 73-10v52l-73 10z" fill="url(#ribs)"/>
+  <path d="m481 279 21 12m5 2 66-9" stroke="#fff0c6" stroke-width="2"/>
+  <path d="m512 308 12-2v9l-12 2z" fill="#ffdb99" opacity=".85"/>
+  <path d="M472 278h110" stroke="#ffc376" stroke-width="4" opacity=".55" filter="url(#glow)"/>
+  <path d="m498 265-66 118h184l-73-118z" fill="#ffd399" opacity=".035"/>
+  <!-- Low cargo barge, mooring tyres and a bright gunwale. -->
+  <path d="m384 394 254-14 46 12-23 37-33 16-217-5-20-23z" fill="#091521" stroke="#3f6673" stroke-width="2"/>
+  <path d="m384 394 254-14 46 12-267 15z" fill="#4d6e73"/>
+  <path d="m387 395 253-14 41 11-265 14" stroke="#e0c49b" stroke-width="3"/>
+  <path d="m418 420 245-14" stroke="#b17b4e" stroke-width="2"/>
+  <g fill="#030a13" stroke="#42606a" stroke-width="3"><ellipse cx="433" cy="420" rx="7" ry="12"/><ellipse cx="641" cy="409" rx="7" ry="12"/></g>
+  <path d="m578 357 46-3 19 10-46 3z" fill="#77908b"/><path d="M597 367v29l46-3v-29z" fill="#334e57"/><path d="m578 357 19 10v29l-19-10z" fill="#203740"/>
+  <path d="m606 369 28-2m-28 8 28-2m-28 8 28-2" stroke="#70918e" stroke-width="2"/>
+  <!-- Foreground quay anchors the scene; all readable copy stays in the card body. -->
+  <path d="m0 396 352-8 30 32L0 440z" fill="#43505a"/><path d="m0 407 361-9 21 22L0 440z" fill="#111f2c"/><path d="m0 397 352-8" stroke="#c3aa87" stroke-width="3"/>
+  <path d="M239 350h50v40h-50z" fill="#8b6849" stroke="#c1a27b"/><path d="M239 350h50v40h-50z" fill="url(#ribs)"/>
+  <path d="M352 366v25m-5-25h10" stroke="#050b13" stroke-width="4"/>
+  <circle cx="352" cy="358" r="64" fill="url(#aura)"/><path d="M352 365v-67h17" stroke="#5b7075" stroke-width="3"/><path d="M366 298h12" stroke="#ffcd8e" stroke-width="4"/><path d="M365 299h16" stroke="#ffbf67" stroke-width="8" filter="url(#glow)"/>
+  <path fill="url(#vignette)" d="M0 0h960v540H0z"/>
 </svg>
