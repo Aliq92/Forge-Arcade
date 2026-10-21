@@ -126,7 +126,18 @@ export function setupTouchControls(input) {
   const btnFlare = document.getElementById('touch-flare');
   const btnInteract = document.getElementById('touch-interact');
   const btnPause = document.getElementById('touch-pause');
-  btnFlare.addEventListener('touchstart', e => { input.touch.flare = true; e.preventDefault(); }, { passive: false });
+  // Pointer events cover fingers, pens and mice, including hybrid devices.
+  // Use touchstart only on older browsers so a tap is never queued twice.
+  const flareEvent = window.PointerEvent ? 'pointerdown' : 'touchstart';
+  btnFlare.addEventListener(flareEvent, e => {
+    if (e.button !== undefined && e.button !== 0) return;
+    input.touch.flare = true;
+    e.preventDefault();
+  }, { passive: false });
+  btnFlare.addEventListener('click', e => {
+    // Keyboard/assistive activation has no preceding pointer event.
+    if (e.detail === 0) input.touch.flare = true;
+  });
   btnInteract.addEventListener('touchstart', e => { input.touch.interact = true; e.preventDefault(); }, { passive: false });
   btnPause.addEventListener('touchstart', e => { input.touch.pause = true; e.preventDefault(); }, { passive: false });
 }

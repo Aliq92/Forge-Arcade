@@ -126,6 +126,13 @@ export class UI {
     const flareFill = document.getElementById('flare-bar-fill');
     const flareFrac = 1 - player.lantern.flareCooldown / player.lantern.flareCooldownMax;
     flareFill.style.width = `${clamp(flareFrac * 100, 0, 100)}%`;
+    const flareButton = document.getElementById('touch-flare');
+    const cooldown = player.lantern.flareCooldown;
+    const lowEnergy = player.lantern.energy < player.lantern.flareCost;
+    const flareLabel = cooldown > 0 ? `${Math.ceil(cooldown)}s` : lowEnergy ? 'Low energy' : 'Flare';
+    flareButton.querySelector('.touch-btn-label').textContent = flareLabel;
+    flareButton.setAttribute('aria-disabled', String(cooldown > 0 || lowEnergy));
+    flareButton.setAttribute('aria-label', cooldown > 0 ? `Flare recharging: ${Math.ceil(cooldown)} seconds` : lowEnergy ? 'Flare needs more lantern energy' : 'Flare');
 
     document.getElementById('low-energy-warning').classList.toggle('hidden', !player.lantern.lowEnergy);
     document.getElementById('objective-text').textContent = objectiveText;
