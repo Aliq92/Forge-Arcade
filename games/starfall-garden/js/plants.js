@@ -43,6 +43,23 @@ SG.Plants = {
       if (!pl || !pl.alive) continue;
       pl.pulsePhase += dt * 1.4;
       if (pl.damagedFlash > 0) pl.damagedFlash -= dt;
+      // Mature roots gradually reclaim the nearest dead patch in normal mode.
+      if (!world.hardMode && pl.growth >= 1) {
+        pl.spreadTimer = (pl.spreadTimer ?? 4) - dt;
+        if (pl.spreadTimer <= 0) {
+          pl.spreadTimer = 4;
+          let target = null, nearest = Infinity;
+          for (const candidate of world.patches) {
+            if (!world.canRestore(candidate)) continue;
+            const d = SG.util.dist2(patch.x, patch.y, candidate.x, candidate.y);
+            if (d < nearest) { nearest = d; target = candidate; }
+          }
+          if (target) {
+            world.restorePatch(target, target.biome === 'crystalgrove');
+            particles.burst(target.x, target.y, 6, { color: SG.COLORS.healthyCyan, life: 0.5, size: 3, speedMin: 10, speedMax: 35, glow: true });
+          }
+        }
+      }
       if (pl.growth < 1) {
         pl.growth = Math.min(1, pl.growth + dt / pl.growTime);
         if (pl.growth >= 1) {

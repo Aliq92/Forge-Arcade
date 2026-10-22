@@ -74,7 +74,7 @@ SG.Game = class {
     if (!patch) return null;
     if (patch.state === SG.TERRAIN.DEAD) {
       if (!this.world.isUnlocked(patch)) return { type: 'locked', patch, label: 'OUTER RING LOCKED' };
-      const cost = SG.Plants.restoreCost(this.world, this.player.x, this.player.y, SG.CONFIG.restoreCost, this.player);
+      const cost = SG.Plants.restoreCost(this.world, this.player.x, this.player.y, this.hardMode ? 5 : SG.CONFIG.restoreCost, this.player);
       return { type: 'restore', patch, label: 'RESTORE', cost, afford: this.player.fragments >= cost };
     }
     if (SG.Plants.canPlant(patch)) {
@@ -90,7 +90,7 @@ SG.Game = class {
 
   _onInteract() {
     if (this.state !== SG.STATE.PLAYING) return;
-    const hint = this.actionHint;
+    const hint = this._computeActionHint();
     if (!hint) return;
 
     if (hint.type === 'locked') {
@@ -152,9 +152,17 @@ SG.Game = class {
     this.hardMode = hardMode;
     this.endlessMode = endless;
     this.world.reset();
+    this.world.hardMode = hardMode;
     this.player.reset();
+    if (!hardMode) {
+      this.player.fragments = 30;
+      this.player.collectRadius += 24;
+      this.player.warningTimeBonus = 0.7;
+      this.player.secondWind = true;
+    }
     this.resources.reset();
     this.meteors.reset();
+    this.meteors.phaseTimer = hardMode ? 13 : 22;
     this.meteors.spawningDisabled = false;
     this.upgrades.reset();
     this.particles.clear();
@@ -167,6 +175,8 @@ SG.Game = class {
     this.actionHint = null;
     this._actionFeedback = null;
     this._lastUnlockedRing = 0;
+    this._warningTextTimer = 0;
+    this._endlessCelebrated = false;
     this._ringUnlockBanner = null;
     this._ringPulse = 0;
     this.state = SG.STATE.PLAYING;
@@ -225,6 +235,9 @@ SG.Game = class {
     const effectiveCollectRadius = this.player.collectRadius + auras.magnetBonus;
 
     this.player.update(dt, this.world);
+    if (!this.hardMode && (this.meteors.phase === SG.PHASE.CALM || this.meteors.phase === SG.PHASE.RECOVERY)) {
+      this.player.heal(2 * dt);
+    }
     this.actionHint = this._computeActionHint();
     if (this._actionFeedback) {
       this._actionFeedback.timer -= dt;
@@ -246,7 +259,7 @@ SG.Game = class {
     if (this.timeBloomTimer > 0) this.timeBloomTimer -= dt;
     const fallSlowMul = this.timeBloomTimer > 0 ? 0.6 : 1;
 
-    const healthPct = this.world.restoreAreaPercent();
+    let healthPct = this.world.restoreAreaPercent();
     let highestUnlocked = 0;
     for (const r of SG.CONFIG.rings) if (healthPct >= r.unlockHealth) highestUnlocked = r.id;
     if (highestUnlocked > this._lastUnlockedRing) {
@@ -274,6 +287,7 @@ SG.Game = class {
     }, healthPct, this.hardMode, fallSlowMul);
 
     this.world.update(dt, healthPct);
+    healthPct = this.world.restoreAreaPercent();
     this.particles.update(dt);
 
     if (this._warningTextTimer > 0) this._warningTextTimer -= dt;

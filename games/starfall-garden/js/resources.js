@@ -42,7 +42,7 @@ SG.ResourceManager = class {
     const fallDuration = typeKey === 'ancient' ? SG.util.rand(1.6, 2.0) : typeKey === 'bright' ? SG.util.rand(1.2, 1.6) : SG.util.rand(0.9, 1.3);
 
     this.fragments.push({
-      typeKey, value: typeCfg.value, color: typeCfg.color, baseRadius: typeCfg.radius,
+      typeKey, value: typeCfg.value * (this.world.hardMode ? 1 : 2), color: typeCfg.color, baseRadius: typeCfg.radius,
       startX, startY, targetX, targetY, x: startX, y: startY,
       progress: 0, fallDuration, landed: false, life: SG.CONFIG.fragments.lifeSeconds,
       maxLife: SG.CONFIG.fragments.lifeSeconds, magnetized: false, mvx: 0, mvy: 0,
@@ -53,7 +53,7 @@ SG.ResourceManager = class {
   spawnBonusAt(x, y, typeKey) {
     const typeCfg = SG.CONFIG.fragments.types[typeKey];
     this.fragments.push({
-      typeKey, value: typeCfg.value, color: typeCfg.color, baseRadius: typeCfg.radius,
+      typeKey, value: typeCfg.value * (this.world.hardMode ? 1 : 2), color: typeCfg.color, baseRadius: typeCfg.radius,
       startX: x, startY: y, targetX: x, targetY: y, x, y,
       progress: 1, fallDuration: 0.1, landed: true, life: SG.CONFIG.fragments.lifeSeconds,
       maxLife: SG.CONFIG.fragments.lifeSeconds, magnetized: false, mvx: 0, mvy: 0,
@@ -63,10 +63,10 @@ SG.ResourceManager = class {
 
   spawnInterval(phase) {
     switch (phase) {
-      case SG.PHASE.NIGHT: return 0.5;
-      case SG.PHASE.WARNING: return 1.25;
-      case SG.PHASE.RECOVERY: return 1.7;
-      default: return 2.1;
+      case SG.PHASE.NIGHT: return 0.45;
+      case SG.PHASE.WARNING: return 0.8;
+      case SG.PHASE.RECOVERY: return 0.9;
+      default: return 1.1;
     }
   }
 

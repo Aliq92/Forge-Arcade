@@ -49,8 +49,8 @@ SG.PHASE = Object.freeze({
 
 SG.CONFIG = {
   gridCellsAcross: 18,
-  restoreCost: 5,
-  scorchHealSeconds: 9,
+  restoreCost: 2,
+  scorchHealSeconds: 6,
 
   player: {
     radius: 11,
@@ -74,7 +74,7 @@ SG.CONFIG = {
       bright: { value: 3, color: '#f0c96e', radius: 6.5, weight: 1 },
       ancient: { value: 8, color: '#c98cf0', radius: 8, weight: 1 },
     },
-    lifeSeconds: 13,
+    lifeSeconds: 24,
   },
 
   rings: [

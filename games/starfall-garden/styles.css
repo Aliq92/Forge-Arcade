@@ -228,8 +228,8 @@ html, body {
 
 @media (max-width: 560px) {
   .howto-grid { grid-template-columns: 1fr; }
-  .hud-top-center { padding: 6px 12px; min-width: 120px; }
-  .hud-pause-btn { right: 14px; top: 60px; }
+  .hud-top-center { top: 90px; padding: 6px 12px; min-width: 120px; }
+  .hud-pause-btn { right: 14px; top: 96px; }
   .joystick-zone { width: 168px; height: 168px; }
   .joystick-stick { width: 70px; height: 70px; }
   .round-btn { width: 91.2px; height: 91.2px; font-size: 14px; }
