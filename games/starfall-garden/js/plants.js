@@ -37,7 +37,7 @@ SG.Plants = {
     return { ok: true, cost };
   },
 
-  update(dt, world, particles) {
+  update(dt, world, particles, resources) {
     for (const patch of world.patches) {
       const pl = patch.plant;
       if (!pl || !pl.alive) continue;
@@ -45,9 +45,9 @@ SG.Plants = {
       if (pl.damagedFlash > 0) pl.damagedFlash -= dt;
       // Mature roots gradually reclaim the nearest dead patch in normal mode.
       if (!world.hardMode && pl.growth >= 1) {
-        pl.spreadTimer = (pl.spreadTimer ?? 4) - dt;
+        pl.spreadTimer = (pl.spreadTimer ?? SG.PLANT_TYPES[pl.type].spreadSeconds) - dt;
         if (pl.spreadTimer <= 0) {
-          pl.spreadTimer = 4;
+          pl.spreadTimer = SG.PLANT_TYPES[pl.type].spreadSeconds;
           let target = null, nearest = Infinity;
           for (const candidate of world.patches) {
             if (!world.canRestore(candidate)) continue;
@@ -60,9 +60,18 @@ SG.Plants = {
           }
         }
       }
+      if (pl.growth >= 1 && pl.type === 'luminatree' && resources) {
+        pl.rewardTimer = (pl.rewardTimer ?? SG.PLANT_TYPES.luminatree.rewardSeconds) - dt;
+        if (pl.rewardTimer <= 0) {
+          pl.rewardTimer += SG.PLANT_TYPES.luminatree.rewardSeconds;
+          resources.spawnBonusAt(patch.x, patch.y, 'common');
+          particles.burst(patch.x, patch.y, 10, { color: SG.COLORS.lifeGold, life: 0.8, size: 3, speedMin: 15, speedMax: 45, glow: true });
+        }
+      }
       if (pl.growth < 1) {
         pl.growth = Math.min(1, pl.growth + dt / pl.growTime);
         if (pl.growth >= 1) {
+          world.speciesMatured.add(pl.type);
           world.markBlooming(patch);
           particles.burst(patch.x, patch.y, 14, {
             color: SG.PLANT_TYPES[pl.type].color, life: 0.7, size: 4, speedMin: 20, speedMax: 90, glow: true, gravity: -20,
@@ -77,16 +86,15 @@ SG.Plants = {
     let energyRegenBonus = 0, magnetBonus = 0, damageReduction = 0, healBonus = 0;
     for (const patch of world.patches) {
       const pl = patch.plant;
-      if (!pl || !pl.alive || pl.growth < 0.5) continue;
+      if (!pl || !pl.alive || pl.growth < 1) continue;
       const cfg = SG.PLANT_TYPES[pl.type];
       if (!cfg.auraRadius) continue;
       const d2 = SG.util.dist2(x, y, patch.x, patch.y);
       if (d2 > cfg.auraRadius * cfg.auraRadius) continue;
       const t = 1 - Math.sqrt(d2) / cfg.auraRadius;
-      if (pl.type === 'starflower') energyRegenBonus += 0.9 * t;
+      if (pl.type === 'starflower') { energyRegenBonus = Math.max(energyRegenBonus, 0.9 * t); healBonus = Math.max(healBonus, 1.5 * t); }
       if (pl.type === 'luminatree') magnetBonus = Math.max(magnetBonus, 55 * t);
       if (pl.type === 'shieldbloom') damageReduction = Math.max(damageReduction, 0.55 * t);
-      if (pl.type === 'hearttree') healBonus += 1.2 * t;
     }
     return { energyRegenBonus, magnetBonus, damageReduction, healBonus };
   },

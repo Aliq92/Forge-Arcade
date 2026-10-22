@@ -163,6 +163,9 @@ SG.MeteorManager = class {
     let hitPlayer = false;
     const isCrystal = m.typeKey === 'crystal';
 
+    // Snapshot shields before damage so one impact has consistent protection.
+    const keeperProtection = SG.Plants.getAuraEffects(w, player.x, player.y).damageReduction;
+    const protection = new Map(w.patches.map(p => [p, SG.Plants.getAuraEffects(w, p.x, p.y).damageReduction]));
     for (const patch of w.patches) {
       const d = SG.util.dist(patch.x, patch.y, m.x, m.y);
       if (d > m.impactRadius) continue;
@@ -174,9 +177,9 @@ SG.MeteorManager = class {
         const wasAlive = patch.state === SG.TERRAIN.RESTORED || patch.state === SG.TERRAIN.BLOOMING || patch.state === SG.TERRAIN.CRYSTAL;
         if (patch.plant) {
           const frac = 1 - d / m.impactRadius;
-          SG.Plants.damage(w, patch, m.damage * frac * 1.4, particles, callbacks.onPlantDestroyed);
+          SG.Plants.damage(w, patch, m.damage * frac * 1.4 * (1 - protection.get(patch)), particles, callbacks.onPlantDestroyed);
         }
-        if (wasAlive) w.scorchPatch(patch);
+        if (wasAlive && d <= m.impactRadius * (1 - protection.get(patch))) w.scorchPatch(patch);
       }
     }
 
@@ -189,7 +192,7 @@ SG.MeteorManager = class {
 
     const distToPlayer = SG.util.dist(player.x, player.y, m.x, m.y);
     if (distToPlayer <= m.impactRadius + player.radius * 0.7) {
-      const reduction = SG.Plants.getAuraEffects(w, player.x, player.y).damageReduction;
+      const reduction = keeperProtection;
       const dmg = Math.max(1, Math.round(m.damage * (1 - reduction)));
       const applied = player.applyDamage(dmg);
       if (applied > 0) { hitPlayer = true; this.stats.meteorHits++; }

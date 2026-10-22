@@ -10,6 +10,7 @@ SG.Game = class {
     this.resources = new SG.ResourceManager(this.world);
     this.meteors = new SG.MeteorManager(this.world);
     this.upgrades = new SG.UpgradeManager();
+    this.objectives = new SG.Objectives();
     this.audio = new SG.Audio();
 
     this.state = SG.STATE.TITLE;
@@ -165,6 +166,8 @@ SG.Game = class {
     this.meteors.phaseTimer = hardMode ? 13 : 22;
     this.meteors.spawningDisabled = false;
     this.upgrades.reset();
+    this.objectives = new SG.Objectives();
+    this._milestoneFeedback = null;
     this.particles.clear();
     this.selectedPlant = 'glowgrass';
     this.runStats = { fragmentsCollected: 0, plantsGrown: 0, plantsDestroyed: 0 };
@@ -254,7 +257,7 @@ SG.Game = class {
       this.audio.pickup(f.typeKey === 'ancient' ? 2 : f.typeKey === 'bright' ? 1 : 0);
     });
 
-    SG.Plants.update(dt, this.world, this.particles);
+    SG.Plants.update(dt, this.world, this.particles, this.resources);
 
     if (this.timeBloomTimer > 0) this.timeBloomTimer -= dt;
     const fallSlowMul = this.timeBloomTimer > 0 ? 0.6 : 1;
@@ -295,19 +298,32 @@ SG.Game = class {
     if (healthPct >= 50) this._unlockAchievement('gardener');
     if (this.meteors.stats.meteorsDodged >= 40) this._unlockAchievement('star_dancer');
 
-    if (!this.endlessMode && !this.victoryTriggered && this.upgrades.checkMilestone(healthPct)) {
+    if (!this.player.alive) {
+      this._onGameOver(healthPct);
+      return;
+    }
+    const earned = this.objectives.update(this.world, this.meteors.cyclesCompleted);
+    if (this._milestoneFeedback) {
+      this._milestoneFeedback.timer -= dt;
+      if (this._milestoneFeedback.timer <= 0) this._milestoneFeedback = null;
+    }
+    if (earned.length) {
+      this.player.fragments += earned.length * 4;
+      this.player.heal(earned.length * 8);
+      const names = ['25% RESTORED', 'FOUR SPECIES GROWN', 'STARFALL SURVIVED'];
+      this._milestoneFeedback = { text: earned.map(i => names[i]).join(' · ') + ' · +' + (earned.length * 4) + '✦ · +' + (earned.length * 8) + ' HEALTH', timer: 4 };
+      this.audio.upgrade();
+      this._ringPulse = 1;
+    }
+
+    if (!this.endlessMode && !this.victoryTriggered && !this.objectives.ready && this.upgrades.checkMilestone(healthPct)) {
       this.currentUpgradeChoices = this.upgrades.rollChoices(3);
       this.state = SG.STATE.UPGRADE;
       this.ui.showUpgradeChoices(this.currentUpgradeChoices, (id) => this._applyUpgradeChoice(id));
       return;
     }
 
-    if (!this.player.alive) {
-      this._onGameOver(healthPct);
-      return;
-    }
-
-    if (!this.endlessMode && !this.victoryTriggered && healthPct >= 99.999) {
+    if (!this.endlessMode && !this.victoryTriggered && this.objectives.ready) {
       this._triggerVictory();
     } else if (this.endlessMode && healthPct >= 99.999 && !this._endlessCelebrated) {
       this._endlessCelebrated = true;
@@ -435,6 +451,7 @@ SG.Game = class {
 
     let toastText = '';
     if (this._actionFeedback) toastText = this._actionFeedback.text;
+    else if (this._milestoneFeedback) toastText = this._milestoneFeedback.text;
     else if (this._ringUnlockBanner) toastText = this._ringUnlockBanner.text;
 
     this.ui.updateHUD({
@@ -445,7 +462,7 @@ SG.Game = class {
       phaseTimer: Math.max(0, this.meteors.phaseTimer),
       warningText, selectedPlant: this.selectedPlant, plantCostMul: this.player.plantCostMul,
       showFPS: this.ui.save.settings.showFPS, fps: this.fps,
-      actionHint: this.actionHint, toastText,
+      actionHint: this.actionHint, toastText, objectives: this.objectives, auras: SG.Plants.getAuraEffects(this.world, this.player.x, this.player.y), endless: this.endlessMode,
     });
   }
 

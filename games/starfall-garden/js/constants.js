@@ -90,22 +90,22 @@ SG.PLANT_TYPES = {
   glowgrass: {
     id: 'glowgrass', name: 'Glowgrass', key: '1', icon: '⚘', cost: 4,
     growTime: 2.6, maxHealth: 30, radius: 9, auraRadius: 0,
-    desc: 'Cheap patch of living light.', color: '#6ff0e8',
+    spreadSeconds: 2, desc: 'Fast roots: restores a tile every 2s in Gentle.', color: '#6ff0e8',
   },
   starflower: {
     id: 'starflower', name: 'Starflower', key: '2', icon: '❀', cost: 10,
     growTime: 3.6, maxHealth: 45, radius: 12, auraRadius: 70,
-    desc: 'Slowly regenerates energy nearby.', color: '#c98cf0',
+    spreadSeconds: 4, desc: 'Nearby: replenishes energy and slowly heals you.', color: '#c98cf0',
   },
   luminatree: {
-    id: 'luminatree', name: 'Lumina Tree', key: '3', icon: '✵', cost: 22,
+    id: 'luminatree', name: 'Lumina Tree', key: '3', icon: '✵', cost: 14,
     growTime: 5.4, maxHealth: 90, radius: 16, auraRadius: 95,
-    desc: 'Draws star fragments from afar.', color: '#f0c96e',
+    spreadSeconds: 4, rewardSeconds: 16, desc: 'Attracts fragments; drops a small reward every 16s.', color: '#f0c96e',
   },
   shieldbloom: {
-    id: 'shieldbloom', name: 'Shield Bloom', key: '4', icon: '✡', cost: 16,
+    id: 'shieldbloom', name: 'Shield Bloom', key: '4', icon: '✡', cost: 10,
     growTime: 4.4, maxHealth: 55, radius: 12, auraRadius: 85,
-    desc: 'Weakens meteor damage nearby.', color: '#7ea8ff',
+    spreadSeconds: 4, desc: 'Nearby: protects you and plants; limits scorching.', color: '#7ea8ff',
   },
 };
 
