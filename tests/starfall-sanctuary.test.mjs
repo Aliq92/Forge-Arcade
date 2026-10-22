@@ -49,7 +49,7 @@ test('Shield Blooms reduce plant damage and terrain scorching', () => {
 });
 test('milestones persist but victory requires restoration and living diversity together', () => {
   const S=load(),w=new S.World(260),o=new S.Objectives(); w.update(60,100);
-  for(const p of w.patches.slice(0,70)) w.restorePatch(p);
+  for(const p of w.patches.slice(0,Math.ceil(w.totalPatches*.3))) w.restorePatch(p);
   const mature=[];
   Object.keys(S.PLANT_TYPES).forEach((type,i)=> { const p=w.patches[i]; p.plant={type,alive:true,growth:1}; mature.push(p); });
   o.update(w,1); assert.ok(o.completed.slice(0,3).every(Boolean));
@@ -119,4 +119,10 @@ test('maturity is remembered even if the plant dies in the same game frame', () 
  o.update(w,0);
  assert.ok(o.speciesGrown.has('glowgrass'));
  w.reset();const fresh=new S.Objectives();fresh.update(w,0);assert.equal(fresh.speciesGrown.size,0);
+});
+test('roomier garden keeps at least 15% more terrain with a 20% wider world', () => {
+ const S=load(),w=new S.World(S.CONFIG.worldRadius);
+ assert.equal(w.radius,312);
+ assert.ok(w.totalPatches>=240*1.15);
+ assert.ok(w.totalPatches<=240*1.25);
 });

@@ -3,7 +3,7 @@ SG.Game = class {
   constructor(canvas) {
     this.canvas = canvas;
     this.renderer = new SG.Renderer(canvas);
-    this.renderer.worldRadius = 260;
+    this.renderer.worldRadius = SG.CONFIG.worldRadius;
     this.particles = new SG.ParticleSystem();
     this.world = new SG.World(this.renderer.worldRadius);
     this.player = new SG.Player();
@@ -184,6 +184,7 @@ SG.Game = class {
     this._ringPulse = 0;
     this.state = SG.STATE.PLAYING;
     this.runActive = true;
+    this.ui.clearCelebration();
     this.ui.hideAllScreens();
     this.ui.setHudVisible(true);
     this.ui.setMobileControlsVisible(this._shouldShowMobileControls());
@@ -192,6 +193,7 @@ SG.Game = class {
   }
 
   _continueEndless() {
+    this.ui.clearCelebration();
     this.endlessMode = true;
     this.meteors.spawningDisabled = false;
     this.meteors._setPhase(SG.PHASE.CALM, 0, this.hardMode);
@@ -203,6 +205,7 @@ SG.Game = class {
   _resume() { this.state = SG.STATE.PLAYING; this.ui.hideAllScreens(); }
 
   _toTitle() {
+    this.ui.clearCelebration();
     this.state = SG.STATE.TITLE;
     this.runActive = false;
     this.ui.setHudVisible(false);
@@ -346,6 +349,7 @@ SG.Game = class {
   _triggerVictory() {
     this.victoryTriggered = true;
     this.victoryAnimTimer = 2.4;
+    this.ui.celebrate();
     this.meteors.meteors = [];
     this.meteors.spawningDisabled = true;
     this.audio.victory();
