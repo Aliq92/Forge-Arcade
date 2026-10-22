@@ -6,6 +6,7 @@ SG.UI = class {
     this.difficulty = 'normal';
     this._cacheDom();
     this._buildPlantTray();
+    this._buildPlantGuide();
     this._bindEvents();
     this._applySettingsToInputs();
     this._refreshBestStats();
@@ -16,7 +17,7 @@ SG.UI = class {
     const ids = [
       'hud', 'bar-health', 'bar-energy', 'stat-fragments', 'stat-plants', 'stat-health', 'bar-planet',
       'phase-label', 'phase-timer', 'plant-tray', 'action-hint', 'warning-banner', 'toast-banner', 'btn-pause', 'mobile-controls',
-      'btn-mobile-interact', 'plant-detail', 'objective-list', 'objective-next', 'aura-status',
+      'btn-mobile-interact', 'plant-detail', 'objective-list', 'objective-next', 'aura-status', 'plant-guide', 'victory-confetti',
       'screen-title', 'screen-howto', 'screen-settings', 'screen-pause', 'screen-upgrade', 'screen-gameover', 'screen-victory',
       'btn-begin', 'btn-endless', 'btn-howto', 'btn-settings', 'btn-howto-close', 'btn-settings-close',
       'btn-resume', 'btn-pause-restart', 'btn-pause-settings', 'btn-pause-howto', 'btn-pause-title',
@@ -43,6 +44,34 @@ SG.UI = class {
       this.plantSlotEls[cfg.id] = div;
     });
   }
+
+  _buildPlantGuide() {
+    this.el.plantGuide.innerHTML = Object.values(SG.PLANT_TYPES).map(cfg =>
+      `<article class="guide-plant"><div><b>${cfg.name}</b><span>${cfg.cost}✦</span></div><p>${cfg.desc}</p></article>`
+    ).join('');
+  }
+
+  celebrate() {
+    this.clearCelebration();
+    const reduced = this.save.settings.reducedMotion;
+    this.el.victoryConfetti.classList.toggle('reduced', reduced);
+    const colors = ['#6ff0e8', '#f0c96e', '#c98cf0', '#7ea8ff', '#fff6e0'];
+    const count = reduced ? 12 : 72;
+    for (let i = 0; i < count; i++) {
+      const piece = document.createElement('span');
+      piece.className = 'confetti-piece';
+      piece.style.left = (reduced ? (i % 2 ? 94 : 4) : Math.random() * 100) + '%';
+      piece.style.top = reduced ? (12 + Math.floor(i / 2) * 13) + '%' : '-20px';
+      piece.style.backgroundColor = colors[i % colors.length];
+      piece.style.setProperty('--drift', (Math.random() * 140 - 70) + 'px');
+      piece.style.setProperty('--spin', (Math.random() * 1080 - 540) + 'deg');
+      piece.style.setProperty('--duration', (4.8 + Math.random() * 1.2) + 's');
+      piece.style.animationDelay = (reduced ? 0 : Math.random() * 0.7) + 's';
+      this.el.victoryConfetti.appendChild(piece);
+    }
+  }
+
+  clearCelebration() { this.el.victoryConfetti.replaceChildren(); }
 
   _bindEvents() {
     const h = this.h;

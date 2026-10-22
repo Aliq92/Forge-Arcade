@@ -6,7 +6,7 @@
 <title>Starfall Garden</title>
 <meta name="description" content="A peaceful survival-and-restoration game on a tiny drifting world." />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%230a0e2a'/%3E%3Ccircle cx='50' cy='50' r='30' fill='%2340e0d0'/%3E%3C/svg%3E" />
-<link rel="stylesheet" href="styles.css?v=sanctuary-journey-3" />
+<link rel="stylesheet" href="styles.css?v=roomier-garden-4" />
 </head>
 <body>
 <div id="app">
@@ -82,18 +82,40 @@
 
   <!-- How To Play -->
   <div id="screen-howto" class="screen hidden">
-    <div class="panel">
-      <h2>HOW TO PLAY</h2>
-      <div class="howto-grid">
-        <div class="howto-item"><div class="howto-icon">⬆⬅⬇➡</div><div><b>Move</b><br>WASD / Arrow Keys</div></div>
-        <div class="howto-item"><div class="howto-icon">✦</div><div><b>Collect</b><br>Walk near falling star fragments</div></div>
-        <div class="howto-item"><div class="howto-icon">🌑→🌕</div><div><b>Restore</b><br>Press E on dead ground to bring it back to life</div></div>
-        <div class="howto-item"><div class="howto-icon">🌱</div><div><b>Plant</b><br>Pick 1-4, press E on restored ground. Tap a species to see its cost and role. Mature roots restore tiles in Gentle mode; Glowgrass spreads twice as fast.</div></div>
-        <div class="howto-item"><div class="howto-icon">☄</div><div><b>Survive</b><br>Watch warning rings and dodge. In Gentle mode, scorched ground regrows and health recovers during calm and recovery.</div></div>
-        <div class="howto-item"><div class="howto-icon">⚡</div><div><b>Dash</b><br>Space to burst away from danger</div></div>
-        <div class="howto-item"><div class="howto-icon">100%</div><div><b>Goal</b><br>Restore 25%, mature all four species, and survive a complete night. Finish with 100% restoration and six mature living plants including all four species. Milestones stay completed and grant 4 fragments + 8 health. Take your time: fragments keep falling, and regions stay unlocked.</div></div>
+    <div class="panel howto-panel">
+      <header class="howto-header">
+        <span class="guide-eyebrow">KEEPER'S FIELD GUIDE</span>
+        <h2>HOW TO PLAY</h2>
+        <p>Walk near falling fragments to collect starlight.</p>
+      </header>
+      <div class="howto-body">
+      <section class="howto-section" aria-labelledby="guide-controls">
+        <h3 id="guide-controls">01 · Simple controls</h3>
+        <div class="guide-controls">
+          <div><b>Move</b><span><kbd>WASD</kbd> / arrows</span><small>Drag the stick on mobile.</small></div>
+          <div><b>Dash</b><span><kbd>Space</kbd></span><small>Tap DASH to dodge a warning ring.</small></div>
+          <div><b>Restore</b><span><kbd>E</kbd> on dead ground</span><small>Or tap RESTORE. Costs 2✦ in Gentle.</small></div>
+          <div><b>Plant</b><span><kbd>1–4</kbd>, then <kbd>E</kbd></span><small>Tap a species, then PLANT on restored soil.</small></div>
+        </div>
+      </section>
+      <section class="howto-section" aria-labelledby="guide-plants">
+        <h3 id="guide-plants">02 · Give every plant a purpose <small>Base costs</small></h3>
+        <div id="plant-guide" class="plant-guide"></div>
+        <p class="guide-note">Benefits begin at maturity. In Gentle, every species spreads restoration; Glowgrass spreads twice as fast.</p>
+      </section>
+      <section class="howto-section" aria-labelledby="guide-journey">
+        <h3 id="guide-journey">03 · Bring the sanctuary to life</h3>
+        <ol class="guide-journey">
+          <li>Restore <b>25%</b> of the planet.</li>
+          <li>Grow <b>all four species</b> to maturity.</li>
+          <li>Survive <b>one full starfall night</b>.</li>
+          <li>Finish at <b>100%</b> with <b>six mature living plants</b>, including all four species.</li>
+        </ol>
+        <p class="guide-note">The first three milestones stay completed and each reward 4✦ + 8 health. Open Sanctuary Journey to see your next step.</p>
+      </section>
+      <aside class="guide-gentle"><b>No rush in Gentle.</b> Fragments keep falling. Scorched ground regrows, unlocked regions stay open, and your health recovers in calm and recovery.</aside>
       </div>
-      <button class="menu-btn primary" id="btn-howto-close">GOT IT</button>
+      <footer class="guide-footer"><button class="menu-btn primary" id="btn-howto-close">GOT IT</button></footer>
     </div>
   </div>
 
@@ -164,24 +186,25 @@
     </div>
   </div>
 
+  <div id="victory-confetti" aria-hidden="true"></div>
   <div id="fps-counter" class="fps-counter hidden">0 FPS</div>
 </div>
 
-<script src="js/constants.js?v=sanctuary-journey-3"></script>
-<script src="js/utils.js?v=sanctuary-journey-3"></script>
-<script src="js/audio.js?v=sanctuary-journey-3"></script>
-<script src="js/particles.js?v=sanctuary-journey-3"></script>
-<script src="js/world.js?v=sanctuary-journey-3"></script>
-<script src="js/player.js?v=sanctuary-journey-3"></script>
-<script src="js/resources.js?v=sanctuary-journey-3"></script>
-<script src="js/plants.js?v=sanctuary-journey-3"></script>
-<script src="js/meteors.js?v=sanctuary-journey-3"></script>
-<script src="js/upgrades.js?v=sanctuary-journey-3"></script>
-<script src="js/renderer.js?v=sanctuary-journey-3"></script>
-<script src="js/input.js?v=sanctuary-journey-3"></script>
-<script src="js/ui.js?v=sanctuary-journey-3"></script>
-<script src="js/objectives.js?v=sanctuary-journey-3"></script>
-<script src="js/game.js?v=sanctuary-journey-3"></script>
-<script src="js/main.js?v=sanctuary-journey-3"></script>
+<script src="js/constants.js?v=roomier-garden-4"></script>
+<script src="js/utils.js?v=roomier-garden-4"></script>
+<script src="js/audio.js?v=roomier-garden-4"></script>
+<script src="js/particles.js?v=roomier-garden-4"></script>
+<script src="js/world.js?v=roomier-garden-4"></script>
+<script src="js/player.js?v=roomier-garden-4"></script>
+<script src="js/resources.js?v=roomier-garden-4"></script>
+<script src="js/plants.js?v=roomier-garden-4"></script>
+<script src="js/meteors.js?v=roomier-garden-4"></script>
+<script src="js/upgrades.js?v=roomier-garden-4"></script>
+<script src="js/renderer.js?v=roomier-garden-4"></script>
+<script src="js/input.js?v=roomier-garden-4"></script>
+<script src="js/ui.js?v=roomier-garden-4"></script>
+<script src="js/objectives.js?v=roomier-garden-4"></script>
+<script src="js/game.js?v=roomier-garden-4"></script>
+<script src="js/main.js?v=roomier-garden-4"></script>
 <a href="../../index.html" id="forge-back-link" style="position:fixed;right:12px;bottom:12px;z-index:2147483000;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;font:500 12px/1.2 system-ui,-apple-system,sans-serif;color:#e8e8ec;background:rgba(10,10,14,.55);border:1px solid rgba(255,255,255,.14);border-radius:999px;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:.55;transition:opacity .15s ease;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.55">← Arcade</a></body>
 </html>

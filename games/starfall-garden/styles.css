@@ -168,10 +168,6 @@ html, body {
 }
 .panel h2 { letter-spacing: 3px; margin-top: 0; color: var(--healthy-cyan); }
 
-.howto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; text-align: left; margin: 18px 0; }
-.howto-item { display: flex; gap: 10px; align-items: center; font-size: 12px; color: var(--text-dim); }
-.howto-icon { font-size: 20px; width: 34px; text-align: center; }
-.howto-item b { color: var(--text-main); }
 
 .settings-list { display: flex; flex-direction: column; gap: 14px; margin: 16px 0; text-align: left; }
 .setting-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; gap: 12px; }
@@ -227,7 +223,6 @@ html, body {
 }
 
 @media (max-width: 560px) {
-  .howto-grid { grid-template-columns: 1fr; }
   .hud-top-center { top: 90px; padding: 6px 12px; min-width: 120px; }
   .hud-pause-btn { right: 14px; top: 96px; }
   .joystick-zone { width: 168px; height: 168px; }
@@ -289,3 +284,53 @@ html, body {
   #forge-back-link { bottom: 86px !important; right: 12px !important; }
 }
 .panel { touch-action: pan-y; }
+
+/* A field guide with a consistent reading order on desktop and phones. */
+.howto-panel { max-width: 660px; text-align: left; padding: 24px; overscroll-behavior: contain; display: flex; flex-direction: column; overflow: hidden; }
+.howto-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; padding-right: 5px; }
+.howto-body > .howto-section:first-child { margin-top: 0; }
+.howto-header { text-align: center; margin-bottom: 20px; flex-shrink: 0; }
+.guide-eyebrow { color: var(--life-gold); font-size: 10px; letter-spacing: 2px; }
+.howto-header h2 { margin: 8px 0; }
+.howto-header p, .guide-note { color: var(--text-dim); font-size: 12px; line-height: 1.6; margin: 8px 0 0; }
+.howto-section { border-top: 1px solid var(--ui-border); padding-top: 16px; margin-top: 16px; }
+.howto-section h3 { font-size: 13px; color: var(--healthy-cyan); margin: 0 0 12px; line-height: 1.5; }
+.howto-section h3 small { color: var(--text-dim); font-size: 10px; font-weight: 400; display: inline-block; margin-left: 8px; }
+.guide-controls, .plant-guide { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.guide-controls > div, .guide-plant { padding: 10px 12px; border: 1px solid var(--ui-border); border-radius: 9px; background: rgba(255,255,255,.025); }
+.guide-controls b { display: block; font-size: 12px; margin-bottom: 5px; }
+.guide-controls span { font-size: 12px; }
+.guide-controls small { display: block; color: var(--text-dim); line-height: 1.5; font-size: 11px; margin-top: 5px; }
+.guide-controls kbd { border: 1px solid var(--ui-border); border-radius: 4px; padding: 1px 4px; font: inherit; color: var(--healthy-cyan); }
+.guide-plant > div { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; font-size: 12px; }
+.guide-plant span { color: var(--life-gold); white-space: nowrap; }
+.guide-plant p { margin: 6px 0 0; font-size: 11px; line-height: 1.6; color: var(--text-dim); }
+.guide-journey { padding-left: 22px; margin: 0; font-size: 12px; line-height: 1.6; }
+.guide-journey li { padding-left: 4px; margin: 6px 0; }
+.guide-journey li::marker { color: var(--life-gold); }
+.guide-gentle { margin-top: 16px; border-left: 2px solid var(--healthy-teal); padding: 8px 12px; background: rgba(31,184,168,.06); font-size: 11px; line-height: 1.6; color: var(--text-dim); }
+.guide-gentle b { color: var(--healthy-cyan); }
+.guide-footer { padding-top: 14px; text-align: center; flex-shrink: 0; }
+.guide-footer .menu-btn { min-width: 180px; }
+#victory-confetti { position: absolute; inset: 0; z-index: 25; overflow: hidden; pointer-events: none; }
+.confetti-piece { position: absolute; width: 7px; height: 12px; opacity: 0; border-radius: 1px; animation: confetti-fall var(--duration) linear both; }
+@keyframes confetti-fall {
+  0% { opacity: 0; transform: translate(0, 0) rotate(0); }
+  8%, 80% { opacity: .95; }
+  100% { opacity: 0; transform: translate(var(--drift), calc(100vh + 40px)) rotate(var(--spin)); }
+}
+#victory-confetti.reduced .confetti-piece { animation: confetti-glow 5s ease-out both; transform: rotate(25deg); }
+@keyframes confetti-glow { 0%, 75% { opacity: .8; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  #victory-confetti .confetti-piece { animation: confetti-glow 5s ease-out both; top: 8% !important; transform: none; }
+}
+@media (max-width: 560px) {
+  .howto-panel { padding: 18px 14px; }
+  .guide-controls, .plant-guide { grid-template-columns: 1fr; gap: 8px; }
+  .guide-controls > div { display: grid; grid-template-columns: 66px 1fr; gap: 4px 8px; }
+  .guide-controls small { grid-column: 2; margin: 0; }
+  .guide-controls b { margin: 0; }
+}
+
+/* The guide has its own close action; keep Arcade clear of its footer. */
+body:has(#screen-howto:not(.hidden)) #forge-back-link { visibility: hidden; }

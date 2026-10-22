@@ -48,7 +48,8 @@ SG.PHASE = Object.freeze({
 });
 
 SG.CONFIG = {
-  gridCellsAcross: 18,
+  worldRadius: 312,
+  gridCellsAcross: 20,
   restoreCost: 2,
   scorchHealSeconds: 6,
 
