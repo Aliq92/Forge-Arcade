@@ -13,7 +13,7 @@ SG.MeteorManager = class {
 
   reset(hard = true) {
     this.phase = SG.PHASE.CALM;
-    this.phaseTimer = 13;
+    this.phaseTimer = 22;
     this.cyclesCompleted = 0;
     this.meteors = [];
     this.spawnTimer = 1.5;
@@ -28,7 +28,8 @@ SG.MeteorManager = class {
   }
 
   phaseDurations(diff, hard) {
-    const mul = hard ? 0.8 : 1;
+    if (!hard) return { calm: 22, warning: 5, night: 9, recovery: 14 };
+    const mul = 0.8;
     return {
       calm: Math.max(7, (13 - diff * 2.4)) * mul,
       warning: 3.6,
@@ -46,7 +47,7 @@ SG.MeteorManager = class {
 
   update(dt, player, particles, resourceManager, world, callbacks, healthPct, hardMode, fallSlowMul) {
     this.world = world;
-    const diff = this.difficulty(healthPct);
+    const diff = this.difficulty(healthPct) * (hardMode ? 1 : 0.35);
     this.phaseTimer -= dt;
 
     if (this.phaseTimer <= 0) {
@@ -80,7 +81,7 @@ SG.MeteorManager = class {
     const activeWarnings = this.meteors.filter(m => m.state !== 'impacted').length;
     if (this.spawnTimer <= 0 && activeWarnings < this._maxConcurrent(diff)) {
       const baseInterval = this.phase === SG.PHASE.NIGHT ? Math.max(0.65, 1.5 - diff * 0.5) : 1.8;
-      this.spawnTimer = baseInterval * SG.util.rand(0.75, 1.25) * (hardMode ? 0.75 : 1);
+      this.spawnTimer = baseInterval * SG.util.rand(0.75, 1.25) * (hardMode ? 0.75 : 1.8);
       this._spawnMeteor(diff, player);
     }
   }

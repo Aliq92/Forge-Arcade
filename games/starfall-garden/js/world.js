@@ -109,7 +109,7 @@ SG.World = class {
   }
 
   update(dt, healthPct) {
-    this._unlockedTarget = this.currentUnlockTargetRadius(healthPct);
+    this._unlockedTarget = Math.max(this._unlockedTarget, this.currentUnlockTargetRadius(healthPct));
     if (Math.abs(this.unlockedRadius - this._unlockedTarget) > 0.5) {
       this.unlockedRadius = SG.util.lerp(this.unlockedRadius, this._unlockedTarget, Math.min(1, dt * 0.8));
     } else {
@@ -120,7 +120,13 @@ SG.World = class {
       if (p.restoreFx > 0) p.restoreFx = Math.max(0, p.restoreFx - dt * 1.4);
       if (p.state === SG.TERRAIN.SCORCHED) {
         p.scorchTimer -= dt;
-        if (p.scorchTimer <= 0) p.state = SG.TERRAIN.DEAD;
+        if (p.scorchTimer <= 0) {
+          p.state = this.hardMode ? SG.TERRAIN.DEAD : SG.TERRAIN.RESTORED;
+          if (!this.hardMode) {
+            this.restoredCount++;
+            if (p.plant && p.plant.alive && p.plant.growth >= 1) this.markBlooming(p);
+          }
+        }
       }
     }
   }

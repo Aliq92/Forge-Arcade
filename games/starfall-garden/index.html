@@ -6,7 +6,7 @@
 <title>Starfall Garden</title>
 <meta name="description" content="A peaceful survival-and-restoration game on a tiny drifting world." />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%230a0e2a'/%3E%3Ccircle cx='50' cy='50' r='30' fill='%2340e0d0'/%3E%3C/svg%3E" />
-<link rel="stylesheet" href="styles.css?v=controls-120" />
+<link rel="stylesheet" href="styles.css?v=garden-growth-2" />
 </head>
 <body>
 <div id="app">
@@ -59,7 +59,7 @@
     <div class="stars-decor"></div>
     <div class="title-planet-wrap"><canvas id="title-canvas"></canvas></div>
     <h1 class="game-title">STARFALL <span>GARDEN</span></h1>
-    <p class="game-subtitle">restore a dying world, one light at a time</p>
+    <p class="game-subtitle">Collect starlight. Plant a garden. Restore 100%.</p>
     <div class="menu-col">
       <button class="menu-btn primary" id="btn-begin">BEGIN</button>
       <button class="menu-btn" id="btn-endless" style="display:none">ENDLESS MODE</button>
@@ -68,7 +68,7 @@
     </div>
     <div class="difficulty-row">
       <span>DIFFICULTY</span>
-      <button class="chip-btn active" data-diff="normal">NORMAL</button>
+      <button class="chip-btn active" data-diff="normal">GENTLE</button>
       <button class="chip-btn" data-diff="hard">HARD</button>
     </div>
     <div class="best-stats" id="best-stats"></div>
@@ -82,10 +82,10 @@
         <div class="howto-item"><div class="howto-icon">⬆⬅⬇➡</div><div><b>Move</b><br>WASD / Arrow Keys</div></div>
         <div class="howto-item"><div class="howto-icon">✦</div><div><b>Collect</b><br>Walk near falling star fragments</div></div>
         <div class="howto-item"><div class="howto-icon">🌑→🌕</div><div><b>Restore</b><br>Press E on dead ground to bring it back to life</div></div>
-        <div class="howto-item"><div class="howto-icon">🌱</div><div><b>Plant</b><br>Pick 1-4, press E on restored ground</div></div>
-        <div class="howto-item"><div class="howto-icon">☄</div><div><b>Survive</b><br>Watch for warning rings, dodge meteor impacts</div></div>
+        <div class="howto-item"><div class="howto-icon">🌱</div><div><b>Plant</b><br>Pick 1-4, press E on restored ground. In Gentle mode, mature plants restore a nearby patch every 4 seconds.</div></div>
+        <div class="howto-item"><div class="howto-icon">☄</div><div><b>Survive</b><br>Watch warning rings and dodge. In Gentle mode, scorched ground regrows and health recovers during calm and recovery.</div></div>
         <div class="howto-item"><div class="howto-icon">⚡</div><div><b>Dash</b><br>Space to burst away from danger</div></div>
-        <div class="howto-item"><div class="howto-icon">100%</div><div><b>Goal</b><br>Restore the whole planet to full health</div></div>
+        <div class="howto-item"><div class="howto-icon">100%</div><div><b>Goal</b><br>Reach 100% restoration to win. Start with 30 fragments; plant several Glowgrass patches to help the garden spread.</div></div>
       </div>
       <button class="menu-btn primary" id="btn-howto-close">GOT IT</button>
     </div>
@@ -160,20 +160,20 @@
   <div id="fps-counter" class="fps-counter hidden">0 FPS</div>
 </div>
 
-<script src="js/constants.js"></script>
-<script src="js/utils.js"></script>
-<script src="js/audio.js"></script>
-<script src="js/particles.js"></script>
-<script src="js/world.js"></script>
-<script src="js/player.js"></script>
-<script src="js/resources.js"></script>
-<script src="js/plants.js"></script>
-<script src="js/meteors.js"></script>
-<script src="js/upgrades.js"></script>
-<script src="js/renderer.js"></script>
-<script src="js/input.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/game.js"></script>
-<script src="js/main.js"></script>
+<script src="js/constants.js?v=garden-growth-2"></script>
+<script src="js/utils.js?v=garden-growth-2"></script>
+<script src="js/audio.js?v=garden-growth-2"></script>
+<script src="js/particles.js?v=garden-growth-2"></script>
+<script src="js/world.js?v=garden-growth-2"></script>
+<script src="js/player.js?v=garden-growth-2"></script>
+<script src="js/resources.js?v=garden-growth-2"></script>
+<script src="js/plants.js?v=garden-growth-2"></script>
+<script src="js/meteors.js?v=garden-growth-2"></script>
+<script src="js/upgrades.js?v=garden-growth-2"></script>
+<script src="js/renderer.js?v=garden-growth-2"></script>
+<script src="js/input.js?v=garden-growth-2"></script>
+<script src="js/ui.js?v=garden-growth-2"></script>
+<script src="js/game.js?v=garden-growth-2"></script>
+<script src="js/main.js?v=garden-growth-2"></script>
 <a href="../../index.html" id="forge-back-link" style="position:fixed;right:12px;bottom:12px;z-index:2147483000;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;font:500 12px/1.2 system-ui,-apple-system,sans-serif;color:#e8e8ec;background:rgba(10,10,14,.55);border:1px solid rgba(255,255,255,.14);border-radius:999px;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:.55;transition:opacity .15s ease;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.55">← Arcade</a></body>
 </html>
