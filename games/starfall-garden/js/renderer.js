@@ -272,7 +272,7 @@ SG.Renderer = class {
     ctx.save();
     ctx.translate(s.x, s.y);
 
-    if (cfg.auraRadius && pl.growth > 0.4) {
+    if (cfg.auraRadius && pl.growth >= 1) {
       ctx.globalAlpha = 0.06;
       ctx.fillStyle = cfg.color;
       ctx.beginPath(); ctx.arc(0, 0, cfg.auraRadius * this.scale, 0, SG.util.TAU); ctx.fill();

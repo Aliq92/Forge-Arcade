@@ -78,6 +78,7 @@ SG.ResourceManager = class {
       this.spawnOne(phase);
     }
 
+    const trees = this.world.patches.filter(p => p.plant?.alive && p.plant.type === 'luminatree' && p.plant.growth >= 1);
     for (let i = this.fragments.length - 1; i >= 0; i--) {
       const f = this.fragments[i];
       f.bob += dt * 3;
@@ -101,6 +102,20 @@ SG.ResourceManager = class {
       const dx = player.x - f.x, dy = player.y - f.y;
       const d = Math.hypot(dx, dy);
       if (d <= effectiveCollectRadius) f.magnetized = true;
+
+      if (!f.magnetized) {
+        // Gather loose starlight around the nearest tree; keeper collection takes priority.
+        let root = null, nearest = SG.PLANT_TYPES.luminatree.auraRadius;
+        for (const tree of trees) {
+          const distance = SG.util.dist(f.x, f.y, tree.x, tree.y);
+          if (distance < nearest) { nearest = distance; root = tree; }
+        }
+        if (root && nearest > 10) {
+          const step = Math.min(nearest - 10, 42 * dt);
+          f.x += (root.x - f.x) / nearest * step;
+          f.y += (root.y - f.y) / nearest * step;
+        }
+      }
 
       if (f.magnetized) {
         const pull = SG.util.clamp((effectiveCollectRadius - d) / effectiveCollectRadius, 0, 1);

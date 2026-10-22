@@ -16,7 +16,7 @@ SG.UI = class {
     const ids = [
       'hud', 'bar-health', 'bar-energy', 'stat-fragments', 'stat-plants', 'stat-health', 'bar-planet',
       'phase-label', 'phase-timer', 'plant-tray', 'action-hint', 'warning-banner', 'toast-banner', 'btn-pause', 'mobile-controls',
-      'btn-mobile-interact',
+      'btn-mobile-interact', 'plant-detail', 'objective-list', 'objective-next', 'aura-status',
       'screen-title', 'screen-howto', 'screen-settings', 'screen-pause', 'screen-upgrade', 'screen-gameover', 'screen-victory',
       'btn-begin', 'btn-endless', 'btn-howto', 'btn-settings', 'btn-howto-close', 'btn-settings-close',
       'btn-resume', 'btn-pause-restart', 'btn-pause-settings', 'btn-pause-howto', 'btn-pause-title',
@@ -32,10 +32,12 @@ SG.UI = class {
     this.el.plantTray.innerHTML = '';
     this.plantSlotEls = {};
     Object.values(SG.PLANT_TYPES).forEach((cfg) => {
-      const div = document.createElement('div');
+      const div = document.createElement('button');
+      div.type = 'button';
       div.className = 'plant-slot';
       div.innerHTML = `<span class="key">${cfg.key}</span><span class="icon">${cfg.icon}</span><span class="cost">${cfg.cost}</span>`;
       div.title = `${cfg.name} — ${cfg.desc}`;
+      div.setAttribute('aria-label', `${cfg.name}, ${cfg.cost} fragments. ${cfg.desc}`);
       div.addEventListener('click', () => this.h.onSelectPlantClick && this.h.onSelectPlantClick(cfg.id));
       this.el.plantTray.appendChild(div);
       this.plantSlotEls[cfg.id] = div;
@@ -193,8 +195,25 @@ SG.UI = class {
       const cost = Math.max(1, Math.round(cfg.cost * s.plantCostMul));
       el.querySelector('.cost').textContent = cost;
       el.classList.toggle('selected', s.selectedPlant === id);
+      el.setAttribute('aria-pressed', String(s.selectedPlant === id));
+      el.setAttribute('aria-label', `${cfg.name}, ${cost} fragments. ${cfg.desc}`);
       el.classList.toggle('unaffordable', s.fragments < cost);
     });
+
+    const selected = SG.PLANT_TYPES[s.selectedPlant];
+    const cost = Math.max(1, Math.round(selected.cost * s.plantCostMul));
+    this.el.plantDetail.textContent = `${selected.name} · ${cost}✦ — ${selected.desc} Benefits start at maturity.`;
+    const o = s.objectives;
+    if (o) {
+      const labels = ['Restore 25%', 'Mature all four species', 'Survive a full starfall night', '100% + six mature plants, all species'];
+      this.el.objectiveList.textContent = labels.map((label,i) => `${o.completed[i] ? '✓' : '○'} ${i+1}. ${label}`).join('\n');
+      const next = o.completed.findIndex(done => !done);
+      let detail = next === 1 ? 'Grow ' + Object.keys(SG.PLANT_TYPES).filter(id => !o.speciesGrown.has(id)).map(id => SG.PLANT_TYPES[id].name).join(', ') : next === 2 ? 'Stay through a complete night; no deadline.' : next === 0 ? `${Math.floor(s.healthPct)}% / 25% restored` : o.missing.join(' · ');
+      if (next === -1) detail = s.endless ? 'Endless · Tend your living sanctuary.' : 'Your sanctuary is alive.';
+      this.el.objectiveNext.textContent = detail;
+    }
+    const a = s.auras || {};
+    this.el.auraStatus.textContent = [a.healBonus > 0 && '✿ Healing + energy', a.magnetBonus > 0 && '✦ Fragment attraction', a.damageReduction > 0 && '◈ Protected'].filter(Boolean).join(' · ');
 
     if (s.showFPS) this.el.fpsCounter.textContent = Math.round(s.fps) + ' FPS';
   }

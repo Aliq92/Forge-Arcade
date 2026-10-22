@@ -10,6 +10,7 @@ SG.World = class {
     this.totalPatches = 0;
     this.restoredCount = 0;
     this.plantsAlive = 0;
+    this.speciesMatured = new Set();
     this.scorchEvents = 0;
     this._generate();
   }
@@ -140,6 +141,7 @@ SG.World = class {
     }
     this.restoredCount = 0;
     this.plantsAlive = 0;
+    this.speciesMatured = new Set();
     this.scorchEvents = 0;
     this.unlockedRadius = this.radius * SG.CONFIG.rings[0].rMax;
     this._unlockedTarget = this.unlockedRadius;

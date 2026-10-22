@@ -243,3 +243,49 @@ html, body {
   .plant-tray { bottom: 224px; }
   .action-hint { bottom: 302px; }
 }
+
+/* Sanctuary information stays compact; the checklist opens on demand. */
+.objective-tracker { position: absolute; top: 92px; left: 14px; width: 240px; padding: 9px 12px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-bg); font-size: 12px; line-height: 1.5; }
+.objective-tracker summary { cursor: pointer; color: var(--healthy-cyan); font-weight: 700; font-size: 11px; letter-spacing: 1px; }
+#objective-list { white-space: pre-line; padding-top: 6px; }
+#objective-next { color: var(--life-gold); padding-top: 4px; }
+.plant-detail { position: absolute; bottom: 128px; left: 50%; transform: translateX(-50%); width: min(440px, calc(100% - 28px)); padding: 7px 12px; border-radius: 10px; background: var(--ui-bg); border: 1px solid var(--ui-border); font-size: 12px; text-align: center; line-height: 1.4; }
+.aura-status { position: absolute; bottom: 190px; left: 50%; transform: translateX(-50%); color: var(--healthy-cyan); font-size: 12px; text-align: center; width: 90%; pointer-events: none !important; }
+.sanctuary-message { max-width: 400px; text-align: center; color: var(--healthy-cyan); line-height: 1.6; }
+@media (max-width: 900px), (pointer: coarse) {
+  .plant-tray { bottom: 140px; }
+  .plant-detail { bottom: 222px; }
+  .action-hint { bottom: 294px; }
+  .aura-status { bottom: 329px; }
+  .joystick-zone { width: 132px; height: 132px; bottom: 12px; left: 12px; }
+  .joystick-stick { width: 56px; height: 56px; }
+  .mobile-action-buttons { flex-direction: row; gap: 10px; right: 12px; bottom: 12px; }
+  .round-btn { width: 64px; height: 64px; font-size: 12px; }
+  .objective-tracker { top: 92px; width: 220px; }
+}
+@media (max-width: 560px) {
+  .hud-top-left { width: 155px; left: 10px; top: 10px; padding: 7px; }
+  .hud-top-right { width: 125px; right: 10px; top: 10px; padding: 7px; }
+  .hud-top-center { top: 84px; left: 10px; transform: none; min-width: 0; padding: 6px 8px; }
+  .phase-label { font-size: 10px; letter-spacing: 1px; }
+  .hud-pause-btn { right: 10px; top: 106px; width: 44px; height: 44px; }
+  .objective-tracker { top: 140px; left: 10px; width: calc(100% - 70px); font-size: 11px; padding: 5px 8px; }
+  .warning-banner { top: 86px; left: auto; right: 10px; transform: none; font-size: 10px; padding: 4px 8px; letter-spacing: 0; }
+  .toast-banner { top: 222px; width: calc(100% - 24px); text-align: center; font-size: 10px; letter-spacing: 0; }
+  .plant-tray { bottom: 146px; padding: 5px; gap: 6px; }
+  .plant-slot { height: 50px; width: 52px; }
+  .plant-detail { bottom: 210px; font-size: 11px; padding: 5px 8px; }
+  .action-hint { bottom: 270px; font-size: 10px; max-width: calc(100% - 20px); white-space: normal; text-align: center; }
+  .aura-status { bottom: 307px; font-size: 11px; }
+}
+@media (max-height: 500px) and (min-width: 561px) {
+  .objective-tracker { top: 88px; width: 210px; }
+  .plant-tray { bottom: 12px; }
+  .plant-detail { bottom: 90px; width: 340px; }
+  .action-hint { bottom: 150px; }
+  .aura-status { bottom: 183px; }
+}
+@media (max-width: 900px), (pointer: coarse) {
+  #forge-back-link { bottom: 86px !important; right: 12px !important; }
+}
+.panel { touch-action: pan-y; }
