@@ -1,0 +1,95 @@
+/* Forge Arcade / Card Gallery V2 — purely decorative; no game logic changes. */
+.f-card,.card {position:relative;isolation:isolate;transition:transform .24s var(--ease),border-color .24s ease,box-shadow .24s ease;}
+.f-card::before,.card::before{content:"";position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,var(--game-primary),var(--game-secondary));z-index:4;opacity:.85;}
+.f-card-art,.card-art{background-color:#101218;overflow:hidden;}
+.f-card-art{height:160px;}
+.card-art{height:130px;}
+.f-card-art::before,.card-art::before{transition:transform .55s var(--ease),filter .55s ease;}
+.f-card:hover .f-card-art::before,.card:hover .card-art::before{transform:scale(1.075);}
+.f-card:hover .f-card-art,.card:hover .card-art{filter:saturate(1.14);}
+.f-card .card-play,.card .card-play{width:fit-content;padding:8px 12px;border:1px solid color-mix(in srgb,var(--game-primary) 33%,transparent);border-radius:999px;background:color-mix(in srgb,var(--game-primary) 9%,transparent);color:var(--text);transition:background .2s,border-color .2s;}
+.f-card:hover .card-play,.card:hover .card-play{background:color-mix(in srgb,var(--game-primary) 20%,transparent);border-color:var(--game-primary);}
+.f-card .art-code,.card .art-code{right:12px;bottom:-8px;font-size:72px;color:rgba(255,255,255,.16);text-shadow:0 4px 22px #0007;}
+.f-card:focus-visible,.card:focus-visible{outline:2px solid var(--game-primary);outline-offset:4px;}
+@media (hover:none){.f-card:hover,.card:hover{transform:none;}}
+@media (prefers-reduced-motion:reduce){.f-card,.card,.f-card-art::before,.card-art::before,.f-card .card-play,.card .card-play{transition:none!important;}}
+
+/* digital-ant-colony */
+[data-game="digital-ant-colony"] .card-art,[data-game="digital-ant-colony"] .f-card-art{background:radial-gradient(circle at 48% 52%,#ffcf77 0 3px,transparent 4px),repeating-radial-gradient(ellipse at 48% 52%,transparent 0 13px,#e7814655 14px 15px,transparent 16px 26px),radial-gradient(ellipse at 50% 50%,#4d241c,#090d16 95%);}
+[data-game="digital-ant-colony"] .card-art::before,[data-game="digital-ant-colony"] .f-card-art::before{background:radial-gradient(ellipse at 50% 50%,#f8a35b22,transparent 65%);}
+[data-game="digital-ant-colony"] .card-art::after,[data-game="digital-ant-colony"] .f-card-art::after{opacity:0;}
+
+/* comet-shepherd */
+[data-game="comet-shepherd"] .card-art,[data-game="comet-shepherd"] .f-card-art{background:radial-gradient(ellipse at 70% 28%,#e8eeff 0 4px,#a8c4ff 5px 10px,transparent 15px),linear-gradient(145deg,transparent 42%,#78cbff77 48%,transparent 55%),radial-gradient(circle at 35% 70%,#6472cc 0 17%,transparent 18%),radial-gradient(ellipse at 50% 50%,#111b4a,#090d16 95%);}
+[data-game="comet-shepherd"] .card-art::before,[data-game="comet-shepherd"] .f-card-art::before{background:radial-gradient(ellipse at 50% 50%,#99a2ff22,transparent 65%);}
+[data-game="comet-shepherd"] .card-art::after,[data-game="comet-shepherd"] .f-card-art::after{opacity:0;}
+
+/* void-drifter */
+[data-game="void-drifter"] .card-art,[data-game="void-drifter"] .f-card-art{background:radial-gradient(circle at 48% 48%,#f9d9ff 0 3%,transparent 4%),conic-gradient(from 45deg at 48% 48%,transparent 0 21%,#c07bff 23% 24%,transparent 27% 71%,#65e7ff 73% 74%,transparent 78%),radial-gradient(ellipse at 50% 50%,#171536,#090d16 95%);}
+[data-game="void-drifter"] .card-art::before,[data-game="void-drifter"] .f-card-art::before{background:radial-gradient(ellipse at 50% 50%,#b682ff22,transparent 65%);}
+[data-game="void-drifter"] .card-art::after,[data-game="void-drifter"] .f-card-art::after{opacity:0;}
+
+/* echo-runner */
+[data-game="echo-runner"] .card-art,[data-game="echo-runner"] .f-card-art{background:repeating-linear-gradient(90deg,transparent 0 27px,#5af8e144 28px 30px,transparent 31px 54px),linear-gradient(165deg,transparent 48%,#bdff6a88 49%,transparent 51%),radial-gradient(ellipse at 50% 50%,#0b343a,#090d16 95%);}
+[data-game="echo-runner"] .card-art::before,[data-game="echo-runner"] .f-card-art::before{background:radial-gradient(ellipse at 50% 50%,#48ead622,transparent 65%);}
+[data-game="echo-runner"] .card-art::after,[data-game="echo-runner"] .f-card-art::after{opacity:0;}
+
+/* lantern-vale */
+[data-game="lantern-vale"] .card-art,[data-game="lantern-vale"] .f-card-art{background:radial-gradient(circle at 65% 32%,#fff2bf 0 5px,#fdbf6577 8px 22px,transparent 50px),linear-gradient(0deg,#142d27 0 28%,transparent 29%),repeating-linear-gradient(115deg,transparent 0 23px,#93ba7540 24px 26px,transparent 27px 58px),radial-gradient(ellipse at 50% 50%,#243029,#090d16 95%);}
+[data-game="lantern-vale"] .card-art::before,[data-game="lantern-vale"] .f-card-art::before{background:radial-gradient(ellipse at 50% 50%,#ffd38c22,transparent 65%);}
+[data-game="lantern-vale"] .card-art::after,[data-game="lantern-vale"] .f-card-art::after{opacity:0;}
+
+/* echo-miner */
+[data-game="echo-miner"] .card-art,[data-game="echo-miner"] .f-card-art{background:repeating-linear-gradient(140deg,transparent 0 28px,#72dfff44 30px 33px,transparent 34px 52px),radial-gradient(circle at 68% 44%,#a1f5ff 0 3px,transparent 15px),linear-gradient(22deg,#06202f 15%,transparent 16%),radial-gradient(ellipse at 50% 50%,#122f44,#090d16 95%);}
+[data-game="echo-miner"] .card-art::before,[data-game="echo-miner"] .f-card-art::before{background:radial-gradient(ellipse at 50% 50%,#73efff22,transparent 65%);}
+[data-game="echo-miner"] .card-art::after,[data-game="echo-miner"] .f-card-art::after{opacity:0;}
+
+/* bacteria-bloom */
+[data-game="bacteria-bloom"] .card-art,[data-game="bacteria-bloom"] .f-card-art{background:radial-gradient(circle at 40% 45%,#c9ff9b 0 15px,#8bce7877 16px 22px,transparent 23px),radial-gradient(circle at 73% 65%,#a4e8a4 0 22px,#68bb9777 23px 31px,transparent 32px),radial-gradient(circle at 20% 70%,#a4e8a4 0 8px,transparent 9px),radial-gradient(ellipse at 50% 50%,#153729,#090d16 95%);}
+[data-game="bacteria-bloom"] .card-art::before,[data-game="bacteria-bloom"] .f-card-art::before{background:radial-gradient(ellipse at 50% 50%,#b7ff8922,transparent 65%);}
+[data-game="bacteria-bloom"] .card-art::after,[data-game="bacteria-bloom"] .f-card-art::after{opacity:0;}
+
+/* beat-foundry */
+[data-game="beat-foundry"] .card-art,[data-game="beat-foundry"] .f-card-art{background:repeating-linear-gradient(90deg,transparent 0 13px,#ff7fc155 14px 20px,transparent 21px 29px),linear-gradient(0deg,transparent 48%,#c6a2ff88 49% 51%,transparent 52%),radial-gradient(ellipse at 50% 50%,#302042,#090d16 95%);}
+[data-game="beat-foundry"] .card-art::before,[data-game="beat-foundry"] .f-card-art::before{background:radial-gradient(ellipse at 50% 50%,#fd79b922,transparent 65%);}
+[data-game="beat-foundry"] .card-art::after,[data-game="beat-foundry"] .f-card-art::after{opacity:0;}
+
+/* button-that-judges-you */
+[data-game="button-that-judges-you"] .card-art,[data-game="button-that-judges-you"] .f-card-art{background:radial-gradient(circle at 50% 48%,#fda69f 0 21px,#d24a6b 23px 28px,#6b243f 30px 46px,transparent 48px),radial-gradient(circle at 50% 55%,#f95d5d44,transparent 70%),radial-gradient(ellipse at 50% 50%,#43212a,#090d16 95%);}
+[data-game="button-that-judges-you"] .card-art::before,[data-game="button-that-judges-you"] .f-card-art::before{background:radial-gradient(ellipse at 50% 50%,#ff978522,transparent 65%);}
+[data-game="button-that-judges-you"] .card-art::after,[data-game="button-that-judges-you"] .f-card-art::after{opacity:0;}
+
+/* gravity-garden */
+[data-game="gravity-garden"] .card-art,[data-game="gravity-garden"] .f-card-art{background:radial-gradient(circle at 37% 47%,#d8ffc0 0 5px,transparent 6px),radial-gradient(circle at 37% 47%,transparent 0 31px,#8cffaa99 32px 33px,transparent 34px 64px,#74caff88 65px 66px,transparent 67px),radial-gradient(circle at 73% 32%,#89b0ff 0 6px,transparent 7px),radial-gradient(ellipse at 50% 50%,#14322c,#090d16 95%);}
+[data-game="gravity-garden"] .card-art::before,[data-game="gravity-garden"] .f-card-art::before{background:radial-gradient(ellipse at 50% 50%,#8cffa922,transparent 65%);}
+[data-game="gravity-garden"] .card-art::after,[data-game="gravity-garden"] .f-card-art::after{opacity:0;}
+
+/* gravity-sandbox */
+[data-game="gravity-sandbox"] .card-art,[data-game="gravity-sandbox"] .f-card-art{background:radial-gradient(circle at 56% 53%,#ffcf86 0 12px,transparent 14px),repeating-radial-gradient(ellipse at 56% 53%,transparent 0 23px,#9dc6ff6b 24px 25px,transparent 26px 45px),radial-gradient(ellipse at 50% 50%,#17294d,#090d16 95%);}
+[data-game="gravity-sandbox"] .card-art::before,[data-game="gravity-sandbox"] .f-card-art::before{background:radial-gradient(ellipse at 50% 50%,#8acbff22,transparent 65%);}
+[data-game="gravity-sandbox"] .card-art::after,[data-game="gravity-sandbox"] .f-card-art::after{opacity:0;}
+
+/* molt */
+[data-game="molt"] .card-art,[data-game="molt"] .f-card-art{background:radial-gradient(ellipse at 45% 52%,#ffc288 0 16px,#d67a5b 17px 23px,transparent 24px),repeating-radial-gradient(ellipse at 45% 52%,transparent 0 11px,#fdb27444 12px 13px,transparent 14px 30px),radial-gradient(ellipse at 50% 50%,#38251e,#090d16 95%);}
+[data-game="molt"] .card-art::before,[data-game="molt"] .f-card-art::before{background:radial-gradient(ellipse at 50% 50%,#ffbc7622,transparent 65%);}
+[data-game="molt"] .card-art::after,[data-game="molt"] .f-card-art::after{opacity:0;}
+
+/* particle-lab */
+[data-game="particle-lab"] .card-art,[data-game="particle-lab"] .f-card-art{background:radial-gradient(circle at 23% 30%,#e5faff 0 5px,transparent 6px),radial-gradient(circle at 68% 53%,#ffa6e2 0 7px,transparent 8px),radial-gradient(circle at 42% 80%,#9cffff 0 3px,transparent 4px),repeating-linear-gradient(150deg,transparent 0 24px,#78dcff33 25px 26px,transparent 27px 50px),radial-gradient(ellipse at 50% 50%,#182e4b,#090d16 95%);}
+[data-game="particle-lab"] .card-art::before,[data-game="particle-lab"] .f-card-art::before{background:radial-gradient(ellipse at 50% 50%,#92e7ff22,transparent 65%);}
+[data-game="particle-lab"] .card-art::after,[data-game="particle-lab"] .f-card-art::after{opacity:0;}
+
+/* ripple-run */
+[data-game="ripple-run"] .card-art,[data-game="ripple-run"] .f-card-art{background:repeating-radial-gradient(ellipse at 49% 55%,transparent 0 19px,#8df2f28a 20px 21px,transparent 22px 38px),radial-gradient(circle at 49% 55%,#edfffa 0 5px,transparent 6px),radial-gradient(ellipse at 50% 50%,#143745,#090d16 95%);}
+[data-game="ripple-run"] .card-art::before,[data-game="ripple-run"] .f-card-art::before{background:radial-gradient(ellipse at 50% 50%,#96f4e822,transparent 65%);}
+[data-game="ripple-run"] .card-art::after,[data-game="ripple-run"] .f-card-art::after{opacity:0;}
+
+/* starfall-garden */
+[data-game="starfall-garden"] .card-art,[data-game="starfall-garden"] .f-card-art{background:radial-gradient(circle at 75% 21%,#fff5cd 0 3px,transparent 5px),linear-gradient(155deg,transparent 39%,#ffe89c88 40%,transparent 43%),radial-gradient(ellipse at 50% 115%,#80c894 0 54%,transparent 55%),radial-gradient(ellipse at 50% 50%,#263e38,#090d16 95%);}
+[data-game="starfall-garden"] .card-art::before,[data-game="starfall-garden"] .f-card-art::before{background:radial-gradient(ellipse at 50% 50%,#fbe39722,transparent 65%);}
+[data-game="starfall-garden"] .card-art::after,[data-game="starfall-garden"] .f-card-art::after{opacity:0;}
+
+/* wildfire-simulator */
+[data-game="wildfire-simulator"] .card-art,[data-game="wildfire-simulator"] .f-card-art{background:linear-gradient(0deg,#2b1d18 0 22%,transparent 23%),repeating-linear-gradient(112deg,transparent 0 14px,#ff8a4d77 15px 19px,transparent 20px 36px),radial-gradient(ellipse at 50% 90%,#ff5a2f88,transparent 68%),radial-gradient(ellipse at 50% 50%,#41251c,#090d16 95%);}
+[data-game="wildfire-simulator"] .card-art::before,[data-game="wildfire-simulator"] .f-card-art::before{background:radial-gradient(ellipse at 50% 50%,#ffa36b22,transparent 65%);}
+[data-game="wildfire-simulator"] .card-art::after,[data-game="wildfire-simulator"] .f-card-art::after{opacity:0;}
