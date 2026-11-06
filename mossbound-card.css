@@ -1,0 +1,10 @@
+.art-custom-mossbound {
+  background: #e8e8d8 url('mossbound-card.svg') center / cover no-repeat;
+}
+.art-custom-mossbound::before {
+  background: linear-gradient(180deg, transparent 70%, #334c361a);
+}
+.art-custom-mossbound::after,
+.art-custom-mossbound .art-code {
+  display: none;
+}
