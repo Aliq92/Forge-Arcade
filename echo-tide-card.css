@@ -1,0 +1,20 @@
+/* Static sonar artwork, scoped to Echo Tide's archive and featured cards. */
+.art-custom-echo-tide {
+  background:
+    radial-gradient(ellipse at 72% 26%, #d9bc7b45, transparent 15%),
+    radial-gradient(circle at 44% 56%, transparent 22%, #8ce0d55c 22.5%, transparent 23.3%, transparent 34%, #8ce0d52b 34.5%, transparent 35.2%, transparent 47%, #8ce0d518 47.5%, transparent 48%),
+    radial-gradient(ellipse at 44% 56%, #12414b, #06151f 80%);
+}
+.art-custom-echo-tide::before {
+  content: ''; position: absolute; inset: 0;
+  background: repeating-linear-gradient(171deg, transparent 0 30px, #73b4b60c 31px 32px, transparent 33px 59px);
+  transform: none; border: 0; border-radius: 0; opacity: 1;
+}
+.art-custom-echo-tide::after {
+  content: ''; position: absolute; left: 44%; top: 56%;
+  width: 15px; height: 30px; border-radius: 0;
+  background: #a4eee1; clip-path: polygon(50% 0, 100% 100%, 50% 79%, 0 100%);
+  transform: translate(-50%, -50%) rotate(32deg);
+  box-shadow: none; border: 0; opacity: .95;
+}
+.art-custom-echo-tide .art-code { display: none; }

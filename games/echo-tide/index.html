@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#06151f"><meta name="description" content="Every pulse reveals the world. Every pulse disturbs the ocean. An atmospheric sonar exploration game.">
+<title>ECHO TIDE · Forge Arcade</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%238ee7db' d='M16 2 25 26 16 22 7 26Z'/%3E%3C/svg%3E"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="arcade.css">
+<script defer src="game.js"></script>
+</head>
+<body>
+<a id="forge-back-link" href="../../index.html" aria-label="Back to Forge Arcade">← FORGE ARCADE</a>
+<canvas id="ocean" aria-label="ECHO TIDE ocean navigation game"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+<header id="hud" hidden>
+ <div class="brand"><span class="eyebrow">FORGE ARCADE / 001</span><h1>ECHO TIDE</h1></div>
+ <div class="voyage"><span class="eyebrow">THE ANCIENT SIGNALS</span><div id="progress">BEACONS <b>0 / 3</b></div><div class="beacon-pips" aria-hidden="true"><i></i><i></i><i></i></div></div>
+ <div class="header-actions"><button id="chart-button" class="icon-button" aria-label="Toggle sea chart" title="Sea chart (M)">⌖</button><button id="sound" class="icon-button" aria-label="Enable sound" title="Toggle sound">♪<span id="sound-off">×</span></button><button id="pause" class="icon-button" aria-label="Pause game" title="Pause (P)">Ⅱ</button></div>
+</header>
+<div id="telemetry" hidden><div class="meter-label"><span id="sea-state">CALM</span><span id="disturbance-value">0</span></div><div class="meter"><div id="disturbance-bar"></div><i></i><i></i></div><div class="integrity"><span class="eyebrow">HULL</span><span id="integrity" aria-label="3 integrity remaining">◆ ◆ ◆</span></div></div>
+<div id="navigation" hidden><span class="eyebrow">FOLLOW THE SIGNAL</span><div><span id="bearing">↗</span> <span id="destination">The Bell</span> <span id="distance"></span></div></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<aside id="chart" hidden><div class="chart-heading"><span class="eyebrow">THE REMEMBERED SEA</span><button id="close-chart" class="icon-button" aria-label="Close sea chart">×</button></div><canvas id="chart-canvas" width="300" height="240" aria-label="Chart of discovered rocks, beacon signals, and your vessel"></canvas><p>◇ signals &nbsp; · &nbsp; ✦ sanctuary<br>Terrain is recorded by sonar.</p></aside>
+<footer id="desktop-help" hidden><span>WASD <small>/</small> ↑↓←→ <small>MOVE</small></span><span>SPACE <small>SONAR</small></span><span>M <small>CHART</small></span><span id="pulse-ready">PULSE READY</span></footer>
+<div id="touch-controls" hidden><div id="joystick" aria-label="Movement joystick"><div id="stick"></div></div><button id="sonar-button" aria-label="Emit sonar pulse"><span class="sonar-icon">◎</span><span>SONAR</span><i id="cooldown"></i></button></div>
+<main id="overlay">
+ <section id="menu-panel" class="panel">
+  <div class="eyebrow intro-kicker"><span></span> A FORGE ARCADE ORIGINAL</div>
+  <h2>ECHO<br><em>TIDE</em></h2>
+  <p class="tagline">The ocean remembers every sound.</p>
+  <div class="intro-copy"><p>Three ancient beacons sleep beneath the dark.<br>Find their light. Wake the sanctuary. Come home.</p><p>Send a sonar pulse to see the world.<br>Each echo stirs something below.</p></div>
+  <button id="start" class="primary" disabled>BEGIN THE VOYAGE <span>↗</span></button>
+  <p id="launch-status" class="launch-status" role="status">Loading the vessel… If this stays visible, download the HTML and open it in a web browser with JavaScript enabled.</p>
+  <noscript><p class="launch-status">This viewer has JavaScript disabled. The game needs JavaScript to run. Open the downloaded HTML in a web browser.</p></noscript>
+  <p class="menu-controls">WASD / ARROWS TO MOVE &nbsp; · &nbsp; SPACE TO PULSE<br><span>Touch controls available on mobile. Headphones welcome.</span></p>
+  <span class="edition">AN EXPLORATION IN QUIET WATERS</span>
+ </section>
+ <section id="pause-panel" class="panel compact" hidden><span class="eyebrow">A MOMENT OF STILLNESS</span><h2>Drift in<br><em>silence.</em></h2><p>The sea will wait for you.</p><button id="resume" class="primary">RESUME VOYAGE <span>→</span></button><button class="text-button restart">Begin again</button><p class="fine">Move: WASD / arrows or joystick<br>Sonar: Space / SONAR · Chart: M · Pause: P · Restart: R<br>Keep quiet to calm the sea. Rocks deflect; shadows damage.</p></section>
+ <section id="end-panel" class="panel compact" hidden><span id="end-kicker" class="eyebrow"></span><h2 id="end-title"></h2><p id="end-copy"></p><div class="stats"><div><span class="eyebrow">VOYAGE TIME</span><strong id="stat-time"></strong></div><div><span class="eyebrow">SONAR PULSES</span><strong id="stat-pulses"></strong></div><div><span class="eyebrow">PEAK DISTURBANCE</span><strong id="stat-peak"></strong></div></div><button class="primary restart">SAIL AGAIN <span>↗</span></button></section>
+</main>
+<div class="corner-mark" aria-hidden="true">N<br>│<br>✧</div>
+</body></html>
