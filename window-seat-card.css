@@ -1,8 +1,0 @@
-.art-custom-window-seat {
-  background: #34493c url('window-seat-card.png') center / cover no-repeat !important;
-}
-.art-custom-window-seat::before,
-.art-custom-window-seat::after,
-.art-custom-window-seat .art-code {
-  display: none !important;
-}
