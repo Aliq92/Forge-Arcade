@@ -1,0 +1,26 @@
+/* Card Gallery V3: art only. V2 accents, buttons and layout remain in place. */
+.card-art:has(.game-thumbnail),
+.f-card-art:has(.game-thumbnail) { aspect-ratio: 16 / 9; height: auto; }
+.card-art:has(.game-thumbnail)::before,
+.card-art:has(.game-thumbnail)::after,
+.f-card-art:has(.game-thumbnail)::before,
+.f-card-art:has(.game-thumbnail)::after { display: none; }
+.game-thumbnail {
+  display: block;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  transition: transform .5s var(--ease);
+}
+@media (max-width: 640px) {
+  .card:has(.game-thumbnail) { display: flex; flex-direction: column; }
+  .card-art:has(.game-thumbnail) { min-height: 0; border-right: 0; border-bottom: 1px solid var(--line); }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .card:hover .game-thumbnail, .f-card:hover .game-thumbnail,
+  .card:focus-visible .game-thumbnail, .f-card:focus-visible .game-thumbnail { transform: scale(1.045); }
+}
+@media (prefers-reduced-motion: reduce) { .game-thumbnail { transition: none; } }
