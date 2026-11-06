@@ -1,0 +1,33 @@
+/* Native Arcade navigation sits above the game's HUD and every menu. */
+#forge-back-link {
+  position: fixed; z-index: 10;
+  top: max(4px, env(safe-area-inset-top));
+  left: max(24px, env(safe-area-inset-left));
+  min-height: 44px; display: inline-flex; align-items: center;
+  padding: 0 10px; color: #a8c7c5; text-decoration: none;
+  font-size: 9px; letter-spacing: 2px;
+}
+#forge-back-link:hover { color: #d9bc7b; }
+#forge-back-link:focus-visible { outline: 2px solid #d9bc7b; outline-offset: -2px; }
+#hud { top: max(58px, calc(env(safe-area-inset-top) + 48px)); }
+#telemetry { top: max(163px, calc(env(safe-area-inset-top) + 150px)); }
+#chart { top: max(130px, calc(env(safe-area-inset-top) + 120px)); }
+@media (max-width: 600px) {
+  #forge-back-link { left: max(10px, env(safe-area-inset-left)); }
+  #hud { gap: 8px; }
+  .brand h1 { font-size: 13px; letter-spacing: 2px; }
+  #telemetry { top: max(120px, calc(env(safe-area-inset-top) + 108px)); }
+}
+@media (max-height: 560px) {
+  #telemetry { top: max(128px, calc(env(safe-area-inset-top) + 115px)); }
+  #chart { top: max(112px, calc(env(safe-area-inset-top) + 100px)); max-height: calc(100dvh - 128px); overflow-y: auto; }
+}
+/* Reserve the same navigation row while the opening and ending panels are up. */
+#overlay { padding-top: max(56px, calc(env(safe-area-inset-top) + 52px)); touch-action: pan-y; }
+@media (max-height: 650px) {
+  #overlay { align-items: flex-start; }
+  #menu-panel h2 { font-size: 76px; margin-top: 20px; }
+}
+@media (max-height: 560px) {
+  #menu-panel h2 { font-size: 52px; margin: 12px 0; }
+}
