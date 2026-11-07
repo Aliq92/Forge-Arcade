@@ -1,0 +1,12 @@
+const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+module.exports=function harness(original=false,seed=123){
+ const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,original?'tests/fixtures/original.html':'index.html'),'utf8'),elements=new Map(),events={};let randomSeed=seed;
+ function element(){const classes=new Set();return {style:{},children:[],classList:{add:(...v)=>v.forEach(x=>classes.add(x)),remove:(...v)=>v.forEach(x=>classes.delete(x)),contains:v=>classes.has(v),toggle:(v,force)=>{const add=force??!classes.has(v);add?classes.add(v):classes.delete(v);return add;}},appendChild(x){this.children.push(x);},addEventListener(){},setAttribute(){},getBoundingClientRect:()=>({width:960,height:640}),setPointerCapture(){},getContext:()=>ctx};}
+ const ctx=new Proxy({createRadialGradient:()=>({addColorStop(){}}),createLinearGradient:()=>({addColorStop(){}})}, {get:(o,k)=>o[k]??(()=>{})});
+ const math=Object.create(Math);math.random=()=>{randomSeed=(Math.imul(randomSeed,1664525)+1013904223)>>>0;return randomSeed/4294967296;};
+ const sandbox={Math:math,console,performance:{now:()=>0},requestAnimationFrame:()=>1,cancelAnimationFrame(){},setTimeout,clearTimeout,devicePixelRatio:1,innerWidth:960,innerHeight:640,matchMedia:()=>({matches:false}),addEventListener:(k,fn)=>{(events[k]??=[]).push(fn);},document:{getElementById:id=>{if(!elements.has(id))elements.set(id,element());return elements.get(id);},createElement:element,addEventListener:(k,fn)=>{(events[k]??=[]).push(fn);}},localStorage:{getItem:()=>null,setItem(){}}};sandbox.window=sandbox;
+ sandbox.document.body=element();vm.createContext(sandbox);if(!original&&fs.existsSync(path.join(root,'living-world.js')))vm.runInContext(fs.readFileSync(path.join(root,'living-world.js'),'utf8'),sandbox);
+ let source=html.match(/<script>\s*([\s\S]*?)<\/script>/)[1];const end=source.lastIndexOf('})();');
+ source=source.slice(0,end)+`window.testMolt={get:()=>({state,player,npcs,motes,generation,moltCount,lastMoltIdx,survivalTime,lineage,particles,floatingTexts}),set:(p)=>{if(p.npcs)npcs=p.npcs;if(p.motes)motes=p.motes;},input:(x,y)=>{inputVec={x,y};},update,checkMolt,die,start:startRun,next:continueLineage,CFG,radiusForMass,TRAITS,pause:typeof pauseGame==='function'?pauseGame:null,resume:typeof resumeGame==='function'?resumeGame:null,restart:typeof restartGeneration==='function'?restartGeneration:null,frame:loop};\n`+source.slice(end);
+ vm.runInContext(source,sandbox);return {api:sandbox.testMolt,sandbox,elements,events};
+};

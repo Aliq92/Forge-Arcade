@@ -84,11 +84,13 @@
     .panel{padding:20px 18px;}
   }
 </style>
+<link rel="stylesheet" href="living-world.css?v=5">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230c3338'/%3E%3Cellipse cx='16' cy='17' rx='12' ry='9' fill='%23e8bd78'/%3E%3Ccircle cx='21' cy='14' r='3' fill='white'/%3E%3Ccircle cx='22' cy='14' r='1' fill='%23203e44'/%3E%3C/svg%3E">
 </head>
 <body>
 <div id="app">
   <canvas id="c"></canvas>
-  <button id="muteBtn" title="Mute sound">🔊</button>
+  <button id="muteBtn" title="Mute sound" aria-label="Mute sound" aria-pressed="false">♪</button><button id="pauseBtn" aria-label="Pause game" hidden>Ⅱ</button>
 
   <div id="hud">
     <div id="topRow">
@@ -97,7 +99,8 @@
       <div class="stat"><span class="label">Time</span><span class="value" id="statTime">0:00</span></div>
       <div class="stat"><span class="label">Molts</span><span class="value" id="statMolts">0</span></div>
     </div>
-    <div id="moltBarWrap"><div id="moltBarFill"></div></div>
+    <div id="growthCaption"><span id="stageName">Hatchling</span><span id="growthLabel">First molt · 40 mass</span></div>
+    <div id="moltBarWrap" role="progressbar" aria-label="Growth toward next molt" aria-valuemin="0" aria-valuemax="100"><div id="moltBarFill"></div></div>
     <div id="lineage"></div>
     <div id="traitRow"></div>
   </div>
@@ -115,7 +118,7 @@
 
   <div class="overlay show" id="startOverlay">
     <div class="panel">
-      <h1>MOLT</h1>
+      <canvas id="menuCreature" width="360" height="260" aria-label="Lantern nymph creature preview"></canvas><div class="menuEyebrow">THE LIVING WORLD</div><h1>MOLT</h1><p class="tagline">Eat. Grow. Transform. Survive.</p>
       <p>You are a small creature in a primordial pool. Eat anything smaller. Avoid anything bigger. Grow enough and you'll <b style="color:var(--ink)">molt</b> — shedding your old form for a random mutation.</p>
       <div class="legend">
         <span><i style="background:var(--teal)"></i>edible</span>
@@ -123,22 +126,24 @@
         <span><i style="background:var(--coral)"></i>dangerous</span>
       </div>
       <p>When you're eaten, your lineage continues — the next generation inherits one trait from the last. How many generations, and how many mutations, can your line discover?</p>
-      <button class="cta" id="btnStart">Begin</button>
+      <button class="cta" id="btnStart">Play</button>
     </div>
   </div>
 
+  <div class="overlay" id="pauseOverlay"><div class="panel"><div class="menuEyebrow">A MOMENT IN THE CURRENT</div><h2>Pool paused</h2><p>Your creature, predators and transformation are resting.</p><button class="cta" id="btnResume">Resume</button><button class="secondary" id="btnRestart">Restart this generation</button><label class="motionSetting"><input id="calmMotion" type="checkbox"> Calm motion</label><p class="controlText">Move: WASD / arrows / drag<br>Pause: Esc or P · Restart while paused: R</p></div></div>
   <div class="overlay" id="deathOverlay">
     <div class="panel">
       <h2 id="deathTitle">Gone.</h2>
       <div class="statLine"><span>Generation</span><b id="dGen">1</b></div>
       <div class="statLine"><span>Survived</span><b id="dTime">0:00</b></div>
-      <div class="statLine"><span>Peak mass</span><b id="dMass">0</b></div>
+      <div class="statLine"><span>Mass at end</span><b id="dMass">0</b></div>
       <div class="statLine"><span>Traits carried</span><b id="dTraits">none</b></div>
-      <button class="cta" id="btnContinue">Continue Lineage →</button>
+      <button class="cta" id="btnContinue">Retry · next generation →</button>
     </div>
   </div>
 </div>
 
+<script src="living-world.js?v=5"></script>
 <script>
 (function(){
   "use strict";
@@ -191,7 +196,7 @@
       try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
       catch(e){ audioCtx = null; }
     }
-    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
   }
 
   function playTone({freq=440, freqEnd=null, dur=0.15, type='sine', gain=0.2, delay=0}={}){
@@ -226,9 +231,11 @@
   }
 
   function sfxEatMote(){
+    art.react('eat');
     playTone({freq:880, freqEnd:1200, dur:0.08, type:'sine', gain:0.12});
   }
   function sfxEatCreature(r){
+    art.react('eat');
     const base = clamp(500 - r*5, 160, 460);
     playTone({freq:base, freqEnd:base*0.8, dur:0.11, type:'triangle', gain:0.2});
   }
@@ -276,6 +283,20 @@
   let moltBannerTimer = 0;
   let moteSpawnTimer = 0;
   let shakeMag = 0;
+  const art = new MoltPresentation();
+  let resumeState='playing', generationStartMolts=0, visualTime=0;
+  let settings={muted:false,reduced:!!window.matchMedia('(prefers-reduced-motion: reduce)').matches};
+  try{settings=Object.assign(settings,JSON.parse(localStorage.getItem('molt.presentation.v1')||'{}'));}catch{}
+  muted=!!settings.muted;art.reduced=!!settings.reduced;
+  const frameCosts=new Float32Array(240);let costIndex=0;
+  function snapshot(){return {player,npcs,motes,particles,floatingTexts,state,stage:lastMoltIdx+1,CFG,shakeMag};}
+  function clearInput(){keys={};inputVec.x=inputVec.y=0;joyEnd();}
+  function savePresentation(){try{localStorage.setItem('molt.presentation.v1',JSON.stringify({muted,reduced:art.reduced}));}catch{}}
+  function pauseGame(){if(state!=='playing'&&state!=='molting')return;resumeState=state;state='paused';clearInput();document.getElementById('pauseOverlay').classList.add('show');}
+  function resumeGame(){if(state!=='paused')return;state=resumeState;clearInput();lastTs=performance.now();document.getElementById('pauseOverlay').classList.remove('show');}
+  function restartGeneration(){const inherited=lineage[lineage.length-1]?.trait||null;resetArena(CFG.massStart+(generation-1)*CFG.massGenBonus,inherited);moltCount=generationStartMolts;state='playing';clearInput();moltBannerTimer=0;document.getElementById('moltBanner').classList.remove('show');document.getElementById('pauseOverlay').classList.remove('show');document.getElementById('deathOverlay').classList.remove('show');renderTraitRow();renderLineage();lastTs=performance.now();}
+  function advanceVisuals(dt){art.advance(dt,snapshot());for(let i=floatingTexts.length-1;i>=0;i--){const f=floatingTexts[i];f.life-=dt*1.1;f.y+=f.vy*dt;f.vy*=Math.pow(.95,dt*60);if(f.life<=0)floatingTexts.splice(i,1);}}
+
 
   function newPlayer(startMass, inheritedTrait){
     const p = {
@@ -349,7 +370,7 @@
   function resetArena(startMass, inheritedTrait){
     player = newPlayer(startMass, inheritedTrait);
     npcs = [];
-    particles = [];
+    art.clear();particles = art.pool.active;
     floatingTexts = [];
     motes = [];
     shakeMag = 0;
@@ -361,7 +382,7 @@
   }
 
   function startRun(){
-    generation = 1; moltCount = 0; lineage = [];
+    generation = 1; moltCount = 0; generationStartMolts=0; lineage = [];clearInput();
     resetArena(CFG.massStart, null);
     lineage.push({gen:1, trait:null, survived:0});
     renderLineage();
@@ -369,13 +390,13 @@
     state = 'playing';
     document.getElementById('startOverlay').classList.remove('show');
     lastTs = performance.now();
-    requestAnimationFrame(loop);
+
   }
 
   function continueLineage(){
     const prev = lineage[lineage.length-1];
     prev.survived = survivalTime;
-    generation++;
+    generation++;generationStartMolts=moltCount;clearInput();
     // inherit one random trait from the life just ended, if any
     let inherited = null;
     if (player.traits.length){
@@ -389,7 +410,7 @@
     document.getElementById('deathOverlay').classList.remove('show');
     state = 'playing';
     lastTs = performance.now();
-    requestAnimationFrame(loop);
+
   }
 
   // ---------------- Input: joystick ----------------
@@ -423,6 +444,8 @@
   }
 
   joyZone.addEventListener('pointerdown', (e)=>{
+    if(state!=='playing'&&state!=='molting')return;
+    if(joyActive)return;
     joyZone.setPointerCapture(e.pointerId);
     joyStart(e.pointerId, e.clientX, e.clientY);
   });
@@ -436,8 +459,8 @@
   function anyKeyActive(){
     return keys['ArrowUp']||keys['ArrowDown']||keys['ArrowLeft']||keys['ArrowRight']||keys['w']||keys['a']||keys['s']||keys['d'];
   }
-  window.addEventListener('keydown', (e)=>{ keys[e.key]=true; });
-  window.addEventListener('keyup', (e)=>{ keys[e.key]=false; });
+  window.addEventListener('keydown', (e)=>{if(['INPUT','SELECT','TEXTAREA'].includes(e.target?.tagName))return;const key=e.key.length===1?e.key.toLowerCase():e.key;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(key))e.preventDefault();if(!e.repeat&&(key==='Escape'||key==='p')){state==='paused'?resumeGame():pauseGame();return;}if(!e.repeat&&key==='r'&&state==='paused'){restartGeneration();return;}if(state==='playing'||state==='molting')keys[key]=true;});
+  window.addEventListener('keyup', (e)=>{ keys[e.key.length===1?e.key.toLowerCase():e.key]=false; });
 
   function currentInputVector(){
     if (anyKeyActive()){
@@ -457,12 +480,12 @@
     for (let i=0;i<count;i++){
       const a = Math.random()*Math.PI*2;
       const s = rand(speed*0.3, speed);
-      particles.push({x,y, vx:Math.cos(a)*s, vy:Math.sin(a)*s, life:rand(0.4,0.9), maxLife:0.9, color});
+      art.pool.spawn({x,y, vx:Math.cos(a)*s, vy:Math.sin(a)*s, life:rand(0.4,0.9), maxLife:0.9, color});
     }
   }
 
   function popText(x,y,text,color){
-    floatingTexts.push({x,y,text,color, life:1, maxLife:1, vy:-34});
+    floatingTexts.push({x,y,text,color, life:1, maxLife:1, vy:-34});if(floatingTexts.length>32)floatingTexts.shift();
   }
 
   function triggerShake(mag){
@@ -478,6 +501,7 @@
   }
 
   function triggerMolt(){
+    art.molt(player,radiusForMass(player.mass),Math.max(0,lastMoltIdx));
     moltCount++;
     state = 'molting';
     triggerShake(7);
@@ -506,6 +530,7 @@
 
   // ---------------- Death handling ----------------
   function die(cause){
+    art.react('hurt');
     triggerShake(player.hasSecondWind ? 8 : 15);
     if (player.hasSecondWind){
       player.hasSecondWind = false;
@@ -652,23 +677,6 @@
       moteSpawnTimer = rand(1.5,3.5);
     }
 
-    // particles
-    for (let i=particles.length-1;i>=0;i--){
-      const p = particles[i];
-      p.life -= dt;
-      p.x += p.vx*dt; p.y += p.vy*dt;
-      p.vx *= 0.92; p.vy *= 0.92;
-      if (p.life <= 0) particles.splice(i,1);
-    }
-
-    // floating texts
-    for (let i=floatingTexts.length-1;i>=0;i--){
-      const f = floatingTexts[i];
-      f.life -= dt*1.1;
-      f.y += f.vy*dt;
-      f.vy *= 0.95;
-      if (f.life <= 0) floatingTexts.splice(i,1);
-    }
   }
 
   function fmtTime(s){
@@ -677,133 +685,8 @@
     return m+':'+String(r).padStart(2,'0');
   }
 
-  // ---------------- Render ----------------
-  function ambientDots(t){
-    ctx.save();
-    ctx.globalAlpha = 0.35;
-    ctx.fillStyle = '#2a2450';
-    for (let i=0;i<26;i++){
-      const x = (i*137.5 % W);
-      const y = ((i*71 + t*4) % H);
-      ctx.beginPath();
-      ctx.arc(x,y, 1.3, 0, Math.PI*2);
-      ctx.fill();
-    }
-    ctx.restore();
-  }
-
-  function drawCreature(x,y,r,phase,t,fill,glow,cilia){
-    const wob = Math.sin(t*2 + phase) * r * 0.05;
-    ctx.save();
-    if (glow){
-      ctx.shadowColor = glow;
-      ctx.shadowBlur = r*0.9;
-    }
-    ctx.beginPath();
-    ctx.arc(x, y, r+wob, 0, Math.PI*2);
-    ctx.fillStyle = fill;
-    ctx.fill();
-    ctx.restore();
-
-    // cilia flecks
-    if (cilia){
-      ctx.save();
-      ctx.strokeStyle = cilia;
-      ctx.lineWidth = Math.max(1, r*0.06);
-      ctx.globalAlpha = 0.55;
-      const n = 5;
-      for (let i=0;i<n;i++){
-        const a = (i/n)*Math.PI*2 + t*0.6 + phase;
-        const x1 = x + Math.cos(a)*(r*0.85);
-        const y1 = y + Math.sin(a)*(r*0.85);
-        const x2 = x + Math.cos(a)*(r*1.25 + Math.sin(t*3+i)*2);
-        const y2 = y + Math.sin(a)*(r*1.25 + Math.sin(t*3+i)*2);
-        ctx.beginPath();
-        ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
-      }
-      ctx.restore();
-    }
-    // inner highlight
-    ctx.save();
-    ctx.globalAlpha = 0.28;
-    ctx.beginPath();
-    ctx.arc(x - r*0.3, y - r*0.3, r*0.35, 0, Math.PI*2);
-    ctx.fillStyle = '#ffffff';
-    ctx.fill();
-    ctx.restore();
-  }
-
-  function render(t){
-    ctx.clearRect(0,0,W,H);
-    ctx.save();
-    if (shakeMag > 0){
-      ctx.translate((Math.random()-0.5)*shakeMag, (Math.random()-0.5)*shakeMag);
-    }
-    ambientDots(t);
-
-    for (const m of motes){
-      const bob = Math.sin(t*1.5 + m.phase) * 2;
-      ctx.save();
-      ctx.shadowColor = 'rgba(170,220,255,0.7)';
-      ctx.shadowBlur = 8;
-      ctx.beginPath();
-      ctx.arc(m.x, m.y+bob, CFG.moteRadius, 0, Math.PI*2);
-      ctx.fillStyle = '#aadcff';
-      ctx.fill();
-      ctx.restore();
-    }
-
-    const pr = radiusForMass(player.mass);
-
-    // detection ring if Keen Eye
-    if (player.detectionMul > 1){
-      ctx.save();
-      ctx.strokeStyle = 'rgba(255,180,84,0.10)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(player.x, player.y, CFG.detectionRadius*player.detectionMul, 0, Math.PI*2);
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    for (const n of npcs){
-      const ratio = pr / n.r;
-      let fill, glow;
-      if (ratio >= player.eatRatio){ fill = '#3fae9e'; glow = 'rgba(79,216,196,0.35)'; }
-      else if (n.r >= pr*CFG.dangerRatio){
-        if (n.hunting){ fill = '#ff3355'; glow = 'rgba(255,51,85,0.6)'; }
-        else { fill = '#c94a63'; glow = 'rgba(255,92,122,0.4)'; }
-      }
-      else { fill = '#6d6796'; glow = 'rgba(140,134,184,0.25)'; }
-      drawCreature(n.x, n.y, n.r, n.wobble, t, fill, glow, null);
-    }
-
-    drawCreature(player.x, player.y, pr, player.wobble, t, '#ffb454', 'rgba(255,180,84,0.55)', 'rgba(255,206,140,0.9)');
-
-    for (const p of particles){
-      ctx.save();
-      ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
-      ctx.fillStyle = `rgba(${p.color},1)`;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, 2.4, 0, Math.PI*2);
-      ctx.fill();
-      ctx.restore();
-    }
-
-    if (floatingTexts.length){
-      ctx.save();
-      ctx.font = "700 13px 'JetBrains Mono', ui-monospace, monospace";
-      ctx.textAlign = 'center';
-      for (const f of floatingTexts){
-        ctx.globalAlpha = Math.max(0, f.life / f.maxLife);
-        ctx.fillStyle = `rgba(${f.color},1)`;
-        ctx.fillText(f.text, f.x, f.y);
-      }
-      ctx.restore();
-    }
-
-    ctx.restore();
-  }
+  // Rendering is separate from simulation and never mutates collision radii.
+  function render(t){art.draw(ctx,W,H,snapshot());}
 
   // ---------------- HUD render helpers ----------------
   function updateMoltBar(){
@@ -816,6 +699,9 @@
       pct = clamp((player.mass - prevT) / (nextT - prevT), 0, 1);
     }
     document.getElementById('moltBarFill').style.width = (pct*100) + '%';
+    document.getElementById('moltBarWrap').setAttribute('aria-valuenow',String(Math.round(pct*100)));
+    document.getElementById('stageName').textContent=MoltPresentation.forms[Math.min(11,lastMoltIdx+1)].name;
+    document.getElementById('growthLabel').textContent=nextIdx<thresholds.length?Math.round(player.mass)+' / '+thresholds[nextIdx]+' mass to molt':'All eleven growth milestones reached';
   }
 
   function renderTraitRow(){
@@ -852,34 +738,26 @@
     });
   }
 
-  // ---------------- Main loop ----------------
+  // One RAF chain for menu, play, transformation, pause and results.
   function loop(ts){
-    const dt = Math.min(0.05, (ts - lastTs)/1000 || 0);
-    lastTs = ts;
-    const t = ts/1000;
-
-    if (state === 'molting'){
-      moltBannerTimer -= dt;
-      if (moltBannerTimer <= 0){
-        document.getElementById('moltBanner').classList.remove('show');
-        state = 'playing';
-      }
-      render(t);
-    } else if (state === 'playing'){
-      update(dt);
-      if (state === 'dead') { render(t); return; }
-      render(t);
-      document.getElementById('statGen').textContent = generation;
-      const massEl = document.getElementById('statMass');
-      massEl.textContent = Math.round(player.mass);
-      massEl.classList.toggle('low', player.mass < player.floorMass * 1.6);
-      document.getElementById('statTime').textContent = fmtTime(survivalTime);
-      updateMoltBar();
-    } else {
-      render(t);
+    const frameStart=performance.now(),dt=Math.max(0,Math.min(.05,(ts-lastTs)/1000||0));lastTs=ts;
+    if(state!=='paused'){
+      visualTime+=dt;
+      if(state==='molting'){moltBannerTimer-=dt;if(moltBannerTimer<=0){document.getElementById('moltBanner').classList.remove('show');state='playing';}}
+      else if(state==='playing')update(dt);
+      else if(state==='start')for(const n of npcs){n.x+=n.vx*dt*.48;n.y+=n.vy*dt*.48;}
+      if(state==='dead'){shakeMag*=Math.exp(-dt*10);if(shakeMag<.05)shakeMag=0;}
+      advanceVisuals(dt);
     }
-
-    if (state !== 'dead') requestAnimationFrame(loop);
+    render(visualTime);
+    document.getElementById('statGen').textContent=generation;
+    const massEl=document.getElementById('statMass');massEl.textContent=Math.round(player.mass);massEl.classList.toggle('low',player.mass<player.floorMass*1.6);
+    document.getElementById('statTime').textContent=fmtTime(survivalTime);document.getElementById('statMolts').textContent=moltCount;updateMoltBar();
+    document.getElementById('hud').hidden=state==='start';document.getElementById('pauseBtn').hidden=!['playing','molting'].includes(state);document.body.classList.toggle('reduced-motion',art.reduced);
+    for(const id of ['startOverlay','pauseOverlay','deathOverlay']){const el=document.getElementById(id);el.inert=!el.classList.contains('show');}
+    if(state==='start'){const c=document.getElementById('menuCreature'),cx=c.getContext('2d');cx.setTransform(2,0,0,2,0,0);cx.clearRect(0,0,180,130);art.creature(cx,90,64,38,0,-.22,art.reduced?0:visualTime);}
+    frameCosts[(costIndex++)%frameCosts.length]=performance.now()-frameStart;
+    requestAnimationFrame(loop);
   }
 
   // ---------------- Wire up UI ----------------
@@ -890,7 +768,8 @@
   muteBtn.addEventListener('click', ()=>{
     ensureAudio();
     muted = !muted;
-    muteBtn.textContent = muted ? '🔇' : '🔊';
+    muteBtn.textContent = muted ? '♪̸' : '♪';
+    muteBtn.setAttribute('aria-pressed',String(muted));muteBtn.setAttribute('aria-label',muted?'Enable sound':'Mute sound');muteBtn.title=muted?'Enable sound':'Mute sound';savePresentation();
     muteBtn.classList.toggle('muted', muted);
   });
 
@@ -902,13 +781,16 @@
   player = newPlayer(CFG.massStart, null);
   maintainNpcs();
   for (let i=0;i<6;i++) spawnMote();
-  function idlePreview(ts){
-    if (state !== 'start') return;
-    render(ts/1000 || 0);
-    for (const n of npcs){ n.x += n.vx*0.008; n.y += n.vy*0.008; }
-    requestAnimationFrame(idlePreview);
-  }
-  requestAnimationFrame(idlePreview);
+  document.getElementById('pauseBtn').addEventListener('click',pauseGame);
+  document.getElementById('btnResume').addEventListener('click',resumeGame);
+  document.getElementById('btnRestart').addEventListener('click',restartGeneration);
+  document.getElementById('calmMotion').checked=art.reduced;
+  document.getElementById('calmMotion').addEventListener('change',e=>{art.reduced=e.target.checked;savePresentation();});
+  muteBtn.classList.toggle('muted',muted);muteBtn.textContent=muted?'♪̸':'♪';muteBtn.setAttribute('aria-pressed',String(muted));
+  muteBtn.setAttribute('aria-label',muted?'Enable sound':'Mute sound');muteBtn.title=muted?'Enable sound':'Mute sound';
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseGame();});window.addEventListener('blur',pauseGame);
+  window.moltDebug={inspect:()=>({...snapshot(),generation,moltCount,survivalTime,lastMoltIdx,lineage,muted,audioActive:!!audioCtx,art,frameCosts,costIndex})};
+  lastTs=performance.now();requestAnimationFrame(loop);
 
 })();
 </script>
