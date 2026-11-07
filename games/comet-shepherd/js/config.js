@@ -19,9 +19,9 @@ export const CONFIG = {
   CORRECTION_ENERGY_PER_IMPULSE: 42, // energy cost at full power, scales down with drag amount
   CORRECTION_COOLDOWN: 0.12,
 
-  NUDGE_IMPULSE: 34,          // px/s delta-v for arrow/AD taps
-  NUDGE_ENERGY_COST: 6,
-  NUDGE_COOLDOWN: 0.16,
+  NUDGE_IMPULSE: 8,           // precision four-direction pulses
+  NUDGE_ENERGY_COST: 0.7,
+  NUDGE_COOLDOWN: 0.1,
 
   EMERGENCY_IMPULSE: 430,
   EMERGENCY_ENERGY_COST: 62,

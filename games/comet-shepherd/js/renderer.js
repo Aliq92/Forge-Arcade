@@ -1,5 +1,6 @@
 import { CONFIG } from './config.js';
 import { clamp, lerp, TAU } from './utils.js';
+import {GEM_TYPES} from './gems.js';
 
 export class Camera{
   constructor(){
@@ -372,6 +373,32 @@ export class Renderer{
       ctx.beginPath(); ctx.arc(0,0,rad,0,TAU); ctx.fill();
     }
     ctx.restore();
+  }
+
+  drawGems(gems,reducedMotion){
+    const ctx=this.ctx,time=reducedMotion?0:performance.now()/1000;
+    for(const g of gems){
+      if(g.collected)continue;const s=this.worldToScreen(g.x,g.y),def=GEM_TYPES[g.type];
+      if(s.x<-40||s.x>this.w+40||s.y<-40||s.y>this.h+40)continue;
+      const radius=g.radius*this.camera.zoom*(1+Math.sin(time*3+g.x)*.06);
+      ctx.save();ctx.translate(s.x,s.y);ctx.shadowBlur=14;ctx.shadowColor=def.color;
+      ctx.fillStyle=def.color;ctx.strokeStyle='#f1fcff';ctx.lineWidth=1;
+      ctx.beginPath();for(let i=0;i<def.sides;i++){const a=i/def.sides*TAU-Math.PI/2;
+        const x=Math.cos(a)*radius,y=Math.sin(a)*radius;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
+      ctx.closePath();ctx.fill();ctx.stroke();ctx.shadowBlur=0;
+      ctx.globalAlpha=.5;ctx.beginPath();ctx.moveTo(0,-radius*.65);ctx.lineTo(0,radius*.65);ctx.stroke();ctx.restore();
+    }
+  }
+  drawGemGuide(gems,comet){
+    let next=null,distance=Infinity;
+    for(const g of gems){if(g.collected)continue;const d=Math.hypot(g.x-comet.x,g.y-comet.y);if(d<distance){next=g;distance=d;}}
+    if(!next)return;const ctx=this.ctx,point=this.worldToScreen(next.x,next.y);
+    if(point.x>30&&point.x<this.w-30&&point.y>190&&point.y<this.h-150)return;
+    const center=this.worldToScreen(comet.x,comet.y),a=Math.atan2(point.y-center.y,point.x-center.x);
+    const x=Math.max(30,Math.min(this.w-30,center.x+Math.cos(a)*Math.min(this.w*.33,140)));
+    const y=Math.max(195,Math.min(this.h-155,center.y+Math.sin(a)*Math.min(this.h*.25,140)));
+    ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.strokeStyle=GEM_TYPES[next.type].color;ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(-7,-5);ctx.lineTo(0,0);ctx.lineTo(-7,5);ctx.stroke();ctx.restore();
   }
 
   drawSpaceChicken(chicken){

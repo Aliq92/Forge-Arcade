@@ -1,7 +1,8 @@
 import { CONFIG } from './config.js';
 import { clamp, normalize, dist, formatNumber, formatDistance, makeRng, uid, todayStr } from './utils.js';
-import { Comet } from './comet.js';
-import { totalGravity } from './physics.js';
+import { Comet,applySteering } from './comet.js';
+import { totalGravity,stepFlight,overlapsFlight } from './physics.js';
+import {collectGems,GEM_TYPES} from './gems.js';
 import { generateSystem, updateOrbits, gravityBodies } from './systemGenerator.js';
 import { computeTrajectory } from './trajectory.js';
 import { updateAsteroidBelt, findAsteroidCollision, checkFlareHeat } from './hazards.js';
@@ -52,6 +53,9 @@ export class Game{
     ui.on('close-bestrun', () => ui.showScreen('screen-title'));
     ui.on('pause', () => this.togglePause());
     ui.on('resume', () => this.resume());
+    ui.on('restart-sector',()=>this.restartSector());
+    ui.on('next-sector',()=>this._offerSectorUpgrade());
+    ui.on('explore-sector',()=>{if(this.state==='sector-complete'){this.state='playing';this._resetTiming();ui.showScreen(null);}});
     ui.on('quit-title', () => this.quitToTitle());
     ui.on('retry', () => { this.isChallengeRun ? this._startRun(this.seedBase, true) : this._startRun(uid(), false); });
     ui.on('continue-endless', () => { this._advanceAfterMilestone(); });
@@ -135,17 +139,19 @@ export class Game{
       gravityAssists:0, resourcesCollected:0, closestSolarPass: Infinity, timeSurvived:0,
       nearMisses:0, nearMissScore:0, resourcePoints:0, systemsCrossed:0,
       flowIntegral:0, flowTime:0, peakFlow:this.flow,
+      gems:0,gemScore:0,chickens:0,chickenScore:0,
     };
     const startSys = generateSystem(1, this.seedBase + '-1');
     this.comet = new Comet(startSys.spawn.x, startSys.spawn.y, startSys.vel.x, startSys.vel.y);
     applyUpgradeEffects(this.comet, this.upgradeState);
     this.system = startSys;
-    this.spaceChicken = createSpaceChicken(this.system);
+    this._startSector();
     this.particles.clear();
     this.ui.setHudVisible(true);
     this.ui.setSeedDisplay(this.isChallengeRun ? this.seedBase : null);
     this.ui.showScreen(null);
     this.state = 'playing';
+    this._resetTiming();
     this.audio.init(); this.audio.resume();
     this.input.setEnabled(true);
   }
@@ -164,8 +170,51 @@ export class Game{
     this.comet.invulnTimer = 1.2;
     this.assistTrack = new Map();
     this.starTrack = null;
-    this.spaceChicken = createSpaceChicken(this.system);
+    this._startSector();
     this.particles.clear();
+  }
+
+  _resetTiming(){
+    this.accumulator=0;this.lastTime=performance.now();this._queuedInputEvents=[];
+    this.input.reset?.();this._previewPts=null;
+  }
+  _startSector(){
+    this.sectorGems=0;this.sectorAwarded=false;
+    this.assistTrack=new Map();this.starTrack=null;this.burstTrajectoryTimer=0;
+    this.ui.setWarnings([]);this.ui.clearFeedback?.();
+    this.chickenRng=makeRng(this.system.seed+'-chicken');
+    this.spaceChicken=createSpaceChicken(this.system,this.chickenRng);
+    this._sectorEntry={comet:{...this.comet},stats:{...this.stats},stardust:this.stardust,flow:this.flow};
+    this._resetTiming();this._updateObjectiveUI();
+    this.renderer.camera.x=this.comet.x;this.renderer.camera.y=this.comet.y;
+  }
+  restartSector(){
+    if(!this._sectorEntry||!['playing','paused','sector-complete','gameover'].includes(this.state))return;
+    const entry=this._sectorEntry;
+    this.comet=Object.assign(new Comet(0,0,0,0),entry.comet);
+    this.stats={...entry.stats};this.stardust=entry.stardust;this.flow=entry.flow;this.flowSmoothTimer=0;
+    this.system=generateSystem(this.systemNumber,this.seedBase+'-'+this.systemNumber);
+    this._startSector();this.particles.clear();this.state='playing';this.ui.showScreen(null);
+  }
+  _updateObjectiveUI(){this.ui.updateObjective?.(this.sectorGems,this.system.gemTarget,this.stats.gemScore+this.stats.chickenScore,this.stats.chickens);}
+  _onCollectGem(gem){
+    const type=GEM_TYPES[gem.type];this.sectorGems++;this.stats.gems++;this.stats.gemScore+=type.points;
+    this.audio.pickupGem?.(gem.type);this._burstParticles(gem.x,gem.y,type.rgb,this.reducedMotion?5:16,1.3);
+    const s=this.renderer.worldToScreen(gem.x,gem.y);this.ui.showFeedback('+'+type.points,s.x,s.y-20,'gem');
+    this._updateObjectiveUI();
+  }
+  _completeSector(){
+    if(this.sectorAwarded)return;
+    this.sectorAwarded=true;this.stats.systemsCrossed++;this.state='sector-complete';
+    this.system.gate.unlocked=true;this.audio.gateActivate();this._confettiBurst(this.comet.x,this.comet.y);
+    this._resetTiming();this.ui.showSectorComplete?.(this.systemNumber,this.sectorGems,this.stats.gemScore+this.stats.chickenScore);
+    this.ui.showScreen('screen-sector-complete');
+  }
+  _offerSectorUpgrade(){
+    if(!this.sectorAwarded)return;
+    if(this.systemNumber===CONFIG.MILESTONE_SYSTEM&&!this.milestoneShown){this.milestoneShown=true;this.state='milestone';this.ui.showScreen('screen-milestone');}
+    else this.openUpgradeScreen();
+    this._resetTiming();
   }
 
   openUpgradeScreen(){
@@ -197,11 +246,13 @@ export class Game{
   pause(){
     if(this.state !== 'playing') return;
     this.state = 'paused';
+    this._resetTiming();
     this.ui.showScreen('screen-pause');
   }
   resume(){
     if(this.state !== 'paused') return;
     this.state = 'playing';
+    this._resetTiming();
     this.ui.showScreen(null);
     this.lastTime = performance.now();
   }
@@ -261,75 +312,40 @@ export class Game{
 
   // ---------------- Playing update ----------------
   _updatePlaying(dt){
-    const comet = this.comet, system = this.system;
-    this.stats.timeSurvived += dt;
-    this.burstTrajectoryTimer = Math.max(0, (this.burstTrajectoryTimer||0) - dt);
-
+    if(this.state!=='playing')return;
     this._handleDiscreteInput();
+    this.accumulator+=Math.min(.05,Math.max(0,Number.isFinite(dt)?dt:0));
+    let steps=0;
+    while(this.accumulator+1e-12>=CONFIG.PHYSICS_DT&&steps<CONFIG.MAX_SUBSTEPS&&this.state==='playing'){
+      this.accumulator=Math.max(0,this.accumulator-CONFIG.PHYSICS_DT);steps++;
+      this._physicsTick(CONFIG.PHYSICS_DT);
+    }
+    this.renderer.camera.follow(this.comet,Math.min(.05,dt),this._nearMassivePlanet(),this.system.gate);
+    this.ui.updateHUD(this.comet,this.systemNumber,this.stardust,this.previewOn||!!this.input.dragging,this.flow);
+    this._updateObjectiveUI();
+  }
+  _physicsTick(dt){
+    const comet=this.comet,system=this.system;
+    this.stats.timeSurvived+=dt;this.burstTrajectoryTimer=Math.max(0,(this.burstTrajectoryTimer||0)-dt);
     this._handleContinuousInput(dt);
-
-    updateOrbits(system, dt);
-    updateSpaceChicken(this.spaceChicken, system, dt);
-    for(const belt of system.belts) updateAsteroidBelt(belt, system.star, dt);
-    const flareEvents = system.flare.update(dt);
-    if(flareEvents.justWarned) this.audio.flareWarning();
-
-    this.accumulator += dt;
-    let steps = 0;
-    const bodies = gravityBodies(system);
-    const gate = system.gate;
-    // Collision/gate checks run after every substep (its own fixed 1/120s step), not once
-    // per rendered frame — a fast comet advancing several substeps per frame could otherwise
-    // cross clean through a planet or the gate between two checks and never be seen inside it.
-    while(this.accumulator >= CONFIG.PHYSICS_DT && steps < CONFIG.MAX_SUBSTEPS){
-      this._physicsSubstep(bodies, CONFIG.PHYSICS_DT);
-      this.accumulator -= CONFIG.PHYSICS_DT;
-      steps++;
-      this._checkCollisions();
-      if(!comet.alive) break;
-      if(!gate.activated && dist(comet.x, comet.y, gate.x, gate.y) < gate.radius + comet.radius){
-        gate.activated = true;
-        this._triggerGateReached();
-        break;
-      }
+    this._physicsSubstep(null,dt);
+    updateSpaceChicken(this.spaceChicken,system,dt,this.chickenRng);
+    const flareEvents=system.flare.update(dt);if(flareEvents.justWarned)this.audio.flareWarning();
+    this._checkCollisions();
+    const d=dist(comet.x,comet.y,system.star.x,system.star.y);
+    if(comet.alive)this.stats.closestSolarPass=Math.min(this.stats.closestSolarPass,d);
+    comet.update(dt,this._heatInputAt(d,system.star.radius)+checkFlareHeat(system.flare,system.star,comet),d>system.star.heatRadius*1.1);
+    this._updateFlow(dt);this._emitTailParticles(dt);this._emitFragmentParticles(dt);this._checkAssists();
+    if(!comet.alive){this._triggerGameOver();return;}
+    updateResources(system.resources,comet,dt,r=>this._onCollectResource(r));
+    collectGems(system.gems,comet,g=>this._onCollectGem(g));
+    if(!this.sectorAwarded&&this.sectorGems>=system.gemTarget){this._completeSector();return;}
+    if(!system.gate.activated&&this.sectorAwarded&&overlapsFlight(comet,system.gate,system.gate.radius+comet.radius)){
+      system.gate.activated=true;this._triggerGateReached();return;
     }
-    if(steps >= CONFIG.MAX_SUBSTEPS) this.accumulator = 0;
-
-    const distToStar = dist(comet.x, comet.y, system.star.x, system.star.y);
-    if(comet.alive) this.stats.closestSolarPass = Math.min(this.stats.closestSolarPass, distToStar);
-    const heatInput = this._heatInputAt(distToStar, system.star.radius) + checkFlareHeat(system.flare, system.star, comet);
-    const coldSpace = distToStar > system.star.heatRadius * 1.1;
-    comet.update(dt, heatInput, coldSpace);
-    this._updateFlow(dt);
-
-    this._emitTailParticles(dt);
-    this._emitFragmentParticles(dt);
-    this._checkAssists();
-    updateResources(system.resources, comet, dt, (r) => this._onCollectResource(r));
-
-    this.renderer.camera.follow(comet, dt, this._nearMassivePlanet(), this.system.gate);
-
-    if(!comet.alive){
-      this._triggerGameOver();
-      return;
-    }
-
-    this._updateWarnings(distToStar);
-    this.audio.setHumIntensity(clamp(comet.heat/100*0.55 + this.flow/100*0.45,0,1));
-
-    this.ui.updateHUD(comet, this.systemNumber, this.stardust, this.previewOn || !!this.input.dragging, this.flow);
+    this._updateWarnings(d);this.audio.setHumIntensity(clamp(comet.heat/100*.55+this.flow/100*.45,0,1));
   }
-
-  _physicsSubstep(bodies, dt){
-    const comet = this.comet;
-    const g = totalGravity(bodies, comet.x, comet.y);
-    comet.vx += g.ax * dt; comet.vy += g.ay * dt;
-    comet.x += comet.vx * dt; comet.y += comet.vy * dt;
-    if(!Number.isFinite(comet.x) || !Number.isFinite(comet.y) || !Number.isFinite(comet.vx) || !Number.isFinite(comet.vy)){
-      comet.x = this.system.spawn.x; comet.y = this.system.spawn.y;
-      comet.vx = this.system.vel.x; comet.vy = this.system.vel.y;
-    }
-  }
+  _physicsSubstep(bodies,dt){stepFlight(this.comet,this.system,dt);}
 
   _heatInputAt(distToStar, starRadius){
     const d = Math.max(distToStar, starRadius*0.3);
@@ -359,11 +375,7 @@ export class Game{
     }
   }
   _handleContinuousInput(dt){
-    if(this.input.keys.left){
-      if(this.comet.applyNudge(-1, 0)){ this.audio.nudge(); this._breakFlow(CONFIG.FLOW.nudgeCost); }
-    } else if(this.input.keys.right){
-      if(this.comet.applyNudge(1, 0)){ this.audio.nudge(); this._breakFlow(CONFIG.FLOW.nudgeCost); }
-    }
+    if(applySteering(this.comet,this.input.keys,dt)){this.audio.nudge();this._breakFlow(CONFIG.FLOW.nudgeCost*.25);}
   }
 
   _applyDragCorrection(e){
@@ -429,7 +441,7 @@ export class Game{
     // after a bounce) re-triggers the bounce/shake/audio every time it's checked.
     if(comet.invulnTimer > 0) return;
     const distStar = dist(comet.x,comet.y,system.star.x,system.star.y);
-    if(distStar < system.star.radius){
+    if(overlapsFlight(comet,system.star,system.star.radius+comet.radius)){
       comet.damage(999);
       this._burstParticles(comet.x, comet.y, '255,150,80', 40, 3.2);
       this.renderer.addShake(this.screenShakeOn ? 26 : 0);
@@ -437,7 +449,7 @@ export class Game{
       return;
     }
     for(const p of system.planets){
-      if(dist(comet.x,comet.y,p.x,p.y) < p.radius + comet.radius){
+      if(overlapsFlight(comet,p,p.radius+comet.radius)||p.moons.some(m=>overlapsFlight(comet,m,m.radius+comet.radius))){
         const relSpeed = comet.speed;
         const dmg = clamp(55 + relSpeed*0.09, 55, 140);
         comet.damage(dmg);
@@ -452,11 +464,12 @@ export class Game{
       }
     }
     if(hitSpaceChicken(this.spaceChicken, comet)){
+      this.stats.chickens++;this.stats.chickenScore+=150;this._updateObjectiveUI();
       const s=this.renderer.worldToScreen(this.spaceChicken.x,this.spaceChicken.y);
       this.renderer.addShake(this.screenShakeOn?24:0);
       this.audio.impact(1.15);
       setTimeout(()=>this.audio.assistChime(),70);
-      this.ui.showFeedback('SPACE CHICKEN!',s.x,s.y-26);
+      this.ui.showFeedback('SPACE CHICKEN! +150',s.x,s.y-26);
       this._confettiBurst(this.spaceChicken.x,this.spaceChicken.y);
     }
 
@@ -592,7 +605,7 @@ export class Game{
   // ---------------- Particles ----------------
   _emitTailParticles(dt){
     const comet = this.comet, star = this.system.star;
-    const budget = this.particles.spawnBudget(Math.round(6 + comet.tailIntensity*10));
+    const budget = this.particles.spawnBudget((6 + comet.tailIntensity*10)*dt*60);
     const heatT = clamp(comet.heat/100,0,1);
 
     // Tail direction is stylized, not simulated solar wind: mostly velocity-backward,
@@ -636,7 +649,7 @@ export class Game{
     const stability = comet.stabilityState;
     if(stability === 'STABLE' || stability === 'STRAINED') return;
     const rate = stability === 'CRITICAL' ? 3 : 1.2;
-    const budget = this.particles.spawnBudget(Math.round(rate));
+    const budget = this.particles.spawnBudget(rate*dt*60);
     for(let i=0;i<budget;i++){
       const ang = Math.random()*Math.PI*2;
       const speed = 12 + Math.random()*30;
@@ -718,7 +731,7 @@ export class Game{
     this._burstParticles(this.system.gate.x, this.system.gate.y, '180,240,255', 50, 2.2);
     this.gateTransitionTimer = 0;
     this._addFlow(CONFIG.FLOW.gateGain);
-    this.stats.systemsCrossed = (this.stats.systemsCrossed||0) + 1;
+    // Gem completion already banked this sector; gate remains an optional scenic exit.
     this.ui.fadeToBlack(() => {
       if(this.systemNumber === CONFIG.MILESTONE_SYSTEM && !this.milestoneShown){
         this.milestoneShown = true;
@@ -808,6 +821,7 @@ export class Game{
     for(const belt of activeSystem.belts) r.drawAsteroidBelt(belt);
     for(const p of activeSystem.planets) r.drawPlanet(p);
     r.drawGate(activeSystem.gate, performance.now()/1000);
+    if(useRun){r.drawGems(this.system.gems,this.reducedMotion);r.drawGemGuide(this.system.gems,this.comet);}
 
     if(this.state === 'playing'){
       for(const res of this.system.resources){ if(!res.collected) r.drawResource(res, RESOURCE_TYPES); }
@@ -822,9 +836,9 @@ export class Game{
         let pending = null;
         if(dragVec && dragVec.dist > CONFIG.CORRECTION_MIN_DRAG){
           const n = normalize(dragVec.dx, dragVec.dy);
-          pending = { x: n.x * CONFIG.CORRECTION_MAX_IMPULSE * dragVec.strengthFrac, y: n.y * CONFIG.CORRECTION_MAX_IMPULSE * dragVec.strengthFrac };
+          pending = this.comet.correctionImpulse(dragVec.dx,dragVec.dy,Math.max(.08,dragVec.strengthFrac));
         }
-        this._previewPts = computeTrajectory(this.comet, this.system, pending, this.trajectoryQuality);
+        this._previewPts = computeTrajectory(this.comet, this.system, pending, this.trajectoryQuality,this.input.keys);
         r.drawTrajectory(this._previewPts, this.reducedMotion);
       } else {
         this._previewPts = null;

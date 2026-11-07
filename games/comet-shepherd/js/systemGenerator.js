@@ -2,6 +2,7 @@ import { makeRng, randRange, randInt, TAU, pick, normalize, dist } from './utils
 import { CONFIG, PLANET_TYPES, STAR_CONFIG } from './config.js';
 import { createResource } from './resources.js';
 import { createAsteroidBelt, FlareController } from './hazards.js';
+import {prepareGemRoute} from './gems.js';
 
 const clampInt = (v, lo, hi) => Math.max(lo, Math.min(hi, Math.round(v)));
 
@@ -95,7 +96,9 @@ export function generateSystem(systemNumber, seed){
     y: inward.y * speed0 * 0.45 + tangent.y * speed0 * tangentDir,
   };
 
-  return { seed, systemNumber, star, planets, belts, gate, resources, flare, bounds, spawn, vel };
+  const system={ seed, systemNumber, star, planets, belts, gate, resources, flare, bounds, spawn, vel };
+  prepareGemRoute(system);
+  return system;
 }
 
 function scatterResources(resources, rng, star, planets, gateRadius, difficulty){

@@ -1,4 +1,5 @@
 import { randRange, randInt, clamp, dist, TAU } from './utils.js';
+import {overlapsFlight} from './physics.js';
 
 // ---------------- Asteroid belts ----------------
 
@@ -53,7 +54,7 @@ export function findAsteroidCollision(belts, comet){
     for(const a of belt.asteroids){
       if(a.hit) continue;
       const d = dist(a.x, a.y, comet.x, comet.y);
-      if(d < a.radius + comet.radius) return a;
+      if(overlapsFlight(comet,a,a.radius+comet.radius))return a;
     }
   }
   return null;

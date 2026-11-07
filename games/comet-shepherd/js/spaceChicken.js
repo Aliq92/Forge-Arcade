@@ -1,4 +1,5 @@
 import { dist, normalize } from './utils.js';
+import {overlapsFlight} from './physics.js';
 
 export function createSpaceChicken(system, rng=Math.random){
   const chicken = {
@@ -45,15 +46,16 @@ export function updateSpaceChicken(chicken, system, dt, rng=Math.random){
     chicken.turnTimer = 0.8;
   }
 
+  chicken.previousX=chicken.x;chicken.previousY=chicken.y;
   chicken.x += chicken.vx*dt;
   chicken.y += chicken.vy*dt;
 }
 
 export function hitSpaceChicken(chicken, comet){
   if(!chicken || !chicken.active) return false;
-  if(dist(chicken.x,chicken.y,comet.x,comet.y) >= chicken.radius + comet.radius) return false;
+  if(!overlapsFlight(comet,chicken,chicken.radius+comet.radius))return false;
   chicken.active = false;
-  chicken.respawnTimer = 1.25;
+  chicken.respawnTimer = 18;
   chicken.vx = 0; chicken.vy = 0;
   return true;
 }
@@ -66,6 +68,7 @@ export function respawnSpaceChicken(chicken, system, rng=Math.random){
   const r = minR + rng()*(maxR-minR);
   chicken.x = system.star.x + Math.cos(a)*r;
   chicken.y = system.star.y + Math.sin(a)*r;
+  chicken.previousX=chicken.x;chicken.previousY=chicken.y;
 
   const tangent = a + Math.PI/2 + (rng()-0.5)*0.9;
   const speed = 60 + rng()*35;

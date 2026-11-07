@@ -32,9 +32,19 @@ export class UI{
     this.statSeed = $('#stat-seed');
     this._actions = {};
 
+    // Mobile flight actions fire on contact, including browsers that suppress the
+    // synthetic click after a canvas drag. Keep keyboard/mouse click activation.
+    document.body.addEventListener('pointerdown',e=>{
+      const btn=e.target.closest('[data-action]');
+      if(e.pointerType!=='touch'||!btn||!['mobile-preview','mobile-burst'].includes(btn.dataset.action))return;
+      e.preventDefault();btn._touchActionAt=performance.now();
+      this._actions[btn.dataset.action]?.(btn);
+    });
+
     document.body.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-action]');
       if(!btn) return;
+      if(e.detail>0&&performance.now()-(btn._touchActionAt??-Infinity)<700)return;
       const action = btn.dataset.action;
       if(this._actions[action]) this._actions[action](btn);
     });
@@ -73,6 +83,19 @@ export class UI{
     this.statDistance.textContent = formatDistance(comet.distanceTravelled);
     this.previewStatus.textContent = previewOn ? 'PREVIEW ON' : 'PREVIEW OFF';
     this.previewStatus.classList.toggle('on', previewOn);
+    document.getElementById('route-hint').textContent=previewOn?'Preview on · Drag to correct':'Preview off · E to reveal';
+  }
+
+  updateObjective(count,target,score,chickens){
+    const set=(id,text)=>{const el=document.getElementById(id);if(el.textContent!==text)el.textContent=text;};
+    set('gem-objective',count>=target?'SECTOR COMPLETE · GATE OPEN':'COLLECT '+target+' GEMS');
+    set('gem-count',count+' / '+target);set('gem-score',score+' PTS');
+    set('chicken-count',chickens?'CHICKENS '+chickens+' · +'+(chickens*150):'CHICKEN +150 BONUS');
+  }
+  clearFeedback(){this.feedbackLayer.replaceChildren();}
+  showSectorComplete(sector,count,score){
+    document.getElementById('sector-complete-title').textContent='SECTOR '+sector+' COMPLETE';
+    document.getElementById('sector-complete-summary').textContent=count+' gems secured · '+score+' gem & bonus points. Choose your next upgrade, or keep exploring.';
   }
 
   // ---- challenge seed ----
@@ -131,7 +154,8 @@ export class UI{
     for(const id of choiceIds){
       const meta = UPGRADE_META[id];
       const lvl = upgradeState[id];
-      const card = document.createElement('div');
+      const card = document.createElement('button');
+      card.type='button';
       card.className = 'upgrade-card';
       card.innerHTML = `
         <h4>${meta.icon} ${meta.name}</h4>

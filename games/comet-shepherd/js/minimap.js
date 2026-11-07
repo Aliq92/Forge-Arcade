@@ -1,5 +1,6 @@
 import { TAU, clamp } from './utils.js';
 import { RESOURCE_TYPES } from './resources.js';
+import {GEM_TYPES} from './gems.js';
 
 export class Minimap{
   constructor(canvas){
@@ -30,6 +31,7 @@ export class Minimap{
       if(Number.isFinite(d)) worldRadius=Math.max(worldRadius,d);
     };
     include(system.gate.x,system.gate.y,system.gate.radius);
+    for(const g of system.gems||[])if(!g.collected)include(g.x,g.y,g.radius);
     for(const p of system.planets){
       include(p.x,p.y,p.radius);
       for(const m of p.moons) include(m.x,m.y,m.radius);
@@ -96,6 +98,7 @@ export class Minimap{
     }
 
     // gate
+    for(const gem of system.gems||[]){if(gem.collected)continue;const q=point(gem.x,gem.y);ctx.fillStyle=GEM_TYPES[gem.type].color;ctx.fillRect(q.x-1.6,q.y-1.6,3.2,3.2);}
     const g=point(system.gate.x,system.gate.y);
     ctx.strokeStyle='#9bf3ff'; ctx.lineWidth=1.4;
     ctx.beginPath(); ctx.arc(g.x,g.y,4,0,TAU); ctx.stroke();

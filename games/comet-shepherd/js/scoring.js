@@ -16,7 +16,8 @@ export function computeScoreBreakdown(stats, comet, stardust){
   const avgFlow = stats.flowTime > 0 ? Math.max(0, Math.min(100, stats.flowIntegral / stats.flowTime)) : 0;
   const flowBonus = Math.round(avgFlow * cfg.FLOW_MULT);
 
-  const total = arrivalPts + nearMissPts + slingshotPts + resourcePts + timeBonus + stabilityBonus + flowBonus;
+  const gemPts=stats.gemScore||0,chickenPts=stats.chickenScore||0;
+  const total = gemPts + chickenPts + arrivalPts + nearMissPts + slingshotPts + resourcePts + timeBonus + stabilityBonus + flowBonus;
 
   const perSystem = systemsCrossed > 0 ? total / systemsCrossed : total;
   let rank = 'C';
@@ -26,6 +27,8 @@ export function computeScoreBreakdown(stats, comet, stardust){
 
   const rows = [
     ['— SCORE BREAKDOWN —', '', true],
+    ['GEMS', '+'+gemPts],
+    ['CHICKEN BONUSES','+'+chickenPts],
     ['ARRIVAL (' + systemsCrossed + ' systems)', '+' + arrivalPts],
     ['NEAR MISSES', '+' + nearMissPts],
     ['SLINGSHOTS', '+' + slingshotPts],

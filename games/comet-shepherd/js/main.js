@@ -18,6 +18,7 @@ function boot(){
   const minimap = new Minimap(minimapCanvas);
   const audio = new AudioEngine();
   const input = new InputManager(gameCanvas);
+  input.bindTouchControls(document);
   const ui = new UI();
 
   const unlockAudio = () => { audio.init(); audio.resume(); window.removeEventListener('pointerdown', unlockAudio); window.removeEventListener('keydown', unlockAudio); };

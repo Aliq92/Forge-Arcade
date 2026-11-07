@@ -43,25 +43,26 @@ export class Comet{
   get speed(){ return Math.hypot(this.vx, this.vy); }
 
   // Applies a velocity delta and drains energy proportional to strength (0..1 = fraction of max impulse).
+  correctionImpulse(dx,dy,strengthFrac,isEmergency=false){
+    if(!Number.isFinite(dx)||!Number.isFinite(dy)||!Number.isFinite(strengthFrac))return null;
+    const n=normalize(dx,dy);
+    if((!n.x&&!n.y)||(isEmergency?this.emergencyCooldown:this.correctionCooldown)>0)return null;
+    const requested=clamp(strengthFrac,0,1);
+    const fullCost=isEmergency?CONFIG.EMERGENCY_ENERGY_COST:CONFIG.CORRECTION_ENERGY_PER_IMPULSE*this.energyCostMult;
+    const fraction=Math.min(requested,this.energy/Math.max(.001,fullCost));
+    if(fraction<=0)return null;
+    const power=isEmergency?CONFIG.EMERGENCY_IMPULSE*this.emergencyPowerMult:CONFIG.CORRECTION_MAX_IMPULSE;
+    return {x:n.x*power*fraction,y:n.y*power*fraction,cost:fullCost*fraction};
+  }
   applyCorrection(dx, dy, strengthFrac, isEmergency=false){
-    const n = normalize(dx, dy);
-    if(n.x === 0 && n.y === 0) return false;
+    const impulse=this.correctionImpulse(dx,dy,strengthFrac,isEmergency);
+    if(!impulse)return false;
+    this.vx+=impulse.x;this.vy+=impulse.y;this.energy=Math.max(0,this.energy-impulse.cost);
     if(isEmergency){
-      if(this.emergencyCooldown > 0) return false;
-      const impulse = CONFIG.EMERGENCY_IMPULSE * this.emergencyPowerMult;
-      this.vx += n.x * impulse;
-      this.vy += n.y * impulse;
-      this.energy = clamp(this.energy - CONFIG.EMERGENCY_ENERGY_COST, 0, this.maxEnergy);
       this.emergencyCooldown = CONFIG.EMERGENCY_COOLDOWN;
       this.tailDisruption = 0.5;
       return true;
     }
-    const cost = CONFIG.CORRECTION_ENERGY_PER_IMPULSE * strengthFrac * this.energyCostMult;
-    if(this.energy < cost * 0.25) return false;
-    const impulse = CONFIG.CORRECTION_MAX_IMPULSE * strengthFrac;
-    this.vx += n.x * impulse;
-    this.vy += n.y * impulse;
-    this.energy = clamp(this.energy - cost, 0, this.maxEnergy);
     this.correctionCooldown = CONFIG.CORRECTION_COOLDOWN;
     return true;
   }
@@ -142,4 +143,15 @@ export class Comet{
     if(frac > 0.12) return 'CRACKING';
     return 'CRITICAL';
   }
+}
+
+export function applySteering(comet,keys,dt){
+  const x=Number(!!keys.right)-Number(!!keys.left),y=Number(!!keys.down)-Number(!!keys.up);
+  const nudged=(x||y)?comet.applyNudge(x,y):false;
+  if(keys.brake&&comet.energy>0){
+    const fraction=Math.min(1,comet.energy/(3*dt));
+    const decay=Math.exp(-1.5*dt*fraction);comet.vx*=decay;comet.vy*=decay;
+    comet.energy=Math.max(0,comet.energy-3*dt*fraction);
+  }
+  return nudged;
 }

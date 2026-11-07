@@ -83,6 +83,7 @@ export class AudioEngine{
   pickupEnergy(){ this._tone(500, 0.14, 'triangle', 0.16, 720); }
   pickupStardust(){ this._tone(980, 0.1, 'sine', 0.12, 1200); }
   pickupCore(){ this._tone(600, 0.4, 'sine', 0.2, 1000); }
+  pickupGem(type){const note={CYAN:880,AMBER:1100,VIOLET:1320}[type]||880;this._tone(note,.18,'sine',.13,note*1.5);}
   assistChime(){
     if(!this.ready) return;
     this._tone(660, 0.25, 'sine', 0.18, 990);
