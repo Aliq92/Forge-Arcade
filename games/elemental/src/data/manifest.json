@@ -1,0 +1,200 @@
+{
+  "accessed": "2026-11-07/2026-11-08",
+  "sources": {
+    "elements": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/periodictable/JSON",
+    "weights": "https://ciaaw.org/atomic-weights.htm",
+    "radioactiveMassNumbers": "https://ciaaw.org/radioactive-elements.htm",
+    "nuclides": "https://nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides={isotope}",
+    "geometry": "https://cccbdb.nist.gov/exp2x.asp?casno={CAS}&charge=0",
+    "lawrencium": "https://physics.nist.gov/cgi-bin/Elements/elInfo.pl?element=103"
+  },
+  "corrections": [
+    "Lawrencium neutral configuration uses NIST [Rn]5f14 7s2 7p1 rather than obsolete PubChem 6d1.",
+    "Source-calculated and Z>=104 configurations are labelled prediction.",
+    "Ammonia conventional NH3 differs from Hill H3N; both are displayed."
+  ],
+  "units": {
+    "weight": "relative standard atomic weight, dimensionless; bracketed integer denotes isotope mass number",
+    "radius": "van der Waals radius / pm",
+    "electronegativity": "Pauling scale, dimensionless",
+    "ionization": "eV",
+    "density": "g/cm3, conditions unspecified in summary source",
+    "melting": "K, compiled source, pressure conditions unspecified",
+    "boiling": "K, compiled source, pressure conditions unspecified",
+    "positions": "angstrom, experimental reference rounded coordinates"
+  },
+  "files": [
+    {
+      "file": "elements.json",
+      "sha256": "a4193f1a24e169f6ee1c7c459076699b682d939855157726067e83da8b124063"
+    },
+    {
+      "file": "isotopes.json",
+      "sha256": "9b00728fb25996c2621b224ff88686a37b8e136b372d62220f14d84b19bed7aa"
+    },
+    {
+      "file": "molecules.json",
+      "sha256": "65e15999b69135d18cb4684701bab7148ffc49a5f527672e077acbb9f5eaba33"
+    },
+    {
+      "file": "pubchem-periodic-table.json",
+      "sha256": "ff0f75976583b8a6493b18d0b42e83e1b68bd6e112b45d33578d98494ed5d321"
+    },
+    {
+      "file": "sources/C14.csv",
+      "sha256": "e1e52551e37347c20e2b899e25d0868eec73d668c7fe5fb6e44aa85a5622503d"
+    },
+    {
+      "file": "sources/ciaaw-radioactive.html",
+      "sha256": "121a5b51b75d5931ac4408c694b9b310905e7b7340656eeea2ea628648cd672e"
+    },
+    {
+      "file": "sources/ciaaw-weights.html",
+      "sha256": "b48282594b1fb01eee3cbc9d469ce5e3483b628157ea1b09ede33e3476895cf2"
+    },
+    {
+      "file": "sources/H3.csv",
+      "sha256": "de98666db2dff488d4e2049039add474094ecedb65473eeeb9ec7405c9595e07"
+    },
+    {
+      "file": "sources/isotopes-C.html",
+      "sha256": "4551f5622c1d19ed5c5ab1255c4f47e90c90f9e59b3d9e8d02a946f03e33330a"
+    },
+    {
+      "file": "sources/isotopes-Cl.html",
+      "sha256": "e4eab43f3159b802e9627fb21339007f4c2fe0a3f62a03fc886d89124e46c7ca"
+    },
+    {
+      "file": "sources/isotopes-H.html",
+      "sha256": "b2d37f09a4322357cd0f05afcf13ff72b472eb634a9665fdb62624481bce7688"
+    },
+    {
+      "file": "sources/isotopes-N.html",
+      "sha256": "b3ac90ca40624fd474f96e76c550c4d8cb893edf020b56adc19be63b569bef97"
+    },
+    {
+      "file": "sources/isotopes-Ne.html",
+      "sha256": "18e75bcc022e20c21f9b74be9e241a0e242aa33df17c58731d52851380d89a57"
+    },
+    {
+      "file": "sources/isotopes-O.html",
+      "sha256": "539dae37e24f5d176710e60ff29daaae4f19c5b5d35f2e08be74a6c4dc7b27e8"
+    },
+    {
+      "file": "sources/molecule-C2H2.html",
+      "sha256": "08830a4ae006647c87094ffe66114d1122e15b48611d895298c9c6da78ebd16c"
+    },
+    {
+      "file": "sources/molecule-C2H4.html",
+      "sha256": "25d192de7c44fa8e5e0eb18000be99c953983d498f7de40598960ed6f8ec86fc"
+    },
+    {
+      "file": "sources/molecule-CH4.html",
+      "sha256": "91dff3a2651b715ded80c6eabe212b817e35f82b15677dba12904d51104857c5"
+    },
+    {
+      "file": "sources/molecule-CO2.html",
+      "sha256": "46271e738609586cc8e7a46a141bf353988ea529565e790e75f38d43d16a2dbe"
+    },
+    {
+      "file": "sources/molecule-H2.html",
+      "sha256": "c3179958afca9c2d320b4bfad1769de59cbb304aab83969f5f3ce50af34a11eb"
+    },
+    {
+      "file": "sources/molecule-H2O.html",
+      "sha256": "7e3120e7cd8c15d0a22adf3d56c6416ec983ce0526a967154af402caccda7e85"
+    },
+    {
+      "file": "sources/molecule-N2.html",
+      "sha256": "8288000ad0e6d18f58f785897cddd47b9c1fe9d818e9bc6f1af77515669e004e"
+    },
+    {
+      "file": "sources/molecule-NH3.html",
+      "sha256": "88989f55f3ccf0f2d299cfb15deeb60f8a88ff66690e099647d94227e3a581f6"
+    },
+    {
+      "file": "sources/molecule-O2.html",
+      "sha256": "dcf51d853598a32a9bf9e94b89897517c5d83e6726161935844dc6e8d3651d8b"
+    },
+    {
+      "file": "sources/nist-Lr.html",
+      "sha256": "ea91c4e1825ae4428eb63ec66b2fa5bf310b1dc63114a9c85c57dcf8d52472b2"
+    },
+    {
+      "file": "sources/nuclide-C12.csv",
+      "sha256": "ef932e3f5acb639c750d0c49a8bc687fd2f7e82c6eb4477ddf418199e9c0ae6d"
+    },
+    {
+      "file": "sources/nuclide-C13.csv",
+      "sha256": "428ed3fcb64ed4768840180ec08f5e97fee3b1846cd11d88064fc822f50b1840"
+    },
+    {
+      "file": "sources/nuclide-C14.csv",
+      "sha256": "e1e52551e37347c20e2b899e25d0868eec73d668c7fe5fb6e44aa85a5622503d"
+    },
+    {
+      "file": "sources/nuclide-Ca40.csv",
+      "sha256": "5f089746351ceeb8597a2962231349276c1fdb5b85be540d2e7580a510128935"
+    },
+    {
+      "file": "sources/nuclide-Cl35.csv",
+      "sha256": "7ee8c78dceb0fe35f00c12014377d50ad993ddb3fde819d150b9245b00c4ac24"
+    },
+    {
+      "file": "sources/nuclide-Cl37.csv",
+      "sha256": "64f0add5a77c47d7331bd1860bca8d0481e379e1bbe73e632f1cc8618bddf9f2"
+    },
+    {
+      "file": "sources/nuclide-H1.csv",
+      "sha256": "aa1c8a58f0d61baf86c35466f3bb1432a8cb515007af7a32e4c451a1a5e60f67"
+    },
+    {
+      "file": "sources/nuclide-H2.csv",
+      "sha256": "95977714a3ddc2cf478183cfd48d8509c70ad339f735ef1789e75ffc71444b29"
+    },
+    {
+      "file": "sources/nuclide-H3.csv",
+      "sha256": "de98666db2dff488d4e2049039add474094ecedb65473eeeb9ec7405c9595e07"
+    },
+    {
+      "file": "sources/nuclide-Mg24.csv",
+      "sha256": "c9580ff62aff2e99c55e02f45452ce30e927b69547981f6412a98043bbf50e9a"
+    },
+    {
+      "file": "sources/nuclide-N14.csv",
+      "sha256": "4219067e09de5bf0454a2eee32774caf2786344568b35bf7bbd5695e62df50ba"
+    },
+    {
+      "file": "sources/nuclide-N15.csv",
+      "sha256": "4e37bee18ae08806dc421e2353150ee8d4743a8f209b18fdf4b295c3750915f1"
+    },
+    {
+      "file": "sources/nuclide-Na23.csv",
+      "sha256": "daa0d18da110ddd91571e0f7f8d72af6ad7abf1b2fa6111ac5aad644774879b0"
+    },
+    {
+      "file": "sources/nuclide-Ne20.csv",
+      "sha256": "77892cbe2725fa25611f5577a58a6687246f8f00c708b6464cdea4c269a7c1bc"
+    },
+    {
+      "file": "sources/nuclide-Ne21.csv",
+      "sha256": "4c8a067a459c1b6b0ef586a1de7f250b24971b834570781072f4dbcda2bf6431"
+    },
+    {
+      "file": "sources/nuclide-Ne22.csv",
+      "sha256": "7f95f0a0dc0d49d6d9e7e8ef51fe4171ad64551512f8cc74c43dc71de42bcb11"
+    },
+    {
+      "file": "sources/nuclide-O16.csv",
+      "sha256": "29ff6d359fce4f0a8fd853a2dc047e762df9a1a4772ec670c22748a944c37a53"
+    },
+    {
+      "file": "sources/nuclide-O17.csv",
+      "sha256": "8a235e5e29aabd69f3acb24ff8ccb57f059dc3d251cb02490f1cfaaa57293f76"
+    },
+    {
+      "file": "sources/nuclide-O18.csv",
+      "sha256": "d78d05fe1cd4217ff6df920f386a5e7e8f219bacf8c85f2c30295b31d6bb77e2"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+import {$,esc,option} from './ui.mjs';import {atomCounts,ionConfiguration,orbitalBoxes,supportedIons} from './chemistry/atomic.mjs';
+export class AtomExplorer{
+ constructor(elements,isotopes,onChange){this.elements=elements;this.isotopes=isotopes;this.onChange=onChange;this.z=6;this.a=12;this.q=0;this.view='shell';this.render();}
+ select(z){this.z=z;this.a=this.isotopes.find(i=>i.z===z)?.a||z;this.q=0;this.render();}
+ state(){return {z:this.z,a:this.a,q:this.q};}
+ render(){
+  const e=this.elements[this.z-1],choices=this.isotopes.filter(i=>i.z===this.z),known=choices.find(i=>i.a===this.a),config=ionConfiguration(e,this.q,this.elements),counts=atomCounts(this.z,this.a,this.q);
+  $('#atom-controls').innerHTML=`<label>ELEMENT<select id="atom-element">${this.elements.map(e=>option(e.z,e.symbol+' · '+e.name,e.z===this.z)).join('')}</select></label><label>VERIFIED ISOTOPE<select id="isotope">${choices.map(i=>option(i.a,e.symbol+'-'+i.a+' · '+i.stability,this.a===i.a)).join('')+option('custom','Custom / unverified',!known)}</select></label><label>MASS NUMBER A<input type="number" id="mass-number" min="${e.z}" max="400" value="${this.a}" step="1"></label><label>NET CHARGE Q<select id="ion-charge">${Array.from({length:7},(_,i)=>i-3).map(q=>option(q,q===0?'0 · Neutral':`${q>0?'+':''}${q}${supportedIons[e.symbol]?.includes(q)?' · Supported ion':' · Counts only'}`,q===this.q)).join('')}</select></label><label>DIAGRAM<select id="atom-view">${option('shell','Shell occupancy',this.view==='shell')+option('orbital','Orbital boxes',this.view==='orbital')}</select></label>`;
+  $('#atom-readout').innerHTML=`<div class="atom-counts"><div><b>${counts.protons}</b><small>PROTONS · Z</small></div><div><b>${counts.neutrons}</b><small>NEUTRONS · A − Z</small></div><div><b>${counts.electrons}</b><small>ELECTRONS · Z − Q</small></div></div><p class="micro">${e.symbol}-${this.a} · A = ${counts.protons} + ${counts.neutrons} = ${this.a} · Q = ${counts.protons} − ${counts.electrons} = ${this.q>0?'+':''}${this.q}</p><p class="model-note">${known?`${known.stability==='stable'?'Verified stable isotope':'Verified radioactive isotope'+(known.halfLife?' · Half-life '+esc(known.halfLife):'')}. Natural abundance: Not established in this curated dataset.`:'Unverified nuclear configuration: particle accounting only. Stability is not established here.'}${this.q?' Ionic charge notation does not imply that a free isolated gas-phase ion is stable.':''}</p>`;
+  if(!config.supported)$('#atom-diagram').innerHTML=`<h2>Counts are known. This configuration is outside scope.</h2><p class="model-note">${config.label}. In particular, transition-metal ions do not simply lose the last electrons in a neutral filling sequence.</p>`;
+  else if(this.view==='shell'){
+   const shells={};for(const o of config.orbitals)shells[o.orbital[0]]=(shells[o.orbital[0]]||0)+o.count;
+   $('#atom-diagram').innerHTML=`<span class="badge">SIMPLIFIED · SHELL OCCUPANCY</span><h2>${esc(config.label)}</h2><p class="micro">${esc(config.status)} · Counts grouped by principal quantum number n</p>${Object.entries(shells).map(([n,c])=>`<div class="shell"><span>n = ${n}</span><div class="shell-track"><div class="shell-fill" style="width:${c/Math.max(...Object.values(shells))*100}%"></div></div><b>${c}</b></div>`).join('')||'<p>No electrons remain.</p>'}`;
+  }else $('#atom-diagram').innerHTML=`<span class="badge">SIMPLIFIED · ORBITAL OCCUPANCY</span><h2>${esc(config.label)}</h2><p class="micro">${esc(config.status)} · Hund filling within degenerate orbitals; at most two opposite-spin electrons per box.</p>${config.orbitals.map(o=>`<div class="orbital-row"><span>${o.orbital}</span>${orbitalBoxes(o).map(b=>`<div class="orbital-box">${b||'·'}</div>`).join('')}</div>`).join('')||'<p>No occupied orbitals.</p>'}`;
+  $('#atom-element').onchange=event=>{this.select(+event.target.value);this.onChange(this.elements[this.z-1]);};
+  $('#isotope').onchange=event=>{if(event.target.value!=='custom')this.a=+event.target.value;else this.a=this.z;this.render();};
+  $('#mass-number').onchange=event=>{const a=+event.target.value;if(Number.isInteger(a)&&a>=this.z&&a<=400)this.a=a;this.render();};
+  $('#ion-charge').onchange=event=>{const q=+event.target.value;if(this.z-q>=0)this.q=q;this.render();};
+  $('#atom-view').onchange=event=>{this.view=event.target.value;this.render();};
+ }
+}

@@ -1,0 +1,192 @@
+[
+  {
+    "symbol": "H",
+    "a": 1,
+    "z": 1,
+    "neutrons": 0,
+    "stability": "stable",
+    "halfLife": null,
+    "abundance": null,
+    "source": "https://nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=1h"
+  },
+  {
+    "symbol": "H",
+    "a": 2,
+    "z": 1,
+    "neutrons": 1,
+    "stability": "stable",
+    "halfLife": null,
+    "abundance": null,
+    "source": "https://nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=2h"
+  },
+  {
+    "symbol": "H",
+    "a": 3,
+    "z": 1,
+    "neutrons": 2,
+    "stability": "radioactive",
+    "halfLife": "12.32 Y",
+    "abundance": null,
+    "source": "https://nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=3h"
+  },
+  {
+    "symbol": "C",
+    "a": 12,
+    "z": 6,
+    "neutrons": 6,
+    "stability": "stable",
+    "halfLife": null,
+    "abundance": null,
+    "source": "https://nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=12c"
+  },
+  {
+    "symbol": "C",
+    "a": 13,
+    "z": 6,
+    "neutrons": 7,
+    "stability": "stable",
+    "halfLife": null,
+    "abundance": null,
+    "source": "https://nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=13c"
+  },
+  {
+    "symbol": "C",
+    "a": 14,
+    "z": 6,
+    "neutrons": 8,
+    "stability": "radioactive",
+    "halfLife": "5700 Y",
+    "abundance": null,
+    "source": "https://nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=14c"
+  },
+  {
+    "symbol": "N",
+    "a": 14,
+    "z": 7,
+    "neutrons": 7,
+    "stability": "stable",
+    "halfLife": null,
+    "abundance": null,
+    "source": "https://nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=14n"
+  },
+  {
+    "symbol": "N",
+    "a": 15,
+    "z": 7,
+    "neutrons": 8,
+    "stability": "stable",
+    "halfLife": null,
+    "abundance": null,
+    "source": "https://nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=15n"
+  },
+  {
+    "symbol": "O",
+    "a": 16,
+    "z": 8,
+    "neutrons": 8,
+    "stability": "stable",
+    "halfLife": null,
+    "abundance": null,
+    "source": "https://nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=16o"
+  },
+  {
+    "symbol": "O",
+    "a": 17,
+    "z": 8,
+    "neutrons": 9,
+    "stability": "stable",
+    "halfLife": null,
+    "abundance": null,
+    "source": "https://nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=17o"
+  },
+  {
+    "symbol": "O",
+    "a": 18,
+    "z": 8,
+    "neutrons": 10,
+    "stability": "stable",
+    "halfLife": null,
+    "abundance": null,
+    "source": "https://nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=18o"
+  },
+  {
+    "symbol": "Ne",
+    "a": 20,
+    "z": 10,
+    "neutrons": 10,
+    "stability": "stable",
+    "halfLife": null,
+    "abundance": null,
+    "source": "https://nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=20ne"
+  },
+  {
+    "symbol": "Ne",
+    "a": 21,
+    "z": 10,
+    "neutrons": 11,
+    "stability": "stable",
+    "halfLife": null,
+    "abundance": null,
+    "source": "https://nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=21ne"
+  },
+  {
+    "symbol": "Ne",
+    "a": 22,
+    "z": 10,
+    "neutrons": 12,
+    "stability": "stable",
+    "halfLife": null,
+    "abundance": null,
+    "source": "https://nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=22ne"
+  },
+  {
+    "symbol": "Na",
+    "a": 23,
+    "z": 11,
+    "neutrons": 12,
+    "stability": "stable",
+    "halfLife": null,
+    "abundance": null,
+    "source": "https://nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=23na"
+  },
+  {
+    "symbol": "Mg",
+    "a": 24,
+    "z": 12,
+    "neutrons": 12,
+    "stability": "stable",
+    "halfLife": null,
+    "abundance": null,
+    "source": "https://nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=24mg"
+  },
+  {
+    "symbol": "Cl",
+    "a": 35,
+    "z": 17,
+    "neutrons": 18,
+    "stability": "stable",
+    "halfLife": null,
+    "abundance": null,
+    "source": "https://nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=35cl"
+  },
+  {
+    "symbol": "Cl",
+    "a": 37,
+    "z": 17,
+    "neutrons": 20,
+    "stability": "stable",
+    "halfLife": null,
+    "abundance": null,
+    "source": "https://nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=37cl"
+  },
+  {
+    "symbol": "Ca",
+    "a": 40,
+    "z": 20,
+    "neutrons": 20,
+    "stability": "stable",
+    "halfLife": null,
+    "abundance": null,
+    "source": "https://nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=40ca"
+  }
+]

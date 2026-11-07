@@ -33,7 +33,7 @@ async function run() {
   if (arguments_.some(value => value !== '--require-all')) throw new Error('Usage: node tests/install-pixel-card-art.cjs [--require-all]');
   const requireAll = arguments_.includes('--require-all');
   const prompts = JSON.parse(await fs.readFile(path.join(root, 'artwork/card-prompts.json'), 'utf8'));
-  if (!Array.isArray(prompts) || prompts.length !== 36 || new Set(prompts.map(p => p.id)).size !== 36 || prompts.some(p => !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(p.id))) throw new Error('Expected 36 distinct safe ids in artwork/card-prompts.json');
+  if (!Array.isArray(prompts) || prompts.length !== 37 || new Set(prompts.map(p => p.id)).size !== 37 || prompts.some(p => !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(p.id))) throw new Error('Expected 37 distinct safe ids in artwork/card-prompts.json');
   const ids = new Set(prompts.map(p => p.id));
   let files;
   try { files = await fs.readdir(recordsDir); } catch (error) { if (error.code !== 'ENOENT') throw error; files = []; }

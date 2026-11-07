@@ -1,6 +1,7 @@
 'use strict';
 // Local illustrations; unknown future entries keep the existing CSS artwork.
 const CARD_THUMBNAILS = new Set([
+  "elemental",
   "digital-ant-colony",
   "comet-shepherd",
   "void-drifter",
@@ -40,6 +41,7 @@ const CARD_THUMBNAILS = new Set([
 ]);
 // Pixel availability is explicit: future SVG-only entries stay on their SVG.
 const PIXEL_CARD_IDS = new Set([
+  "elemental",
   "digital-ant-colony",
   "comet-shepherd",
   "void-drifter",

@@ -1,0 +1,579 @@
+[
+  {
+    "id": "H2",
+    "name": "Hydrogen",
+    "formula": "H2",
+    "geometry": "linear",
+    "atoms": [
+      {
+        "id": "a0",
+        "symbol": "H",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "a1",
+        "symbol": "H",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          0,
+          0,
+          0.7414
+        ]
+      }
+    ],
+    "bonds": [
+      {
+        "a": "a0",
+        "b": "a1",
+        "order": 1
+      }
+    ],
+    "charge": 0,
+    "geometryStatus": "NIST CCCBDB experimental reference geometry; rounded Cartesian coordinates in angstrom",
+    "source": "https://cccbdb.nist.gov/exp2x.asp?casno=1333740&charge=0",
+    "caveat": null
+  },
+  {
+    "id": "O2",
+    "name": "Oxygen",
+    "formula": "O2",
+    "geometry": "linear",
+    "atoms": [
+      {
+        "id": "a0",
+        "symbol": "O",
+        "lonePairs": 2,
+        "unpaired": 0,
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "a1",
+        "symbol": "O",
+        "lonePairs": 2,
+        "unpaired": 0,
+        "position": [
+          0,
+          0,
+          1.2075
+        ]
+      }
+    ],
+    "bonds": [
+      {
+        "a": "a0",
+        "b": "a1",
+        "order": 2
+      }
+    ],
+    "charge": 0,
+    "geometryStatus": "NIST CCCBDB experimental reference geometry; rounded Cartesian coordinates in angstrom",
+    "source": "https://cccbdb.nist.gov/exp2x.asp?casno=7782447&charge=0",
+    "caveat": "The paired-electron Lewis drawing omits the two unpaired electrons in oxygen’s triplet ground state. It cannot explain oxygen’s paramagnetism."
+  },
+  {
+    "id": "N2",
+    "name": "Nitrogen",
+    "formula": "N2",
+    "geometry": "linear",
+    "atoms": [
+      {
+        "id": "a0",
+        "symbol": "N",
+        "lonePairs": 1,
+        "unpaired": 0,
+        "position": [
+          0,
+          0,
+          0.5488
+        ]
+      },
+      {
+        "id": "a1",
+        "symbol": "N",
+        "lonePairs": 1,
+        "unpaired": 0,
+        "position": [
+          0,
+          0,
+          -0.5488
+        ]
+      }
+    ],
+    "bonds": [
+      {
+        "a": "a0",
+        "b": "a1",
+        "order": 3
+      }
+    ],
+    "charge": 0,
+    "geometryStatus": "NIST CCCBDB experimental reference geometry; rounded Cartesian coordinates in angstrom",
+    "source": "https://cccbdb.nist.gov/exp2x.asp?casno=7727379&charge=0",
+    "caveat": null
+  },
+  {
+    "id": "H2O",
+    "name": "Water",
+    "formula": "H2O",
+    "geometry": "bent",
+    "atoms": [
+      {
+        "id": "a0",
+        "symbol": "O",
+        "lonePairs": 2,
+        "unpaired": 0,
+        "position": [
+          0,
+          0,
+          0.1173
+        ]
+      },
+      {
+        "id": "a1",
+        "symbol": "H",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          0,
+          0.7572,
+          -0.4692
+        ]
+      },
+      {
+        "id": "a2",
+        "symbol": "H",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          0,
+          -0.7572,
+          -0.4692
+        ]
+      }
+    ],
+    "bonds": [
+      {
+        "a": "a0",
+        "b": "a1",
+        "order": 1
+      },
+      {
+        "a": "a0",
+        "b": "a2",
+        "order": 1
+      }
+    ],
+    "charge": 0,
+    "geometryStatus": "NIST CCCBDB experimental reference geometry; rounded Cartesian coordinates in angstrom",
+    "source": "https://cccbdb.nist.gov/exp2x.asp?casno=7732185&charge=0",
+    "caveat": null
+  },
+  {
+    "id": "CO2",
+    "name": "Carbon dioxide",
+    "formula": "CO2",
+    "geometry": "linear",
+    "atoms": [
+      {
+        "id": "a0",
+        "symbol": "C",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "a1",
+        "symbol": "O",
+        "lonePairs": 2,
+        "unpaired": 0,
+        "position": [
+          0,
+          0,
+          1.1621
+        ]
+      },
+      {
+        "id": "a2",
+        "symbol": "O",
+        "lonePairs": 2,
+        "unpaired": 0,
+        "position": [
+          0,
+          0,
+          -1.1621
+        ]
+      }
+    ],
+    "bonds": [
+      {
+        "a": "a0",
+        "b": "a1",
+        "order": 2
+      },
+      {
+        "a": "a0",
+        "b": "a2",
+        "order": 2
+      }
+    ],
+    "charge": 0,
+    "geometryStatus": "NIST CCCBDB experimental reference geometry; rounded Cartesian coordinates in angstrom",
+    "source": "https://cccbdb.nist.gov/exp2x.asp?casno=124389&charge=0",
+    "caveat": null
+  },
+  {
+    "id": "NH3",
+    "name": "Ammonia",
+    "formula": "NH3",
+    "geometry": "trigonal pyramidal",
+    "atoms": [
+      {
+        "id": "a0",
+        "symbol": "N",
+        "lonePairs": 1,
+        "unpaired": 0,
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "a1",
+        "symbol": "H",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          0,
+          -0.9377,
+          -0.3816
+        ]
+      },
+      {
+        "id": "a2",
+        "symbol": "H",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          0.8121,
+          0.4689,
+          -0.3816
+        ]
+      },
+      {
+        "id": "a3",
+        "symbol": "H",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          -0.8121,
+          0.4689,
+          -0.3816
+        ]
+      }
+    ],
+    "bonds": [
+      {
+        "a": "a0",
+        "b": "a1",
+        "order": 1
+      },
+      {
+        "a": "a0",
+        "b": "a2",
+        "order": 1
+      },
+      {
+        "a": "a0",
+        "b": "a3",
+        "order": 1
+      }
+    ],
+    "charge": 0,
+    "geometryStatus": "NIST CCCBDB experimental reference geometry; rounded Cartesian coordinates in angstrom",
+    "source": "https://cccbdb.nist.gov/exp2x.asp?casno=7664417&charge=0",
+    "caveat": null
+  },
+  {
+    "id": "CH4",
+    "name": "Methane",
+    "formula": "CH4",
+    "geometry": "tetrahedral",
+    "atoms": [
+      {
+        "id": "a0",
+        "symbol": "C",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "a1",
+        "symbol": "H",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          0.6276,
+          0.6276,
+          0.6276
+        ]
+      },
+      {
+        "id": "a2",
+        "symbol": "H",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          0.6276,
+          -0.6276,
+          -0.6276
+        ]
+      },
+      {
+        "id": "a3",
+        "symbol": "H",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          -0.6276,
+          0.6276,
+          -0.6276
+        ]
+      },
+      {
+        "id": "a4",
+        "symbol": "H",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          -0.6276,
+          -0.6276,
+          0.6276
+        ]
+      }
+    ],
+    "bonds": [
+      {
+        "a": "a0",
+        "b": "a1",
+        "order": 1
+      },
+      {
+        "a": "a0",
+        "b": "a2",
+        "order": 1
+      },
+      {
+        "a": "a0",
+        "b": "a3",
+        "order": 1
+      },
+      {
+        "a": "a0",
+        "b": "a4",
+        "order": 1
+      }
+    ],
+    "charge": 0,
+    "geometryStatus": "NIST CCCBDB experimental reference geometry; rounded Cartesian coordinates in angstrom",
+    "source": "https://cccbdb.nist.gov/exp2x.asp?casno=74828&charge=0",
+    "caveat": null
+  },
+  {
+    "id": "C2H4",
+    "name": "Ethene",
+    "formula": "C2H4",
+    "geometry": "planar around each carbon",
+    "atoms": [
+      {
+        "id": "a0",
+        "symbol": "C",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          0,
+          0,
+          0.6695
+        ]
+      },
+      {
+        "id": "a1",
+        "symbol": "C",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          0,
+          0,
+          -0.6695
+        ]
+      },
+      {
+        "id": "a2",
+        "symbol": "H",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          0,
+          0.9289,
+          1.2321
+        ]
+      },
+      {
+        "id": "a3",
+        "symbol": "H",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          0,
+          -0.9289,
+          1.2321
+        ]
+      },
+      {
+        "id": "a4",
+        "symbol": "H",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          0,
+          0.9289,
+          -1.2321
+        ]
+      },
+      {
+        "id": "a5",
+        "symbol": "H",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          0,
+          -0.9289,
+          -1.2321
+        ]
+      }
+    ],
+    "bonds": [
+      {
+        "a": "a0",
+        "b": "a1",
+        "order": 2
+      },
+      {
+        "a": "a0",
+        "b": "a2",
+        "order": 1
+      },
+      {
+        "a": "a0",
+        "b": "a3",
+        "order": 1
+      },
+      {
+        "a": "a1",
+        "b": "a4",
+        "order": 1
+      },
+      {
+        "a": "a1",
+        "b": "a5",
+        "order": 1
+      }
+    ],
+    "charge": 0,
+    "geometryStatus": "NIST CCCBDB experimental reference geometry; rounded Cartesian coordinates in angstrom",
+    "source": "https://cccbdb.nist.gov/exp2x.asp?casno=74851&charge=0",
+    "caveat": null
+  },
+  {
+    "id": "C2H2",
+    "name": "Ethyne",
+    "formula": "C2H2",
+    "geometry": "linear",
+    "atoms": [
+      {
+        "id": "a0",
+        "symbol": "C",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          0,
+          0,
+          0.6013
+        ]
+      },
+      {
+        "id": "a1",
+        "symbol": "C",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          0,
+          0,
+          -0.6013
+        ]
+      },
+      {
+        "id": "a2",
+        "symbol": "H",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          0,
+          0,
+          1.6644
+        ]
+      },
+      {
+        "id": "a3",
+        "symbol": "H",
+        "lonePairs": 0,
+        "unpaired": 0,
+        "position": [
+          0,
+          0,
+          -1.6644
+        ]
+      }
+    ],
+    "bonds": [
+      {
+        "a": "a0",
+        "b": "a1",
+        "order": 3
+      },
+      {
+        "a": "a0",
+        "b": "a2",
+        "order": 1
+      },
+      {
+        "a": "a1",
+        "b": "a3",
+        "order": 1
+      }
+    ],
+    "charge": 0,
+    "geometryStatus": "NIST CCCBDB experimental reference geometry; rounded Cartesian coordinates in angstrom",
+    "source": "https://cccbdb.nist.gov/exp2x.asp?casno=74862&charge=0",
+    "caveat": null
+  }
+]

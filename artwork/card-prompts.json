@@ -178,5 +178,12 @@
     "id": "the-last-lighthouse",
     "title": "The Last Lighthouse",
     "prompt": "Detailed professional pixel-art indie-game key art, painstaking hand-placed pixel clusters and crisp hard edges, a controlled palette of approximately 48 colors specific to this scene, rich layered parallax depth, atmospheric pixel lighting and deliberate dithering. Cohesive premium collection quality, a tactile miniature diorama composed entirely of pixels. Render as if a carefully authored 480 by 270 pixel image were scaled cleanly with nearest-neighbor sampling. No photorealism, smooth 3D, blurry airbrush or antialiasing. An ivory lighthouse stands on a richly textured rocky island at the center of a midnight-teal ocean diorama. Its translucent golden beam sweeps across a clearly readable small fishing boat toward a mint-lit harbor beside the island; a sailing vessel and cargo ship approach from separate safe channels. Coral-toned reefs, scattered dark rocks, soft fog banks, warm harbor lamps and gently worked water reflections express deliberate guidance and rescue. No wrecks, distressed people or storm disaster spectacle. Compose as 16:9 landscape with the hero subjects and central gameplay mechanic inside the central 80 percent and crop-safe atmospheric edges. Strong readable silhouettes and recognizable gameplay at 280 by 160 card size; intricate pixel detail supports rather than obscures the main action. No text, letters, numbers, logos, UI, watermark, borders or frame."
+  },
+  {
+    "id": "elemental",
+    "title": "ELEMENTAL",
+    "prompt": "Original prepared Elemental molecular and periodic-table SVG, rendered locally as a lossless WebP. Bent water model with cyan table motifs on deep charcoal.",
+    "source": "games/elemental/card-art.svg",
+    "method": "Local SVG rasterization; existing prepared artwork, not a generated pixel illustration."
   }
 ]
