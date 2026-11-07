@@ -9,10 +9,12 @@ export class AudioEngine {
 
   _ensure() {
     if (this.ctx) return this.ctx;
+    if(this.unavailable)return null;
+    try{
     const AC = window.AudioContext || window.webkitAudioContext;
     this.ctx = new AC();
     this.master = this.ctx.createGain();
-    this.master.gain.value = 1;
+    this.master.gain.value = this.settings.muted?0:1;
     this.master.connect(this.ctx.destination);
     this.sfxGain = this.ctx.createGain();
     this.sfxGain.gain.value = this.settings.sfxVolume;
@@ -21,22 +23,27 @@ export class AudioEngine {
     this.musicGain.gain.value = this.settings.musicVolume;
     this.musicGain.connect(this.master);
     return this.ctx;
+    }catch{this.unavailable=true;return null;}
   }
 
   resume() {
+    this.unlocked=true;
     const ctx = this._ensure();
-    if (ctx.state === 'suspended') ctx.resume();
+    if (ctx?.state === 'suspended') ctx.resume().catch(()=>{});
   }
 
   setVolumes(settings) {
     this.settings = settings;
     if (!this.ctx) return;
+    this.master.gain.setTargetAtTime(settings.muted?0:1,this.ctx.currentTime,.05);
     this.sfxGain.gain.setTargetAtTime(settings.sfxVolume, this.ctx.currentTime, 0.05);
     this.musicGain.gain.setTargetAtTime(settings.musicVolume, this.ctx.currentTime, 0.05);
   }
 
   _tone(freq, dur, type = 'sine', gainPeak = 0.18, opts = {}) {
+    if(!this.unlocked)return;
     const ctx = this._ensure();
+    if(!ctx)return;
     const t0 = ctx.currentTime;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -58,6 +65,7 @@ export class AudioEngine {
   recordStop() { this._tone(620, 0.12, 'sawtooth', 0.1, { slideTo: 260 }); }
   rewind() {
     const ctx = this._ensure();
+    if(!ctx||!this.unlocked)return;
     const t0 = ctx.currentTime;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -84,6 +92,7 @@ export class AudioEngine {
   startMusic() {
     if (this.musicOn) return;
     const ctx = this._ensure();
+    if(!ctx||!this.unlocked)return;
     this.musicOn = true;
     const notes = [220, 261.6, 293.7, 329.6, 246.9];
     let i = 0;

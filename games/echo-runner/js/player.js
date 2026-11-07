@@ -20,14 +20,16 @@ export class InputTracker {
     this.keys = new Set();
     this._prevJump = false;
     this._prevInteract = false;
+    this.pressed=new Set();this.pendingJump=false;this.pendingInteract=false;
   }
 
   bind(target = window) {
     this._onDown = (e) => {
       const tag = e.target && e.target.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return; // let form controls behave normally
+      if (tag === 'INPUT' || tag === 'TEXTAREA'||tag==='SELECT') return; // let form controls behave normally
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
       this.keys.add(e.code);
+      if(!e.repeat){this.pressed.add(e.code);if(['ArrowUp','KeyW','Space'].includes(e.code))this.pendingJump=true;if(e.code==='KeyE')this.pendingInteract=true;}
     };
     this._onUp = (e) => {
       const tag = e.target && e.target.tagName;
@@ -36,7 +38,9 @@ export class InputTracker {
     };
     target.addEventListener('keydown', this._onDown);
     target.addEventListener('keyup', this._onUp);
+    target.addEventListener('blur',()=>this.reset());
   }
+  reset(){this.keys.clear();this.pressed.clear();this.pendingJump=false;this.pendingInteract=false;this._prevJump=false;this._prevInteract=false;}
 
   unbind(target = window) {
     target.removeEventListener('keydown', this._onDown);
@@ -55,8 +59,9 @@ export class InputTracker {
     const jumpHeld = this.isDown(['ArrowUp', 'KeyW', 'Space']);
     const interactHeld = this.isDown(['KeyE']);
 
-    const jumpPressed = jumpHeld && !this._prevJump;
-    const interactPressed = interactHeld && !this._prevInteract;
+    const jumpPressed = this.pendingJump||jumpHeld && !this._prevJump;
+    const interactPressed = this.pendingInteract||interactHeld && !this._prevInteract;
+    this.pendingJump=false;this.pendingInteract=false;
 
     this._prevJump = jumpHeld;
     this._prevInteract = interactHeld;
@@ -66,9 +71,10 @@ export class InputTracker {
 
   // one-shot edge checks for non-gameplay keys (menus etc.) — not part of the tick sample
   wasJustPressed(code, state) {
+    const queued=this.pressed.delete(code);
     const now = this.keys.has(code);
     const was = state.has(code);
     if (now) state.add(code); else state.delete(code);
-    return now && !was;
+    return queued||now && !was;
   }
 }

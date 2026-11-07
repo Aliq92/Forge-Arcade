@@ -5,6 +5,7 @@ import { createPlayerEntity, createEchoEntity, InputTracker } from './player.js'
 import { Recorder, echoInputAt } from './recorder.js';
 import { createRoomRuntime, evaluateTriggers, movingPlatformRectAt, laserActiveAt, doorSolidRect } from './objects.js';
 import { LEVELS, levelById, chapterOf } from './levels.js';
+import {VisualParticles,Celebration} from './effects.js';
 
 const SAVE_KEY = 'echoRunner.progress.v1';
 const SETTINGS_KEY = 'echoRunner.settings.v1';
@@ -16,6 +17,7 @@ const DEFAULT_SETTINGS = {
   echoTrailIntensity: 1,
   reducedMotion: false,
   showFPS: false,
+  muted:false,
 };
 
 function loadJSON(key, fallback) {
@@ -36,7 +38,11 @@ export class Game {
     this._edgeKeys = new Set();
 
     this.settings = loadJSON(SETTINGS_KEY, DEFAULT_SETTINGS);
+    this.settings.reducedMotion=!!this.settings.reducedMotion||!!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
     this.progress = loadJSON(SAVE_KEY, { unlockedLevel: 1, completed: {} });
+    if(!this.progress.completed||typeof this.progress.completed!=='object')this.progress.completed={};
+    const highest=Math.max(0,...Object.keys(this.progress.completed).map(Number).filter(id=>Number.isInteger(id)&&id>=1&&id<=LEVELS.length));
+    this.progress.unlockedLevel=Math.min(LEVELS.length,Math.max(1,Number(this.progress.unlockedLevel)||1,highest+1));
 
     this.state = 'title'; // title | levelSelect | howToPlay | settings | playing | paused | roomComplete
     this.previousMenuState = 'title';
@@ -57,21 +63,23 @@ export class Game {
     this.hintsShown = new Set();
     this.activeHints = [];
     this.mpPrevRects = {};
-    this.particles = [];
+    this.particles = new VisualParticles(180);this.confetti=new Celebration();this.visualTime=0;
     this.camera = { x: 0 };
     this.deathFlashT = 0;
     this.completeStats = null;
 
     window.addEventListener('keydown', (e) => this._onRawKeyDown(e));
+    if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{if(document.hidden)this.pause();});
   }
 
   on(fn) { this.listeners.add(fn); }
   emit(evt) { for (const l of this.listeners) l(evt); }
 
-  saveSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify(this.settings)); }
-  saveProgress() { localStorage.setItem(SAVE_KEY, JSON.stringify(this.progress)); }
+  saveSettings() { try{localStorage.setItem(SETTINGS_KEY, JSON.stringify(this.settings));}catch{} }
+  saveProgress() { try{localStorage.setItem(SAVE_KEY, JSON.stringify(this.progress));}catch{} }
 
   _onRawKeyDown(e) {
+    if(e.repeat)return;
     if (e.key === 'Escape') {
       if (this.state === 'playing') this.pause();
       else if (this.state === 'paused') this.resume();
@@ -85,8 +93,8 @@ export class Game {
   goSettings() { this.previousMenuState = this.state === 'settings' ? this.previousMenuState : this.state; this.state = 'settings'; }
   backFromSubmenu() { this.state = this.previousMenuState; }
 
-  pause() { if (this.state === 'playing') { this.state = 'paused'; } }
-  resume() { if (this.state === 'paused') { this.state = 'playing'; this.accumulator = 0; } }
+  pause() { if (this.state === 'playing') { this.state = 'paused';this.accumulator=0;this.input.reset(); } }
+  resume() { if (this.state === 'paused') { this.state = 'playing'; this.accumulator = 0;this.input.reset(); } }
   quitToLevelSelect() { this.state = 'levelSelect'; }
   quitToTitle() { this.state = 'title'; }
 
@@ -98,12 +106,14 @@ export class Game {
     this.levelDef = def;
     this.recorder = new Recorder(Math.round(def.recordingTime * TICK_RATE));
     this.hintsShown = new Set();
+    this.activeHints=[];this.particles.clear();this.confetti.clear();
     this.roomElapsedTicks = 0;
     this.attemptCount = 0;
     this.completeStats = null;
     this.toast = null;
     this.transition = null;
     this.accumulator = 0;
+    this.input.reset();this._edgeKeys.clear();
     this._resetAttempt(true);
     this.state = 'playing';
     this._queueHints('enter');
@@ -128,6 +138,7 @@ export class Game {
     const def = this.levelDef;
     this.recorder.cancel();
     this.attemptTick = 0;
+    this.input._prevJump=false;this.input._prevInteract=false;
     this.attemptCount++;
     this.player = createPlayerEntity(def.spawn);
     this.roomRuntime = createRoomRuntime(def);
@@ -146,6 +157,7 @@ export class Game {
 
     if (!isFirstLoad && this.echoes.length > 0) {
       this._spawnMaterializeBurst(def.spawn);
+      this.emit({type:'echoMaterialize'});
     }
   }
 
@@ -157,7 +169,7 @@ export class Game {
   _spawnMaterializeBurst(pos) {
     for (let i = 0; i < 18; i++) {
       const a = (i / 18) * Math.PI * 2;
-      this.particles.push({
+      this.particles.spawn({
         x: pos.x + 11, y: pos.y + 17, vx: Math.cos(a) * 90, vy: Math.sin(a) * 90,
         life: 0.5, maxLife: 0.5, color: 'echo',
       });
@@ -182,6 +194,7 @@ export class Game {
     if (!this.recorder.isRecording) {
       if (def.maxEchoes === 0) { this._showToast('RECORDING UNAVAILABLE IN THIS ROOM'); return; }
       if (this.recorder.echoes.length >= def.maxEchoes) { this._showToast('MAX ECHOES REACHED — CLEAR ONE FIRST'); return; }
+      this._resetAttempt(false);
       this.recorder.start();
       this.emit({ type: 'recordStart' });
       this._queueHints('firstRecord');
@@ -202,6 +215,9 @@ export class Game {
 
   // ------------------------------------------------------------------ update
   update(dtSeconds) {
+    dtSeconds=Math.min(.05,Math.max(0,Number.isFinite(dtSeconds)?dtSeconds:0));
+    if(this.state==='paused'){this.accumulator=0;return;}
+    this.visualTime+=dtSeconds;this.confetti.update(dtSeconds);
     if (this.toast) { this.toast.t += dtSeconds; if (this.toast.t > 2.2) this.toast = null; }
     for (const h of this.activeHints) if (h.shown) h.t += dtSeconds;
     for (const h of this.activeHints) if (!h.shown && h.delay <= 0) h.shown = true; else if (!h.shown) h.delay -= dtSeconds;
@@ -224,9 +240,9 @@ export class Game {
 
     this.accumulator += dtSeconds;
     let steps = 0;
-    while (this.accumulator >= DT && steps < 8 && !this.transition && this.state === 'playing') {
+    while (this.accumulator+1e-12 >= DT && steps < 8 && !this.transition && this.state === 'playing') {
       this._tick();
-      this.accumulator -= DT;
+      this.accumulator = Math.max(0,this.accumulator-DT);
       steps++;
     }
 
@@ -236,10 +252,7 @@ export class Game {
   }
 
   _updateParticles(dt) {
-    for (const p of this.particles) {
-      p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 260 * dt; p.life -= dt;
-    }
-    this.particles = this.particles.filter((p) => p.life > 0);
+    this.particles.update(dt);
   }
 
   _tick() {
@@ -281,10 +294,14 @@ export class Game {
       }
     }
     stepEntity(this.player, playerInput, solids);
+    if(this.player.jumpedThisTick)this.emit({type:'jump'});
+    if(this.player.landedThisTick){this.emit({type:'land'});this._movementBurst(this.player,8);}
+    if(tick%6===0&&this.player.grounded&&Math.abs(this.player.vx)>30)this._movementBurst(this.player,1);
     for (const echo of this.echoes) {
       const input = echoInputAt(echo.echoDef, tick);
       inputsThisTick.set(echo, input);
       stepEntity(echo, input, solids);
+      if(tick===echo.echoDef.inputs.length){this.emit({type:'echoHolding',index:echo.echoIndex});}
       if (tick % 2 === 0) {
         echo.trail.push({ x: echo.x + echo.w / 2, y: echo.y + echo.h });
         if (echo.trail.length > 10) echo.trail.shift();
@@ -297,6 +314,7 @@ export class Game {
     for (const ent of entities) {
       if (ent.y > def.height + 120) died = true;
       for (const s of def.hazards || []) if (aabbOverlap(ent, s)) died = true;
+      for(const h of def.movingHazards||[])if(aabbOverlap(ent,movingPlatformRectAt(h,tick)))died=true;
       for (const l of def.lasers || []) {
         if (laserActiveAt(l, tick, this.roomRuntime) && aabbOverlap(ent, l)) died = true;
       }
@@ -308,7 +326,7 @@ export class Game {
     if (events.length) this.emit({ type: 'objectEvents', events });
 
     // ---- exit check ----
-    if (aabbOverlap(this.player, def.exit)) {
+    if (!died&&aabbOverlap(this.player, def.exit)) {
       this._completeRoom();
       return;
     }
@@ -332,7 +350,12 @@ export class Game {
       }
     }
 
-    if (rPressed) this.toggleRecording();
+    if (rPressed){
+      const attempt=this.attemptCount;
+      this.toggleRecording();
+      // Only a real rewind changes the clock; denied commands must consume this tick.
+      if(this.attemptCount!==attempt||this.transition)return;
+    }
     if (qPressed) { this.emit({ type: 'manualReset' }); this._resetAttempt(false); return; }
 
     this.attemptTick++;
@@ -340,6 +363,7 @@ export class Game {
   }
 
   _completeRoom() {
+    if(this.state==='roomComplete')return;
     const def = this.levelDef;
     const timeSec = this.roomElapsedTicks / TICK_RATE;
     const echoesUsed = this.recorder.echoes.length;
@@ -358,6 +382,7 @@ export class Game {
       isLast: def.id >= LEVELS.length,
       nextId: def.id + 1,
     };
+    this.confetti.start(this.completeStats.isLast,this.settings.reducedMotion);
     this.emit({ type: 'roomComplete' });
     this.state = 'roomComplete';
   }
@@ -366,5 +391,10 @@ export class Game {
     const nextId = this.completeStats?.nextId;
     if (nextId && nextId <= LEVELS.length) this.loadLevel(nextId);
     else this.state = 'levelSelect';
+  }
+  replayEchoes(){if(this.state==='playing'&&!this.recorder.isRecording&&this.recorder.echoes.length)this._resetAttempt(false);}
+  _movementBurst(p,count){
+    const n=this.settings.reducedMotion?Math.min(count,2):count;
+    for(let i=0;i<n;i++)this.particles.spawn({x:p.x+p.w/2,y:p.y+p.h,vx:(i%2?1:-1)*(15+i*4),vy:-15-i*5,life:.25,maxLife:.25,color:'cyan'});
   }
 }

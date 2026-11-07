@@ -16,6 +16,7 @@ export const CHAPTERS = [
   { id: 'overlap', title: 'CHAPTER II', subtitle: 'OVERLAP', accent: '#b79bff' },
   { id: 'interference', title: 'CHAPTER III', subtitle: 'INTERFERENCE', accent: '#ff9bd6' },
   { id: 'convergence', title: 'CHAPTER IV', subtitle: 'CONVERGENCE', accent: '#ffd27f' },
+  { id: 'resonance', title: 'CHAPTER V', subtitle: 'RESONANCE', accent: '#73f4d4' },
 ];
 
 const FRAGMENTS = {
@@ -210,6 +211,55 @@ export const LEVELS = [
     ],
     exit: { x: 1340, y: 440, w: 40, h: 40 },
     hints: [{ text: 'THE FINAL CHAMBER. EVERYTHING YOU HAVE LEARNED.', showOn: 'enter' }],
+  },
+  // --------------------------------------------------------------- CHAPTER V
+  {
+    id:15,name:'First Contact',chapter:'resonance',maxEchoes:1,parEchoes:1,recordingTime:16,
+    width:960,height:540,spawn:{x:60,y:440},tiles:[floor(0,480,960)],
+    plates:[plate('memory',190,480,80,10,'echo')],
+    doors:[doorDef('passage',540,340,24,140,{links:['memory']})],
+    exit:{x:880,y:420,w:40,h:60},
+    hints:[{text:'VIOLET PLATES NEED AN ECHO. RECORD A WALK, THEN STAND STILL.',showOn:'enter'},{text:'YOUR PAST HOLDS THE PASSAGE. YOUR PRESENT CAN CROSS.',showOn:'firstEcho'}],
+  },
+  {
+    id:16,name:'The Moving Line',chapter:'resonance',maxEchoes:1,parEchoes:1,recordingTime:20,
+    width:960,height:540,spawn:{x:60,y:440},
+    tiles:[floor(0,480,470),floor(470,320,490,220)],
+    plates:[plate('anchor',170,480,80,10,'echo')],
+    movingPlatforms:[mpDef('lift',350,440,100,16,350,290,50,180)],
+    doors:[doorDef('upper',700,160,24,160,{links:['anchor']})],
+    exit:{x:880,y:260,w:40,h:60},
+    hints:[{text:'LEAVE AN ECHO ON THE PLATE. BOARD THE LIFT DURING ITS LONG PAUSE.',showOn:'enter'},{text:'RIDE UP, THEN WALK RIGHT ONTO THE HIGH LEDGE.',showOn:'firstEcho'}],
+  },
+  {
+    id:17,name:'Double Exposure',chapter:'resonance',maxEchoes:2,parEchoes:2,recordingTime:20,
+    width:960,height:540,spawn:{x:60,y:440},tiles:[floor(0,480,960)],
+    plates:[plate('near',190,480,70,10,'echo'),plate('far',460,480,70,10,'echo')],
+    doors:[doorDef('double',770,320,26,160,{links:['near','far'],requireAll:true})],
+    exit:{x:880,y:420,w:40,h:60},
+    hints:[{text:'TWO VIOLET PLATES. RECORD EACH ECHO FROM THE SAME START.',showOn:'enter'},{text:'STOP THE SECOND RECORDING ON THE FAR PLATE, THEN TAKE YOUR OWN ROUTE.',showOn:'firstEcho'}],
+  },
+  {
+    id:18,name:'Fractured Timing',chapter:'resonance',maxEchoes:1,parEchoes:1,recordingTime:20,
+    width:960,height:540,spawn:{x:60,y:440},tiles:[floor(0,480,960)],
+    switches:[swi('pulse',200,430,30,50,'echo')],
+    doors:[doorDef('window',760,320,24,160,{links:['pulse'],timedTicks:480})],
+    movingHazards:[mpDef('shifter',540,448,20,32,650,448,35,70)],
+    exit:{x:880,y:420,w:40,h:60},
+    hints:[{text:'RECORD E AT THE VIOLET SWITCH. YOUR ECHO OPENS AN EIGHT-SECOND WINDOW.',showOn:'enter'},{text:'JUMP THE MOVING MAGENTA FIELD. THE DOOR TIMER IS NOT A TOGGLE.',showOn:'firstEcho'}],
+  },
+  {
+    id:19,name:'The Final Echo',chapter:'resonance',maxEchoes:2,parEchoes:2,recordingTime:24,
+    width:1400,height:540,spawn:{x:60,y:440},
+    tiles:[floor(0,480,650),floor(960,480,440)],
+    plates:[plate('origin',190,480,70,10,'echo'),plate('relay',490,480,70,10,'echo')],
+    movingPlatforms:[mpDef('crossing',660,440,100,16,890,440,80,240)],
+    hazards:[spike(650,500,310,40)],
+    switches:[swi('present',1100,430,30,50,'player')],
+    doors:[doorDef('memoryGate',1020,320,24,160,{links:['origin','relay'],requireAll:true}),doorDef('finalWindow',1240,320,24,160,{links:['present'],timedTicks:300})],
+    exit:{x:1330,y:420,w:45,h:60},
+    fragment:'Your past holds the way. Your future takes the final step.',
+    hints:[{text:'TWO ECHOES HOLD THE RELAYS. THE CROSSING PAUSES FOR FOUR SECONDS.',showOn:'enter'},{text:'RIDE THE CROSSING. USE E AT THE CYAN SWITCH, THEN REACH THE FINAL CORE.',showOn:'firstEcho'}],
   },
 ];
 

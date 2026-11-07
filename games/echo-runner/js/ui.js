@@ -58,8 +58,10 @@ export class UI {
     click('btn-pause-levelselect', () => { g.quitToLevelSelect(); this._buildLevelGrid(); });
     click('btn-pause-title', () => g.quitToTitle());
 
-    click('btn-rc-next', () => g.nextLevel());
+    click('btn-rc-next', () => {g.nextLevel();if(g.state==='levelSelect')this._buildLevelGrid();});
     click('btn-rc-levelselect', () => { g.quitToLevelSelect(); this._buildLevelGrid(); });
+    click('btn-rc-replay',()=>g.restartRoom());
+    click('btn-rc-title',()=>g.goTitle());
 
     click('btn-clear-last', () => g.clearLastEcho());
     click('btn-clear-all', () => g.clearAllEchoes());
@@ -71,6 +73,7 @@ export class UI {
     $('set-trail').addEventListener('input', (e) => { g.settings.echoTrailIntensity = parseFloat(e.target.value); g.saveSettings(); });
     $('set-reduced').addEventListener('change', (e) => { g.settings.reducedMotion = e.target.checked; g.saveSettings(); });
     $('set-fps').addEventListener('change', (e) => { g.settings.showFPS = e.target.checked; g.saveSettings(); this.el.fps.classList.toggle('hidden', !e.target.checked); });
+    $('set-sound-enabled').addEventListener('change',e=>{g.settings.muted=!e.target.checked;g.saveSettings();this.audio.setVolumes(g.settings);});
 
     g.on((evt) => this._onGameEvent(evt));
   }
@@ -78,6 +81,10 @@ export class UI {
   _onGameEvent(evt) {
     switch (evt.type) {
       case 'recordStart': this.audio.recordStart(); break;
+      case 'jump':this.audio.jump();break;
+      case 'land':this.audio.land();break;
+      case 'echoMaterialize':this.audio.echoMaterialize();break;
+      case 'echoHolding':this.game._showToast('E'+(evt.index+1)+' HOLDING POSITION');break;
       case 'recordStop': this.audio.recordStop(); this.audio.rewind(); break;
       case 'recordExpired': this.audio.death(); break;
       case 'death': this.audio.death(); break;
@@ -103,6 +110,7 @@ export class UI {
     $('set-trail').value = s.echoTrailIntensity;
     $('set-reduced').checked = s.reducedMotion;
     $('set-fps').checked = s.showFPS;
+    $('set-sound-enabled').checked=!s.muted;
     this.el.fps.classList.toggle('hidden', !s.showFPS);
   }
 
@@ -136,15 +144,18 @@ export class UI {
     const g = this.game;
     const stats = g.completeStats;
     const def = g.levelDef;
-    this.el.rcTitle.textContent = stats.isLast ? 'ECHO RUNNER — COMPLETE' : 'ROOM COMPLETE';
+    this.el.rcTitle.textContent = stats.isLast ? 'THE FINAL ECHO — COMPLETE!' : 'LEVEL COMPLETE!';
     this.el.rcStats.innerHTML = `
+      <div class="row"><span>Level</span><span>${def.id} / ${LEVELS.length}</span></div>
       <div class="row"><span>Time</span><span>${stats.timeSec.toFixed(1)}s${stats.isBest ? ' (best)' : ''}</span></div>
       <div class="row"><span>Echoes Used</span><span>${stats.echoesUsed}${def.parEchoes != null ? ` (par ${def.parEchoes})` : ''}</span></div>
       <div class="row"><span>Total Recording Time</span><span>${stats.recordingSec.toFixed(1)}s</span></div>
       ${stats.mastered ? '<div class="row"><span>Mastery</span><span>★ within par</span></div>' : ''}
+      ${stats.isLast?'<div class="row"><span>Adventure progress</span><span>'+Object.keys(g.progress.completed).length+' / '+LEVELS.length+' levels</span></div>':''}
     `;
     this.el.rcFragment.textContent = def.fragment || '';
-    $('btn-rc-next').textContent = stats.isLast ? 'LEVEL SELECT' : 'NEXT ROOM';
+    $('btn-rc-next').textContent = stats.isLast ? 'LEVEL SELECT' : 'NEXT LEVEL';
+    $('btn-rc-levelselect').classList.toggle('hidden',stats.isLast);
   }
 
   // ------------------------------------------------------------ per-frame sync
@@ -162,6 +173,7 @@ export class UI {
     this.el.hud.classList.toggle('hidden', !inGameplay);
     // actual visibility is further restricted to portrait/narrow screens via CSS media queries
     this.el.rotateHint.classList.toggle('hidden', !inGameplay);
+    document.body.classList.toggle('reduced-motion',g.settings.reducedMotion);
   }
 
   syncHUD() {
@@ -171,6 +183,7 @@ export class UI {
     const ch = chapterOf(def);
     this.el.hudChapter.textContent = `${ch.subtitle} · `;
     this.el.hudRoom.textContent = `${def.id}. ${def.name}`;
+    const holding=g.recorder.echoes.filter(e=>g.attemptTick>=e.inputs.length).length;
     this.el.hudEchoCount.textContent = `ECHOES ${g.recorder.echoes.length} / ${def.maxEchoes}`;
 
     if (def.maxEchoes === 0) {
@@ -178,20 +191,25 @@ export class UI {
     } else {
       this.el.timelineWrap.classList.remove('hidden');
       const maxSec = def.recordingTime;
-      const cur = g.recorder.isRecording ? g.recorder.buffer.length / 60 : 0;
-      this.el.timelineTime.textContent = `${cur.toFixed(1)}s / ${maxSec.toFixed(0)}s`;
-      const pct = Math.min(100, (cur / maxSec) * 100);
+      const maxPlayback=Math.max(0,...g.recorder.echoes.map(e=>e.inputs.length));
+      const cur = g.recorder.isRecording ? g.recorder.buffer.length / 60 :Math.min(maxPlayback,g.attemptTick)/60;
+      const duration=g.recorder.isRecording?maxSec:maxPlayback/60||maxSec;
+      $('timeline-status').textContent=g.recorder.isRecording?'RECORDING':maxPlayback?'PLAYBACK · '+holding+' HOLDING':'READY · R TO RECORD';
+      this.el.timelineTime.textContent = `${cur.toFixed(1)}s / ${duration.toFixed(1)}s`;
+      const pct = Math.min(100, (cur / duration) * 100);
       this.el.timelineFill.style.width = `${pct}%`;
       this.el.timelineFill.style.background = g.recorder.isRecording
         ? 'linear-gradient(90deg, rgba(255,140,160,0.5), rgba(255,93,122,0.85))'
         : 'linear-gradient(90deg, rgba(127,227,255,0.35), rgba(127,227,255,0.75))';
 
-      this.el.timelineMarkers.innerHTML = '';
+      const markerKey=g.recorder.echoes.map(e=>e.id).join(',')+':'+duration;
+      if(this._markerKey!==markerKey){this._markerKey=markerKey;this.el.timelineMarkers.innerHTML = '';
       for (const echo of g.recorder.echoes) {
         const m = document.createElement('div');
         m.className = 'timeline-marker';
-        m.style.left = `${Math.min(100, (echo.inputs.length / 60 / maxSec) * 100)}%`;
+        m.style.left = `${Math.min(100, (echo.inputs.length / 60 / duration) * 100)}%`;
         this.el.timelineMarkers.appendChild(m);
+      }
       }
     }
 

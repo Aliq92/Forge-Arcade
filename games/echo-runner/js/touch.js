@@ -5,6 +5,7 @@ export class TouchControls {
   constructor(game) {
     this.game = game;
     this.enabled = false;
+    this.releases=[];
     this.root = document.getElementById('touch-controls');
     this.buttons = {
       left: document.getElementById('tc-left'),
@@ -14,6 +15,7 @@ export class TouchControls {
       record: document.getElementById('tc-record'),
       reset: document.getElementById('tc-reset'),
       pause: document.getElementById('tc-pause'),
+      replay:document.getElementById('tc-replay'),
     };
 
     this._bindKey('left', 'ArrowLeft');
@@ -22,6 +24,7 @@ export class TouchControls {
     this._bindKey('interact', 'KeyE');
     this._bindKey('record', 'KeyR');
     this._bindKey('reset', 'KeyQ');
+    this.buttons.replay.addEventListener('pointerdown',e=>{e.preventDefault();this.game.replayEchoes();});
 
     const pauseDown = (e) => {
       e.preventDefault();
@@ -44,12 +47,15 @@ export class TouchControls {
 
     const press = (e) => {
       e.preventDefault();
+      if(this.game.state!=='playing')return;
       if (activePointerId !== null) return;
       activePointerId = e.pointerId;
       if (el.setPointerCapture) {
         try { el.setPointerCapture(e.pointerId); } catch (_) {}
       }
       this.game.input.keys.add(code);
+      this.game.input.pressed.add(code);
+      if(code==='Space')this.game.input.pendingJump=true;if(code==='KeyE')this.game.input.pendingInteract=true;
       el.classList.add('pressed');
     };
 
@@ -72,6 +78,7 @@ export class TouchControls {
     el.addEventListener('pointerup', release);
     el.addEventListener('pointercancel', release);
     el.addEventListener('lostpointercapture', release);
+    this.releases.push(()=>release());
   }
 
   _watchDeviceType() {
@@ -89,7 +96,8 @@ export class TouchControls {
   // called once per frame from main.js, alongside ui.syncScreens()/syncHUD()
   sync() {
     const visible = this.enabled && this.game.state === 'playing';
+    if(!visible&&this._wasVisible)this.releases.forEach(fn=>fn());this._wasVisible=visible;
     this.root.classList.toggle('hidden', !visible);
-    if (visible) this.buttons.record.classList.toggle('active', this.game.recorder.isRecording);
+    if (visible){this.buttons.record.classList.toggle('active', this.game.recorder.isRecording);this.buttons.record.textContent=this.game.recorder.isRecording?'■':'●';this.buttons.replay.disabled=!this.game.recorder.echoes.length||this.game.recorder.isRecording;}
   }
 }

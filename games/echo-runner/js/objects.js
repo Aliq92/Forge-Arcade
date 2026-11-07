@@ -115,6 +115,7 @@ export function evaluateTriggers(levelDef, rt, entities, inputsThisTick, tick, e
     let open = logic;
     // timed doors: a linked switch turning on (rising edge) starts a countdown window
     if (door.timedTicks) {
+      open=false;
       for (const linkId of door.links || []) {
         const sw = rt.switches[linkId];
         if (!sw) continue;

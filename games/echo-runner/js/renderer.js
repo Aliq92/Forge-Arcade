@@ -17,7 +17,7 @@ const COLORS = {
   ok: '#7fffb0',
 };
 
-const ECHO_PALETTE = ['#8fd6ff', '#c7a8ff', '#ffd27f', '#8fffcf'];
+const ECHO_PALETTE = ['#a4b5ff', '#cf9fff', '#7af3d2', '#8fd6ff'];
 
 export function clear(ctx, w, h) {
   const g = ctx.createLinearGradient(0, 0, 0, h);
@@ -62,6 +62,9 @@ export function drawTile(ctx, t) {
   ctx.strokeRect(t.x + 0.5, t.y + 0.5, t.w - 1, t.h - 1);
   ctx.fillStyle = COLORS.tileEdgeGlow;
   ctx.fillRect(t.x, t.y, t.w, 3);
+  ctx.fillStyle='rgba(125,190,225,.14)';
+  for(let x=t.x+16;x<t.x+t.w-8;x+=48)ctx.fillRect(x,t.y+8,16,2);
+  ctx.fillStyle='rgba(0,0,0,.22)';ctx.fillRect(t.x,t.y+t.h-5,t.w,5);
 }
 
 export function drawPlate(ctx, plate, active) {
@@ -145,10 +148,10 @@ export function drawLaser(ctx, laser, active, t) {
   ctx.restore();
 }
 
-export function drawCrumble(ctx, cf, state) {
+export function drawCrumble(ctx, cf, state,reduced=false) {
   if (state.broken) return;
   ctx.save();
-  const shake = state.touchedTick !== null ? Math.sin(Date.now() * 0.08) * 1.2 : 0;
+  const shake = state.touchedTick !== null&&!reduced ? Math.sin(Date.now() * 0.08) * 1.2 : 0;
   ctx.translate(shake, 0);
   ctx.fillStyle = state.touchedTick !== null ? '#3a2c2c' : '#242a33';
   ctx.fillRect(cf.x, cf.y, cf.w, cf.h);
@@ -220,39 +223,36 @@ function squashScale(ent) {
 }
 
 export function drawPlayer(ctx, p, t) {
-  const { sx, sy } = squashScale(p);
-  const cx = p.x + p.w / 2, cy = p.y + p.h;
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.scale(sx, sy);
-  ctx.shadowColor = COLORS.playerGlow;
-  ctx.shadowBlur = 18;
-  ctx.fillStyle = COLORS.player;
-  roundRectPath(ctx, -p.w / 2, -p.h, p.w, p.h, 6);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = '#0a0d12';
-  const eyeX = p.facing >= 0 ? 3 : -7;
-  ctx.fillRect(eyeX, -p.h + 10, 4, 4);
+  drawExplorer(ctx,p,t,null);
+}
+
+function drawExplorer(ctx,p,t,echoColor){
+  const speed=Math.min(1,Math.abs(p.vx||0)/230),running=p.grounded&&speed>.1;
+  const stride=running?Math.sin(t*22)*4*speed:0,jump=!p.grounded&&p.vy!==undefined;
+  const idle=running||jump?0:Math.sin(t*3)*.5;
+  const color=echoColor||'#fff4df',cyan=echoColor||'#7fe3ff';
+  ctx.save();ctx.translate(p.x+p.w/2,p.y+p.h);ctx.scale(p.facing||1,1);
+  ctx.shadowBlur=echoColor?8:12;ctx.shadowColor=cyan;
+  // Backpack, separate boots and a rounded helmet establish a readable explorer silhouette.
+  ctx.fillStyle=echoColor?'#27304d':'#2c4658';ctx.fillRect(-11,-23,5,13);
+  ctx.fillStyle=cyan;ctx.fillRect(-11,-20,2,5);ctx.shadowBlur=0;
+  ctx.fillStyle=color;roundRectPath(ctx,-7,-23+idle,14,15,4);ctx.fill();
+  ctx.fillRect(-7,-8+(jump?-2:stride),5,8);ctx.fillRect(2,-8+(jump?-2:-stride),5,8);
+  ctx.fillStyle=cyan;ctx.fillRect(-7,-2+(jump?-2:stride),5,2);ctx.fillRect(2,-2+(jump?-2:-stride),5,2);
+  ctx.strokeStyle=color;ctx.lineWidth=3;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(6,-21+idle);ctx.lineTo(10,-12+(jump?-7:-stride));ctx.stroke();
+  ctx.fillStyle=color;roundRectPath(ctx,-10,-34+idle,20,14,6);ctx.fill();
+  ctx.fillStyle='#102639';roundRectPath(ctx,-7,-30+idle,15,7,3);ctx.fill();
+  ctx.fillStyle=cyan;ctx.fillRect(-4,-28+idle,11,3);ctx.fillStyle='#f5ffff';ctx.fillRect(4,-28+idle,2,2);
+  ctx.fillStyle='#29495c';ctx.fillRect(-4,-19+idle,8,5);ctx.fillStyle=cyan;ctx.fillRect(0,-18+idle,2,3);
   ctx.restore();
 }
 
 export function drawEcho(ctx, e, t, intensity) {
   const color = ECHO_PALETTE[e.echoIndex % ECHO_PALETTE.length];
-  const { sx, sy } = squashScale(e);
-  const cx = e.x + e.w / 2, cy = e.y + e.h;
   ctx.save();
-  ctx.globalAlpha = 0.55;
-  ctx.translate(cx, cy);
-  ctx.scale(sx, sy);
-  ctx.shadowColor = color;
-  ctx.shadowBlur = 14 * intensity;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1.6;
-  ctx.fillStyle = hexAlpha(color, 0.18);
-  roundRectPath(ctx, -e.w / 2, -e.h, e.w, e.h, 6);
-  ctx.fill();
-  ctx.stroke();
+  ctx.globalAlpha = 0.43;
+  drawExplorer(ctx,e,t,color);
   ctx.restore();
 
   ctx.save();
@@ -260,7 +260,7 @@ export function drawEcho(ctx, e, t, intensity) {
   ctx.fillStyle = color;
   ctx.font = 'bold 9px "Segoe UI", sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(`E${e.echoIndex + 1}`, e.x + e.w / 2, e.y - 6);
+    ctx.fillText(`E${e.echoIndex + 1}`, e.x + e.w / 2, e.y - 6);
   ctx.restore();
 }
 
@@ -306,23 +306,25 @@ export function drawParticles(ctx, particles) {
 export function renderRoom(ctx, w, h, game) {
   const def = game.levelDef;
   const rt = game.roomRuntime;
-  const t = game.roomElapsedTicks / 60;
+  const t = game.settings.reducedMotion?0:game.visualTime;
   const chapter = def.chapter;
-  const accentMap = { repeat: '#7fd7ff', overlap: '#b79bff', interference: '#ff9bd6', convergence: '#ffd27f' };
+  const accentMap = { repeat: '#7fd7ff', overlap: '#b79bff', interference: '#ff9bd6', convergence: '#ffd27f',resonance:'#73f4d4' };
 
   clear(ctx, w, h);
   drawBackgroundGrid(ctx, w, h, game.camera.x, accentMap[chapter] || '#7fd7ff');
+  drawAtmosphere(ctx,w,h,game.camera.x,t,accentMap[chapter]||'#7fd7ff',chapter);
 
   ctx.save();
   ctx.translate(-game.camera.x, 0);
 
   for (const tile of def.tiles) drawTile(ctx, tile);
 
-  for (const cf of def.crumblingFloors || []) drawCrumble(ctx, cf, rt.crumbling[cf.id]);
+  for (const cf of def.crumblingFloors || []) drawCrumble(ctx, cf, rt.crumbling[cf.id],game.settings.reducedMotion);
 
-  for (const mp of def.movingPlatforms || []) drawMovingPlatform(ctx, movingPlatformRectAt(mp, game.attemptTick));
+  for (const mp of def.movingPlatforms || []){ctx.save();ctx.strokeStyle='rgba(127,227,255,.18)';ctx.setLineDash([3,7]);ctx.beginPath();ctx.moveTo(mp.points[0].x+mp.w/2,mp.points[0].y);ctx.lineTo(mp.points[1].x+mp.w/2,mp.points[1].y);ctx.stroke();ctx.restore();drawMovingPlatform(ctx,movingPlatformRectAt(mp,game.attemptTick));}
 
   for (const s of def.hazards || []) drawSpike(ctx, s);
+  for(const h of def.movingHazards||[])drawLaser(ctx,movingPlatformRectAt(h,game.attemptTick),true,t);
 
   for (const plate of def.plates || []) drawPlate(ctx, plate, rt.plates[plate.id].active);
   for (const sw of def.switches || []) drawSwitch(ctx, sw, rt.switches[sw.id].on);
@@ -332,11 +334,12 @@ export function renderRoom(ctx, w, h, game) {
   for (const door of def.doors || []) {
     const st = rt.doors[door.id];
     drawDoor(ctx, door, st.open, st.timedUntil !== null);
+    if(st.timedUntil!==null){ctx.save();ctx.fillStyle=COLORS.cyan;ctx.font='bold 12px system-ui';ctx.textAlign='center';ctx.fillText(Math.max(0,(st.timedUntil-game.attemptTick)/60).toFixed(1)+'s',door.x+door.w/2,door.y-10);ctx.restore();}
   }
 
   drawExit(ctx, def.exit, t, true);
 
-  drawParticles(ctx, game.particles);
+  drawParticles(ctx, game.particles.active);
 
   const intensity = game.settings.reducedMotion ? 0 : game.settings.echoTrailIntensity;
   for (const echo of game.echoes) drawEchoTrail(ctx, echo.trail, echo.echoIndex, intensity);
@@ -351,6 +354,36 @@ export function renderRoom(ctx, w, h, game) {
     ctx.fillRect(0, 0, w, h);
     ctx.restore();
   }
+}
+
+function drawAtmosphere(ctx,w,h,cam,t,accent,chapter){
+ ctx.save();
+ // Recessed chamber ribs, cable runs and broken-vault details are deliberately dim.
+ for(let layer=0;layer<2;layer++){
+  const spacing=layer?220:150,offset=-((cam*(layer?.2:.08))%spacing);
+  for(let x=offset-spacing;x<w+spacing;x+=spacing){
+   ctx.fillStyle=hexAlpha(accent,layer?.035:.025);ctx.fillRect(x,50,layer?12:30,h-150);
+   ctx.strokeStyle=hexAlpha(accent,.07);ctx.lineWidth=1;ctx.strokeRect(x+4,80,38,100);
+   if(chapter==='interference'||chapter==='resonance'){ctx.beginPath();ctx.moveTo(x,60);ctx.lineTo(x+38,110);ctx.lineTo(x+38,160);ctx.stroke();}
+   else if(chapter==='overlap'){ctx.fillRect(x+12,210,35,6);ctx.fillRect(x-20,260,25,5);}
+  }
+ }
+ for(let i=0;i<34;i++){
+  const x=((i*173.3-cam*.12+t*(3+i%4))%w+w)%w,y=45+((i*73.7)%Math.max(1,h-160))+Math.sin(t*.55+i)*7;
+  ctx.fillStyle=hexAlpha(accent,.14+(i%3)*.05);ctx.fillRect(x,y,i%5===0?2:1,2);
+ }
+ ctx.strokeStyle=hexAlpha(accent,.12);ctx.beginPath();ctx.moveTo(0,48);ctx.lineTo(w,48);ctx.stroke();ctx.restore();
+}
+
+export function drawCelebration(ctx,w,h,celebration){
+ ctx.clearRect(0,0,w,h);if(celebration.time<=0)return;
+ const alpha=Math.min(1,celebration.time/.45);ctx.save();ctx.globalAlpha=alpha*.9;
+ for(let i=0;i<celebration.count;i++){
+  const p=celebration.particles[i];ctx.save();ctx.translate(p.x/960*w,p.y/540*h);ctx.rotate(p.angle);ctx.fillStyle=p.color;
+  if(p.shape===0){ctx.beginPath();ctx.arc(0,0,p.size*.55,0,Math.PI*2);ctx.fill();}
+  else ctx.fillRect(-p.size/2,-p.size/2,p.shape===2?p.size*1.8:p.size,p.shape===2?2:p.size*.6);
+  ctx.restore();
+ }ctx.restore();
 }
 
 export function renderRewindTransition(ctx, w, h, progress, reducedMotion) {
