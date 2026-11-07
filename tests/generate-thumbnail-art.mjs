@@ -1,5 +1,5 @@
 // Original vector scenes for the arcade. Run from repository root to regenerate.
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 const out = new URL('../assets/thumbnails/', import.meta.url);
 await mkdir(out, {recursive:true});
 const circle=(x,y,r,fill,extra='')=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" ${extra}/>`;
@@ -63,5 +63,7 @@ for(const [id,{a,b,body}] of Object.entries(scenes)){
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360"><defs><radialGradient id="bg"><stop stop-color="${a}" stop-opacity=".24"/><stop offset="1" stop-color="#0e1722"/></radialGradient><linearGradient id="shade" x2="0" y2="1"><stop offset=".65" stop-color="#080f1c" stop-opacity="0"/><stop offset="1" stop-color="#080f1c" stop-opacity=".4"/></linearGradient></defs><rect width="640" height="360" fill="#101b28"/><rect width="640" height="360" fill="url(#bg)"/>${body}<rect width="640" height="360" fill="url(#shade)"/></svg>\n`;
   await writeFile(new URL(id+'.svg',out),svg);
 }
-await writeFile(new URL('../card-thumbnails.js',import.meta.url),`'use strict';\n// Original SVG illustrations; unknown future entries keep the existing CSS artwork.\nconst CARD_THUMBNAILS = new Set(${JSON.stringify(Object.keys(scenes),null,2)});\nfunction cardArtworkHTML(game) {\n  if (!CARD_THUMBNAILS.has(game.id)) return '<span class="art-code">' + game.title.charAt(0) + '</span>';\n  return '<img class="game-thumbnail" src="assets/thumbnails/' + game.id + '.svg" alt="" width="640" height="360" loading="lazy" decoding="async">';\n}\n`);
+const standaloneArt=['the-last-lighthouse'];
+for(const id of standaloneArt)await writeFile(new URL(id+'.svg',out),await readFile(new URL('../games/'+id+'/thumbnail.svg',import.meta.url)));
+// The gallery renderer is hand-maintained; regeneration only writes SVG artwork.
 console.log(`Generated ${Object.keys(scenes).length} original thumbnail scenes.`);

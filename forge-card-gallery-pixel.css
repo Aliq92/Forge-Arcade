@@ -1,0 +1,25 @@
+/* Pixel artwork only; preserve the arcade's existing layout and controls. */
+.card-art .game-thumbnail-frame,
+.f-card-art .game-thumbnail-frame {
+  display: block;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+.card-art .game-thumbnail-frame > .game-thumbnail,
+.f-card-art .game-thumbnail-frame > .game-thumbnail {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+.spotlight-art {
+  background: #0c0a08 url('assets/thumbnails/pixel/digital-ant-colony.webp') center / cover no-repeat;
+  image-rendering: pixelated;
+}
+.spotlight-art canvas {
+  mix-blend-mode: screen;
+  opacity: .25;
+}

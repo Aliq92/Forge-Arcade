@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b1b22">
+  <meta name="description" content="One light. Twelve lives to guide home. A self-contained maritime rescue game about light, patience, and the sea.">
+  <title>The Last Lighthouse · Forge Arcade</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23e7d7b0' d='M12 12h8l3 17H9zM11 5h10v7H11zM9 5l7-4 7 4z'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="simulation.js"></script>
+  <script defer src="rendering.js"></script>
+  <script defer src="audio.js"></script>
+  <script defer src="game.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to the lighthouse</a>
+  <header class="topbar">
+    <a href="../../index.html" class="arcade-link" aria-label="Back to Forge Arcade">← <span>FORGE ARCADE</span></a>
+    <span class="station-code">NORTH REACH <i> / </i> KEEPERS' STATION 07</span>
+    <button id="sound-button" class="text-button" type="button" aria-pressed="false"><span aria-hidden="true">≋</span> <span id="sound-label">Sound off</span></button>
+  </header>
+  <main id="main" tabindex="-1">
+    <section id="menu" class="landing" aria-labelledby="title">
+      <div class="landing-copy">
+        <p class="eyebrow"><i class="tiny-light"></i> A SMALL LIGHT AT THE EDGE OF THE WORLD</p>
+        <h1 id="title"><span>THE LAST</span>LIGHTHOUSE</h1>
+        <p class="subtitle">One light.<br>Twelve lives to guide home.</p>
+        <p class="story">The storm has swallowed every other beacon.<br>Keep the lamp burning. Bring them ashore.</p>
+        <div class="landing-actions"><button id="start-button" type="button" class="primary-button">Start game <span aria-hidden="true">↗</span></button><button id="how-button" type="button" class="secondary-button">How to play</button></div>
+        <p class="fine-print">A QUIET WATCH <span>·</span> THREE VESSEL CLASSES <span>·</span> ONE BEACON</p>
+        <p id="storage-notice" class="storage-notice" role="status" hidden>Sound preferences cannot be saved in this browser. The full game is still available.</p>
+      </div>
+      <div id="menu-scene" class="menu-scene">
+        <div id="ocean-frame" class="ocean-frame">
+          <canvas id="ocean" tabindex="0" role="img" aria-label="Ocean rescue arena. Aim the lighthouse with A and D or arrow keys, or drag across the ocean. Space toggles the beam."></canvas>
+        </div>
+      </div>
+      <p class="chart-caption">58° 17′ N &nbsp; 06° 42′ W <span>THE SEA REMEMBERS ITS KEEPERS</span></p>
+    </section>
+
+    <section id="game-screen" class="game-screen" aria-labelledby="watch-title" hidden>
+      <div class="watch-heading"><div><p class="eyebrow">NORTH REACH / NIGHT WATCH</p><h2 id="watch-title">Bring them home.</h2></div><button id="pause-button" class="secondary-button pause-button" type="button" aria-label="Pause the watch (P)"><span aria-hidden="true">Ⅱ</span> Pause</button></div>
+      <div class="watch-layout">
+        <div class="sea-column">
+          <div class="watch-stats"><div><span class="label">RESCUED</span><strong id="rescued-count">0 <small>/ 12</small></strong></div><div><span class="label">LOST</span><strong id="lost-count">0 <small>/ 3</small></strong></div><div class="watch-clock"><span class="label">WATCH TIME</span><strong id="clock">00:00</strong></div></div>
+          <div id="arena-mount" class="arena-mount"></div>
+          <div class="chart-baseline" aria-hidden="true"><span>MARINER'S CHART / NORTH REACH</span><span>FIXED BEARING · TRUE NORTH ↑</span></div>
+        </div>
+        <aside class="keeper-console" aria-label="Lighthouse controls and readings">
+          <div class="energy-control">
+            <div class="gauge-heading"><span class="label">LAMP ENERGY</span><strong id="energy-value">100 <small>%</small></strong></div>
+            <div id="energy-meter" class="meter energy-meter" role="meter" aria-label="Lighthouse beam energy" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><i id="energy-fill"></i></div>
+            <div class="energy-caption"><span id="energy-state">LAMP BURNING</span><span id="energy-rate">−8 / SEC</span></div>
+            <button id="beam-button" class="beam-button" type="button" aria-pressed="true"><span class="lamp-icon" aria-hidden="true">◉</span><span id="beam-button-label">Extinguish beam</span><kbd>SPACE</kbd></button>
+          </div>
+          <div class="weather-control"><div class="gauge-heading"><span class="label">STORM / FOG</span><strong id="storm-value">12 <small>%</small></strong></div><div id="storm-meter" class="meter storm-meter" role="meter" aria-label="Storm and fog intensity" aria-valuemin="0" aria-valuemax="100" aria-valuenow="12"><i id="storm-fill"></i></div><p id="weather-caption">A quiet opening in the weather.</p></div>
+          <div id="ship-readout" class="ship-readout"><span class="label">THE SHIPPING LANE</span><strong id="ship-name">Waiting for the first vessel</strong><p id="ship-status">The harbor lights mark safe water.</p></div>
+          <div id="notice" class="notice" role="status" aria-live="polite">Sweep the light across a ship to help it find the harbor.</div>
+          <p class="control-note"><span class="desktop-controls">DRAG TO AIM <span>·</span> A / D TO ROTATE<br>SPACE: BEAM <span>·</span> P: PAUSE <span>·</span> R: RESTART</span><span class="touch-controls">DRAG ACROSS THE SEA TO AIM<br>TAP THE LAMP BUTTON TO REST AND RECHARGE</span></p>
+        </aside>
+      </div>
+    </section>
+  </main>
+  <div id="dialog-backdrop" class="dialog-backdrop" hidden>
+    <section id="dialog" class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title" aria-describedby="dialog-copy" tabindex="-1">
+      <p id="dialog-kicker" class="eyebrow"></p><div id="dialog-mark" class="dialog-mark" aria-hidden="true">✧</div><h2 id="dialog-title"></h2><p id="dialog-copy" class="dialog-copy"></p><div id="dialog-detail" class="dialog-detail"></div><div id="dialog-actions" class="dialog-actions"></div>
+    </section>
+  </div>
+  <noscript><p class="noscript">This lighthouse needs JavaScript to guide its ships. Open index.html in a browser with JavaScript enabled.</p></noscript>
+</body>
+</html>
