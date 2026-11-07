@@ -19,7 +19,7 @@ class Renderer {
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
   }
 
-  draw({ player, world, camera, particles, starfield, time, sectorInfo, reducedMotion, insideIonCloud }) {
+  draw({ player, world, camera, particles, starfield, time, sectorInfo, reducedMotion, insideIonCloud,survival,celebrationTimer=0 }) {
     const ctx = this.ctx;
     const w = this.width, h = this.height;
 
@@ -40,9 +40,15 @@ class Renderer {
     starfield.drawStars(ctx, cam, w, h, time, reducedMotion);
 
     world.draw(ctx, cam, w, h, time);
+    survival?.draw(ctx,cam,w,h,time,reducedMotion);
     particles.draw(ctx, cam, w, h);
     if (!player.destroyed) player.draw(ctx, cam, w, h, time);
     ctx.restore();
+
+    if(celebrationTimer>0&&!reducedMotion){
+      const glow=ctx.createLinearGradient(0,0,0,h);const alpha=Math.min(.12,celebrationTimer*.12);
+      glow.addColorStop(0,'rgba(100,224,255,'+alpha+')');glow.addColorStop(.12,'rgba(100,224,255,0)');glow.addColorStop(.88,'rgba(100,224,255,0)');glow.addColorStop(1,'rgba(100,224,255,'+alpha+')');ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);
+    }
 
     const fog = sectorInfo ? sectorInfo.fog : 0;
     if (fog > 0) {

@@ -572,3 +572,42 @@ html, body {
   .touch-dock-btn { bottom: calc(250px + env(safe-area-inset-bottom, 0px)); }
 }
 .touch-dock-btn { zoom: 1.2; }
+
+/* Recovery guidance stays in the existing HUD palette. */
+.mission-panel{position:absolute;left:14px;top:100px;width:340px;padding:10px 12px;border:1px solid var(--panel-border);border-radius:9px;background:rgba(5,10,19,.85);display:flex;flex-direction:column;gap:5px;font-size:11px;}
+.mission-panel strong{color:var(--accent-good);font-size:12px;letter-spacing:.04em;}
+.mission-panel span,.mission-panel small{color:var(--text-dim);font-size:10px;line-height:1.4;}
+.mission-panel #powerStatus.low-power{color:var(--accent-warn);}
+.mission-panel #supplyHint{color:var(--accent-warn);}
+.utility-controls{display:flex;gap:6px;margin-top:3px;pointer-events:auto;}
+.utility-controls button{min-height:44px;border:1px solid var(--panel-border);border-radius:6px;background:#101d2c;color:var(--accent);font:600 10px system-ui;padding:6px 9px;touch-action:none;}
+.utility-controls button:disabled{opacity:.45;}.utility-controls #btnReserve{flex:1;}.utility-controls #btnHudPause{min-width:44px;}
+#rewardText{position:absolute;top:38%;left:50%;transform:translateX(-50%);font-weight:700;color:#ffcf70;font-size:18px;text-align:center;opacity:0;max-width:80%;}
+#rewardText.show{animation:rewardNotice 1.3s ease-out forwards;}
+@keyframes rewardNotice{0%,70%{opacity:1;}100%{opacity:0;transform:translate(-50%,-15px);}}
+.panel,.title-wrap{touch-action:pan-y;overscroll-behavior:contain;}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+body:not([data-game-state=playing]) .touch-left,body:not([data-game-state=playing]) .touch-right{visibility:hidden;}
+.sector-banner{top:80px;}.toasts{top:112px;max-width:45%;}.toast{max-width:100%;}
+@media(max-width:760px){
+ .hud-bars{min-width:180px;max-width:200px;}.hud-top{gap:6px;}.hud-stats{gap:8px;padding:7px 10px;}.stat-label{font-size:8px;}.stat-value{font-size:11px;}
+ .mission-panel{top:154px;left:12px;width:calc(100% - 24px);max-width:380px;padding:8px 10px;gap:3px;}
+ .sector-banner{top:306px;}.sector-banner-desc{display:none;}.toasts{top:340px;max-width:90%;width:90%;}
+ .touch-pause{width:44px;height:44px;top:112px;right:12px;}
+ .touch-left{flex-direction:row;left:12px;bottom:48px;gap:8px;}.touch-right{right:12px;bottom:48px;gap:8px;}
+ .touch-rotate{width:52px;height:52px;}.touch-thrust{width:62px;height:62px;}.touch-reverse{width:46px;height:46px;}.touch-boost{width:60px;height:60px;font-size:11px;}.touch-thrust-stack{gap:8px;}
+ .touch-dock-btn{zoom:1;bottom:190px;font-size:12px;padding:10px 20px;min-height:44px;}
+ .warnings{bottom:195px;width:90%;}.warning-chip{font-size:10px;text-align:center;letter-spacing:0;padding:5px 9px;}
+ .title-wrap{max-height:96svh;overflow:auto;max-width:95%;}.hint{max-width:300px;line-height:1.5;}
+}
+@media(max-height:500px){
+ .mission-panel{top:95px;max-width:300px;}.mission-panel #missionDetail,.mission-panel #activeBoosts{display:none;}
+ .hud-top{right:170px;}.hud-bars{min-width:170px;}.hud-stats{gap:8px;}.stat-value{font-size:11px;}
+ .sector-banner{top:258px;left:170px;}.toasts{top:62px;left:60%;max-width:38%;}
+ #minimapCanvas{width:80px;height:80px;}.touch-pause{top:102px;}.touch-left,.touch-right{bottom:42px;flex-direction:row;}
+ .touch-rotate{width:48px;height:48px;}.touch-thrust{width:54px;height:54px;}.touch-reverse{width:44px;height:44px;}.touch-boost{width:54px;height:54px;font-size:10px;}
+ .warnings{bottom:75px;width:45%;}.touch-dock-btn{bottom:150px;}.game-title{font-size:40px;}.best-distance{margin:8px 0;}.mode-select{margin-bottom:8px;}.menu-buttons{gap:6px;}.btn{padding:10px 16px;}.hint{margin-top:10px;}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;}#rewardText.show{opacity:1;}}
+body.reduced-motion *,body.reduced-motion *::before,body.reduced-motion *::after{animation:none!important;transition:none!important;}
+body.reduced-motion #rewardText.show{opacity:1;}

@@ -52,6 +52,9 @@
 
   // ---- Upgrade ----
   document.getElementById('btnSkipUpgrade').addEventListener('click', () => game.skipUpgrade());
+  document.getElementById('btnReserve').addEventListener('click',()=>game.makeReserve());
+  document.getElementById('btnHudPause').addEventListener('click',()=>game._handleEscape());
+  document.getElementById('btnSkipMission').addEventListener('click',()=>{if(game.state==='playing')game.survival.skipMission();});
 
   // ---- Station ----
   document.getElementById('btnStationRepair').addEventListener('click', () => game.stationRepair());
@@ -95,6 +98,8 @@
     dt = clamp(dt, 0, 1 / 30); // clamp to avoid huge steps on tab-resume / stutter
 
     game.update(dt);
+    document.body.dataset.gameState=game.state;
+    document.body.classList.toggle('reduced-motion',game.settings.reducedMotion);
     game.render(renderer, dt);
 
     fpsFrames++; fpsAccum += dt; fpsTimer += dt;

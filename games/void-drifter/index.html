@@ -7,7 +7,7 @@
 <meta name="description" content="A minimalist space survival &amp; exploration arcade game. Drift, dodge, collect, upgrade, survive.">
 <meta name="theme-color" content="#05070d">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><circle cx=%2216%22 cy=%2216%22 r=%2214%22 fill=%22%23070914%22/><polygon points=%2216,4 24,26 16,21 8,26%22 fill=%22%2364e0ff%22/></svg>">
-<link rel="stylesheet" href="styles.css?v=controls-120">
+<link rel="stylesheet" href="styles.css?v=recovery-1">
 </head>
 <body>
 
@@ -49,6 +49,19 @@
   <div id="warnings" class="warnings"></div>
   <div id="toasts" class="toasts"></div>
   <div id="interactHint" class="interact-hint hidden">Press <b>E</b> to dock</div>
+  <div class="mission-panel">
+    <strong id="missionTitle">OPTIONAL SIGNALS</strong>
+    <span id="missionDetail">Gather salvage, recover cargo, find safe checkpoints.</span>
+    <span id="powerStatus">NORMAL POWER</span>
+    <span id="supplyHint">Seek orange supplies</span>
+    <small id="activeBoosts">SURVIVED 0s</small>
+    <div class="utility-controls">
+      <button id="btnReserve" aria-label="Make emergency fuel reserve">RESERVE · 25 ENERGY</button>
+      <button id="btnSkipMission" aria-label="Skip optional mission">SKIP</button>
+      <button id="btnHudPause" aria-label="Pause">Ⅱ</button>
+    </div>
+  </div>
+  <div id="rewardText" aria-live="polite"></div>
 </div>
 
 <!-- ============ TITLE SCREEN ============ -->
@@ -86,7 +99,8 @@
       <div class="tut-item"><b>ROTATE</b><span>A / &larr; and D / &rarr; — turn your ship.</span></div>
       <div class="tut-item"><b>MOMENTUM</b><span>Your ship drifts — it keeps moving when you stop thrusting. Fly with your velocity, not against it.</span></div>
       <div class="tut-item"><b>BOOST</b><span>Space — burst of speed. Costs energy.</span></div>
-      <div class="tut-item"><b>FUEL</b><span>Thrusting burns fuel. Run dry and you'll coast on momentum alone — plan ahead.</span></div>
+      <div class="tut-item"><b>FUEL &amp; RECOVERY</b><span>Run dry and weak emergency thrusters use energy. Coast to recharge. Press R / RESERVE below 15 fuel: 10 salvage makes 25 fuel; otherwise 25 energy makes 12 fuel. Each recipe has a cooldown. Orange supply cells and stations also refuel.</span></div>
+      <div class="tut-item"><b>MYSTERY CARGO</b><span>Glowing ? containers offer fuel, energy, timed shields, repair or salvage. Follow supply markers and optional missions. A full refuel is rare — keep fuel for your long journeys.</span></div>
       <div class="tut-item"><b>COLLECT</b><span>Fly near fuel cells, energy cells, salvage, repair kits &amp; rare cores to pull them in.</span></div>
       <div class="tut-item"><b>COLLISIONS</b><span>Asteroids hurt more at high speed. Dodge, don't ram.</span></div>
       <div class="tut-item"><b>UPGRADE</b><span>Every few kilometers, choose an upgrade to improve your ship.</span></div>
@@ -120,6 +134,7 @@
       <div><span>Rotate Right</span><b>D / &rarr;</b></div>
       <div><span>Boost</span><b>Space</b></div>
       <div><span>Interact / Dock</span><b>E</b></div>
+      <div><span>Emergency Reserve</span><b>R / RESERVE</b></div>
       <div><span>Pause</span><b>Esc</b></div>
     </div>
     <button id="btnControlsClose" class="btn btn-primary">CLOSE</button>
@@ -221,13 +236,13 @@
 <div id="touchControls" class="touch-controls hidden">
   <button id="touchDock" class="touch-dock-btn hidden">DOCK</button>
   <div class="touch-left">
-    <button id="touchLeft" class="touch-btn touch-rotate">&#8634;</button>
-    <button id="touchRight" class="touch-btn touch-rotate">&#8635;</button>
+    <button id="touchLeft" class="touch-btn touch-rotate" aria-label="Rotate left">&#8634;</button>
+    <button id="touchRight" class="touch-btn touch-rotate" aria-label="Rotate right">&#8635;</button>
   </div>
   <div class="touch-right">
     <div class="touch-thrust-stack">
-      <button id="touchThrust" class="touch-btn touch-thrust">&#9650;</button>
-      <button id="touchReverse" class="touch-btn touch-reverse">&#9660;</button>
+      <button id="touchThrust" class="touch-btn touch-thrust" aria-label="Thrust">&#9650;</button>
+      <button id="touchReverse" class="touch-btn touch-reverse" aria-label="Reverse">&#9660;</button>
     </div>
     <button id="touchBoost" class="touch-btn touch-boost">BOOST</button>
   </div>
@@ -253,6 +268,7 @@
 <script src="js/events.js"></script>
 <script src="js/achievements.js"></script>
 <script src="js/world.js"></script>
+<script src="js/survival.js"></script>
 <script src="js/renderer.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/game.js"></script>

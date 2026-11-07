@@ -1,12 +1,12 @@
 // ---------------- Upgrade definitions & selection ----------------
 const UPGRADE_DEFS = {
   thrusters: { name: 'THRUSTERS', icon: '▲', maxLevel: 6, desc: (lvl) => `+${(lvl + 1) * 12}% acceleration` },
-  fuelTank: { name: 'FUEL TANK', icon: '⛽', maxLevel: 6, desc: (lvl) => `+${UPGRADE_BASE.fuelTank.fuel} max fuel` },
-  hullUp: { name: 'HULL PLATING', icon: '■', maxLevel: 6, desc: (lvl) => `+${UPGRADE_BASE.hullUp.hull} max hull` },
+  fuelTank: { name: 'FUEL TANK', icon: '⛽', maxLevel: 6, desc: (lvl) => `+26 max fuel; ${(lvl+1)*6}% less fuel per thrust` },
+  hullUp: { name: 'HULL PLATING', icon: '■', maxLevel: 6, desc: (lvl) => `+22 max hull; ${(lvl+1)*8}% better repair pickups` },
   scanner: { name: 'SCANNER', icon: '◎', maxLevel: 6, desc: (lvl) => `+${UPGRADE_BASE.scanner.range} scan range` },
   magnet: { name: 'MAGNET', icon: '✵', maxLevel: 6, desc: (lvl) => `+${UPGRADE_BASE.magnet.radius} pickup radius` },
   shield: { name: 'SHIELD', icon: '◉', maxLevel: 6, desc: (lvl) => `+${UPGRADE_BASE.shield.charge} shield capacity` },
-  boostUp: { name: 'BOOST SYSTEM', icon: '→', maxLevel: 6, desc: (lvl) => `+${Math.round(UPGRADE_BASE.boostUp.mult * 100)}% boost power` },
+  boostUp: { name: 'BOOST SYSTEM', icon: '→', maxLevel: 6, desc: (lvl) => `+14% boost power; +15 auxiliary energy capacity` },
   cargo: { name: 'CARGO HOLD', icon: '▢', maxLevel: 6, desc: (lvl) => `+${UPGRADE_BASE.cargo.cap} salvage capacity` },
 };
 

@@ -124,6 +124,30 @@ class World {
     if (!this.chunks.has(k)) this.chunks.set(k, this._generateChunk(cx, cy, NaN, NaN, 1));
     this.chunks.get(k).resources.push(pickup);
   }
+  supplyCorridorClear(player,x,y){
+    const travel=Math.min(6,distance(player.x,player.y,x,y)/45);
+    for(const chunk of this.chunks.values()){
+      for(const list of [chunk.asteroids,chunk.hazards,chunk.gravityWells])for(const o of list){
+        if(o.dead||o.exploded)continue;
+        const radius=(o.type==='gravitywell'?o.influenceRadius:o.type==='mine'?o.triggerRadius:o.radius)+player.radius+22;
+        for(const t of [0,travel*.5,travel]){
+          const ox=o.x+(o.vx||0)*t,oy=o.y+(o.vy||0)*t;
+          const q=closestPointOnSegment(player.x,player.y,x,y,ox,oy);
+          if(dist2(q.x,q.y,ox,oy)<radius*radius)return false;
+        }
+      }
+    }
+    return true;
+  }
+  findSupplyPoint(player,radius,rng){
+    const heading=player.speed>5?Math.atan2(player.vy,player.vx):player.angle;
+    for(let i=0;i<24;i++){
+      const angle=heading+(i?((i%2?1:-1)*Math.ceil(i/2)*Math.PI/12):0);
+      const r=radius+(i>12?35:0),x=player.x+Math.cos(angle)*r,y=player.y+Math.sin(angle)*r;
+      if(this.supplyCorridorClear(player,x,y))return {x,y};
+    }
+    return null;
+  }
   injectAsteroid(asteroid) {
     const [cx, cy] = this.chunkCoordFor(asteroid.x, asteroid.y);
     const k = this.key(cx, cy);

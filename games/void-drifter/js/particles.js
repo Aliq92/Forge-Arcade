@@ -80,6 +80,8 @@ class ParticlePool {
         ctx.moveTo(sx, sy);
         ctx.lineTo(sx - p.vx * 0.02, sy - p.vy * 0.02);
         ctx.stroke();
+      } else if(p.kind==='confetti'){
+        ctx.fillStyle=`rgba(${p.color},${alpha})`;ctx.fillRect(sx,sy,p.size*2,p.size);
       } else {
         ctx.fillStyle = `rgba(${p.color},${alpha})`;
         ctx.beginPath();

@@ -14,6 +14,7 @@ class Game {
     this.sound = new SoundEngine();
     this.starfield = new StarField();
     this.settings = SaveData.getSettings();
+    this.settings.reducedMotion=!!this.settings.reducedMotion||!!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
     this.particles = new ParticlePool(500);
     this.particles.setDensity(this.settings.particleDensity);
 
@@ -31,16 +32,20 @@ class Game {
     this.input.onPause(() => this._handleEscape());
     this.input.onInteract(() => this._handleInteract());
     this.input.onAnyKey(() => this.sound.resume());
+    this.input.onReserve?.(()=>this.makeReserve());
   }
 
   // ---------------- Run lifecycle ----------------
-  startRun(mode) {
+  startRun(mode, seed) {
     this.mode = mode || this.mode;
     this.player = new Player();
-    this.world = new World(Math.floor(Date.now() * 0.001) ^ Math.floor(Math.random() * 1e9), this.mode);
+    this.seed=seed??(Math.floor(Date.now()*.001)^Math.floor(Math.random()*1e9));
+    this.runRng=mulberry32(hashSeed(this.seed,'run'));
+    this.world = new World(this.seed, this.mode);
     this.camera = new Camera();
     this.camera.reset(0, 0);
-    this.eventManager = new EventManager();
+    this.eventManager = new EventManager(mulberry32(hashSeed(this.seed,'events')));
+    this.survival=new SurvivalDirector(this.seed);
     this.achievementTracker = new AchievementTracker();
     this.particles = new ParticlePool(500);
     this.particles.setDensity(this.settings.particleDensity);
@@ -58,11 +63,15 @@ class Game {
       criticalCollisionSurvived: false,
       fuelEmptyMarkerPx: null,
       distanceSinceFuelEmptyKm: 0,
+      survivalTime:0,mysteryBoxes:0,missionsCompleted:0,celebrations:0,
     };
     this.nextUpgradeMilestoneKm = 15;
     this.dockedStation = null;
     this.nearestStation = null;
     this.state = 'playing';
+    this.time=0;this.accumulator=0;this.celebrationTimer=0;this._bestSaveAccum=0;
+    this._boostSoundCooldown=0;
+    this._insideIonCloud=false;this.world.ensureChunksAround(0,0,1);
 
     this.ui.hideAllScreens();
     this.ui.showHud(true);
@@ -71,6 +80,7 @@ class Game {
     this.sound.init();
     this.sound.resume();
     this.input.clearHeld();
+    this.ui.resetRun?.();
   }
 
   restartRun() { this.startRun(this.mode); }
@@ -98,19 +108,36 @@ class Game {
 
   // ---------------- Screen navigation ----------------
   _handleEscape() {
-    if (this.state === 'playing') { this.state = 'paused'; this.ui.showScreen('pause'); }
+    if (this.state === 'playing') { this.state = 'paused';this.accumulator=0;this.input.clearHeld();this.sound.setThrust(false,false); this.ui.showScreen('pause'); }
     else if (this.state === 'paused') { this.resumeFromPause(); }
     else if (this.state === 'settings' || this.state === 'controls') { this._closeSubScreen(); }
   }
-  resumeFromPause() { this.state = 'playing'; this.ui.hideAllScreens(); }
+  resumeFromPause() {if(this.state!=='paused')return;this.accumulator=0;this.input.clearHeld();this.state = 'playing'; this.ui.hideAllScreens(); }
 
   interact() { this._handleInteract(); }
+  makeReserve(){
+    if(this.state!=='playing')return 0;
+    const amount=this.player.fabricateReserve();
+    if(amount){this.ui.toast('EMERGENCY RESERVE','+'+amount+' fuel');this.sound.playPickup('fuel');}
+    else this.ui.toast('RESERVE NOT READY',this.player.reserveCooldown>0?'Cooling down. Seek supplies.':'Coast to recharge 25 energy, or gather 10 salvage. Available below 15 fuel.');
+    return amount;
+  }
+  celebrate(label){
+    this.stats.celebrations++;this.celebrationTimer=this.settings.reducedMotion?.35:1.1;
+    const colors=['100,224,255','255,207,112','180,140,255','109,255,176','255,130,175'];
+    const count=this.settings.reducedMotion?4:38;
+    for(let i=0;i<count;i++){const a=i/count*TAU,speed=this.settings.reducedMotion?8:35+(i%6)*14;
+      this.particles.spawn({x:this.player.x,y:this.player.y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,life:.5+(i%3)*.1,size:2,color:colors[i%colors.length],kind:'confetti'});
+    }
+    this.ui.rewardFeedback?.(label);this.sound.playUpgrade();
+  }
 
   _handleInteract() {
     if (this.state !== 'playing' || !this.nearestStation) return;
     if (distance(this.player.x, this.player.y, this.nearestStation.x, this.nearestStation.y) > this.nearestStation.dockRadius) return;
     this.dockedStation = this.nearestStation;
     this.state = 'station';
+    this.accumulator=0;this.input.clearHeld();this.sound.setThrust(false,false);
     this._refreshStationUI();
     this.ui.showScreen('station');
     this.sound.playDock();
@@ -151,9 +178,10 @@ class Game {
   // ---------------- Upgrades ----------------
   _openUpgradeSelect(fromStation) {
     this._upgradeReturnState = fromStation ? 'station' : 'playing';
-    const choices = rollUpgradeChoices(Math.random, this.player, 3);
+    const choices = rollUpgradeChoices(this.runRng||Math.random, this.player, 3);
     if (choices.length === 0) { this._resumeFromUpgrade(); return; }
     this.state = 'upgrade';
+    this.accumulator=0;this.input.clearHeld();this.sound.setThrust(false,false);
     this.ui.showUpgradeChoices(choices, (key) => this.chooseUpgrade(key));
   }
   chooseUpgrade(key) {
@@ -164,6 +192,7 @@ class Game {
   }
   skipUpgrade() { this._resumeFromUpgrade(); }
   _resumeFromUpgrade() {
+    this.accumulator=0;this.input.clearHeld();
     if (this._upgradeReturnState === 'station') {
       this.state = 'station';
       this._refreshStationUI();
@@ -206,6 +235,7 @@ class Game {
   stationLeave() {
     this.dockedStation = null;
     this.state = 'playing';
+    this.accumulator=0;this.input.clearHeld();
     this.ui.hideAllScreens();
     // brief grace period so undocking never drops the player straight into a hazard
     if (this.player) this.player.invulnTime = Math.max(this.player.invulnTime, 1.2);
@@ -229,13 +259,21 @@ class Game {
 
   // ---------------- Main update ----------------
   update(dt) {
-    this.time += dt;
-
-    if (this.state === 'playing') this._updatePlaying(dt);
+    const elapsed=clamp(Number.isFinite(dt)?dt:0,0,.05);
+    if(this.state==='title')this.time+=elapsed;
+    if(this.state==='playing'){
+      this.accumulator=(this.accumulator||0)+elapsed;
+      let steps=0;
+      while(this.accumulator+1e-12>=1/60&&steps++<3&&this.state==='playing'){
+        this.accumulator=Math.max(0,this.accumulator-1/60);this.time+=1/60;this.stats.survivalTime+=1/60;
+        this.celebrationTimer=Math.max(0,this.celebrationTimer-1/60);this._updatePlaying(1/60);
+      }
+    }
 
     if (this.player && this.state !== 'title') {
       this.ui.updateHUD(this.player, this.stats);
-      this.ui.drawMinimap(this.player, this.world, getSectorInfo(pxToKm(this.stats.distancePx)), this._insideIonCloud, this.eventManager ? this.eventManager.beacons : [], this.settings.reducedMotion);
+      this.ui.drawMinimap(this.player, this.world, getSectorInfo(pxToKm(this.stats.distancePx)), this._insideIonCloud, [...this.eventManager.beacons,...this.survival.markers()], this.settings.reducedMotion);
+      this.ui.updateSurvival?.(this.player,this.survival,this.stats);
     }
   }
 
@@ -243,8 +281,9 @@ class Game {
     const player = this.player, world = this.world, particles = this.particles;
     const inputState = this.input.getState();
     player.update(dt, inputState, this.settings, this.eventManager.fuelConsumptionMult);
-    this.sound.setThrust(player.thrusting, player.boosting);
-    if (player.thrusting && player.boosting) this.sound.playBoost();
+    this.sound.setThrust(player.thrusting||player.emergencyThrusting, player.boosting);
+    this._boostSoundCooldown=Math.max(0,(this._boostSoundCooldown||0)-dt);
+    if(player.boosting&&this._boostSoundCooldown<=0){this.sound.playBoost();this._boostSoundCooldown=.4;}
 
     // gravity well pull
     for (const gw of world.gravityWells) {
@@ -265,7 +304,7 @@ class Game {
     for (const p of nearby.resources) {
       if (p.collected) continue;
       p.update(dt, player, player.magnetRadius, this.time);
-      if (distance(p.x, p.y, player.x, player.y) < player.radius + p.radius) this._collectPickup(p);
+      if (supplyOverlap(player,p)) this._collectPickup(p);
     }
 
     // asteroid collisions (swept segment test to avoid tunneling at high speed).
@@ -287,7 +326,7 @@ class Game {
       if (hz.type === 'ioncloud') {
         if (hz.containsPoint(player.x, player.y)) {
           this._insideIonCloud = true;
-          player.energy = clamp(player.energy - hz.drainPerSec * dt, 0, player.maxEnergy);
+          player.energy = clamp(player.energy - (player.lowPower?Math.min(3,hz.drainPerSec):hz.drainPerSec) * dt, 0, player.maxEnergy);
         }
       } else if (hz.type === 'mine') {
         if (!hz.exploded && distance(player.x, player.y, hz.x, hz.y) < hz.triggerRadius) {
@@ -317,6 +356,8 @@ class Game {
         }
       }
     }
+
+    if(!player.destroyed)this.survival.update(dt,this);
 
     // station proximity
     this.nearestStation = null;
@@ -379,10 +420,12 @@ class Game {
   }
 
   _collectPickup(p) {
+    if(p.collected)return;
     p.collected = true;
+    const before=this.player.salvage;
     this.player.collect(p.type, p.value);
     this.stats.resourcesCollected++;
-    if (p.type === 'salvage' || p.type === 'rarecore') this.stats.salvageCollectedTotal += p.value;
+    if (p.type === 'salvage' || p.type === 'rarecore') this.stats.salvageCollectedTotal += this.player.salvage-before;
     this.sound.playPickup(p.type);
     this.particles.burst(p.x, p.y, 10, { speedMin: 30, speedMax: 120, lifeMin: 0.25, lifeMax: 0.5, sizeMin: 1, sizeMax: 2.5, color: p.color, optional: true });
   }
@@ -438,7 +481,7 @@ class Game {
   _updateWarnings(nearby) {
     const player = this.player;
     const list = [];
-    if (player.fuel <= 0) list.push({ level: 'high', text: 'FUEL EMPTY — DRIFTING' });
+    if (player.fuel <= 0) list.push({ level: 'high', text: 'LOW POWER · weak thrusters · coast to recharge' });
     else if (player.fuel / player.maxFuel < 0.15) list.push({ level: 'high', text: 'LOW FUEL' });
     if (player.hull / player.maxHull < 0.25) list.push({ level: 'high', text: 'HULL CRITICAL' });
     if (player.energy < 0.5) list.push({ level: 'mid', text: 'ENERGY DEPLETED' });
@@ -489,6 +532,7 @@ class Game {
       sectorInfo: getSectorInfo(pxToKm(this.stats.distancePx)),
       reducedMotion: this.settings.reducedMotion,
       insideIonCloud: this._insideIonCloud,
+      survival:this.survival,celebrationTimer:this.celebrationTimer,
     });
   }
 }

@@ -47,6 +47,8 @@ class Player {
     this.destroyed = false;
     this.invulnTime = 0; // brief grace period after spawn / respawn
     this.lastHitBy = null; // last hazard type that damaged the ship, used for the game-over death cause
+    this.reserveCooldown=0;this.emergencyThrusting=false;
+    this.shieldBoostTime=0;this.temporaryShield=0;
 
     this.trail = [];
     this._trailTimer = 0;
@@ -66,6 +68,9 @@ class Player {
     this.boostMult = 2.1 + u.boostUp * UPGRADE_BASE.boostUp.mult;
     this.boostEnergyRate = 30 * Math.max(0.35, 1 - u.boostUp * UPGRADE_BASE.boostUp.energyCut);
     this.maxCargo = 150 + u.cargo * UPGRADE_BASE.cargo.cap;
+    this.maxEnergy=100+(u.boostUp||0)*15;
+    this.fuelEfficiency=Math.max(.55,1-(u.fuelTank||0)*.06);
+    this.repairEfficiency=1+(u.hullUp||0)*.08;
   }
 
   applyUpgrade(key) {
@@ -87,7 +92,7 @@ class Player {
     if (this.invulnTime > 0) this.invulnTime -= dt;
 
     const rotAccel = 16;
-    const maxRotSpeed = 3.6;
+    const maxRotSpeed = this.lowPower?2.2:3.6;
     let turnInput = 0;
     if (input.left) turnInput -= 1;
     if (input.right) turnInput += 1;
@@ -98,6 +103,9 @@ class Player {
     this.thrusting = false;
     this.reversing = false;
     this.boosting = false;
+    this.emergencyThrusting=false;
+    this.reserveCooldown=Math.max(0,this.reserveCooldown-dt);
+    if(this.shieldBoostTime>0){this.shieldBoostTime=Math.max(0,this.shieldBoostTime-dt);if(!this.shieldBoostTime)this.temporaryShield=0;}
 
     const fx = Math.cos(this.angle);
     const fy = Math.sin(this.angle);
@@ -118,16 +126,23 @@ class Player {
       }
       this.vx += fx * power * dt;
       this.vy += fy * power * dt;
-      this.fuel = clamp(this.fuel - 6.2 * dt * (this.boosting ? 1.6 : 1) * fuelMult, 0, this.maxFuel);
+      this.fuel = clamp(this.fuel - 3.2 * dt * (this.boosting ? 1.8 : 1) * fuelMult*this.fuelEfficiency, 0, this.maxFuel);
     } else if (input.reverse && this.fuel > 0) {
       this.reversing = true;
       this.vx -= fx * this.reverseThrustPower * dt;
       this.vy -= fy * this.reverseThrustPower * dt;
-      this.fuel = clamp(this.fuel - 4.2 * dt * fuelMult, 0, this.maxFuel);
+      this.fuel = clamp(this.fuel - 2.2 * dt * fuelMult*this.fuelEfficiency, 0, this.maxFuel);
+    } else if(this.lowPower&&(input.thrust||input.reverse||input.boost)&&this.energy>0){
+      const power=18*Math.min(1,this.energy/(8*dt)),sign=input.reverse?-.6:1;
+      const oldSpeed=this.speed;
+      this.vx+=fx*power*dt*sign;this.vy+=fy*power*dt*sign;
+      const limit=Math.max(55,oldSpeed),newSpeed=this.speed;
+      if(newSpeed>limit){this.vx*=limit/newSpeed;this.vy*=limit/newSpeed;}
+      this.energy=Math.max(0,this.energy-8*dt);this.emergencyThrusting=true;
     }
 
     // light damping keeps drift controllable without killing the "floaty" feel
-    const damp = Math.pow(0.986, dt * 60);
+    const damp = Math.pow(this.lowPower?0.999:0.986, dt * 60);
     this.vx *= damp;
     this.vy *= damp;
 
@@ -136,7 +151,7 @@ class Player {
     const maxSpeed = 560;
     if (speed > maxSpeed) {
       const over = speed - maxSpeed;
-      const pull = Math.min(1, over / maxSpeed) * 0.06;
+      const pull = 1-Math.pow(1-Math.min(1,over/maxSpeed)*.06,dt*60);
       this.vx *= 1 - pull;
       this.vy *= 1 - pull;
     }
@@ -152,7 +167,7 @@ class Player {
 
     // energy regen when not boosting
     if (!this.boosting) {
-      this.energy = clamp(this.energy + 5.5 * dt, 0, this.maxEnergy);
+      this.energy = clamp(this.energy + (this.emergencyThrusting?1.8:7.5) * dt, 0, this.maxEnergy);
     }
 
     // shield passive regen (costs a sliver of energy, only if not empty energy)
@@ -175,6 +190,13 @@ class Player {
   }
 
   get speed() { return Math.hypot(this.vx, this.vy); }
+  get lowPower(){return this.fuel<=0;}
+  fabricateReserve(){
+    if(this.destroyed||this.fuel>=15||this.reserveCooldown>0)return 0;
+    if(this.salvage>=10){this.salvage-=10;this.fuel=Math.min(this.maxFuel,this.fuel+25);this.reserveCooldown=20;return 25;}
+    if(this.energy>=25){this.energy-=25;this.fuel=Math.min(this.maxFuel,this.fuel+12);this.reserveCooldown=45;return 12;}
+    return 0;
+  }
 
   // returns { hullDamage, absorbed }
   applyDamage(amount) {
@@ -182,10 +204,10 @@ class Player {
     this.damageFlash = 0.35;
     let absorbed = 0;
     let remaining = amount;
+    if(this.temporaryShield>0&&this.shieldBoostTime>0){const block=Math.min(this.temporaryShield,remaining);this.temporaryShield-=block;remaining-=block;absorbed+=block;this.shieldFlash=.4;}
     if (this.shieldCharge > 0) {
-      absorbed = Math.min(this.shieldCharge, remaining);
-      this.shieldCharge -= absorbed;
-      remaining -= absorbed;
+      const block=Math.min(this.shieldCharge,remaining);
+      absorbed+=block;this.shieldCharge-=block;remaining-=block;
       this.shieldFlash = 0.4;
     }
     this.hull = clamp(this.hull - remaining, 0, this.maxHull);
@@ -197,7 +219,7 @@ class Player {
     switch (type) {
       case 'fuel': this.fuel = clamp(this.fuel + value, 0, this.maxFuel); break;
       case 'energy': this.energy = clamp(this.energy + value, 0, this.maxEnergy); break;
-      case 'repair': this.hull = clamp(this.hull + value, 0, this.maxHull); break;
+      case 'repair': this.hull = clamp(this.hull + value*this.repairEfficiency, 0, this.maxHull); break;
       case 'salvage': this.salvage = clamp(this.salvage + value, 0, this.maxCargo); break;
       case 'rarecore':
         this.salvage = clamp(this.salvage + value, 0, this.maxCargo);
@@ -233,8 +255,8 @@ class Player {
     ctx.rotate(this.angle);
 
     // shield ring
-    if (this.maxShield > 0 && this.shieldCharge > 0) {
-      const pct = this.shieldCharge / this.maxShield;
+    if (this.shieldCharge > 0||this.temporaryShield>0) {
+      const pct = (this.shieldCharge+this.temporaryShield) / Math.max(1,this.maxShield+(this.shieldBoostTime>0?40:0));
       ctx.save();
       ctx.rotate(-this.angle);
       ctx.strokeStyle = `rgba(180,140,255,${0.25 + pct * 0.35 + this.shieldFlash * 0.5})`;
@@ -246,9 +268,9 @@ class Player {
     }
 
     // engine glow (behind ship)
-    if (this.thrusting) {
+    if (this.thrusting||this.emergencyThrusting) {
       const flicker = 0.7 + Math.sin(time * 40) * 0.15;
-      const len = (this.boosting ? 34 : 18) * flicker;
+      const len = (this.emergencyThrusting?7:this.boosting ? 34 : 18) * flicker;
       const grad = ctx.createLinearGradient(-this.radius, 0, -this.radius - len, 0);
       const glowColor = this.boosting ? '255,180,90' : '100,224,255';
       grad.addColorStop(0, `rgba(${glowColor},0.9)`);

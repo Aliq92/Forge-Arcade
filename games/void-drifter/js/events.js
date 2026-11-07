@@ -1,7 +1,8 @@
 // ---------------- Random space events: variety without a quest system ----------------
 class EventManager {
-  constructor() {
-    this.cooldown = randRangeSimple(18, 30);
+  constructor(rng=Math.random) {
+    this.rng=rng;
+    this.cooldown = randRange(rng,18, 30);
     this.active = null; // { type, timeLeft, totalTime }
     this.beacons = []; // minimap markers for signals/beacons { x, y, life, color, label }
   }
@@ -25,14 +26,14 @@ class EventManager {
     this.cooldown -= dt;
     if (this.cooldown <= 0 && !this.active) {
       this._trigger(player, world, onToast);
-      this.cooldown = randRangeSimple(35, 60);
+      this.cooldown = randRange(this.rng,35, 60);
     }
     for (const b of this.beacons) b.life -= dt;
     this.beacons = this.beacons.filter((b) => b.life > 0);
   }
 
   _trigger(player, world, onToast) {
-    const roll = Math.random();
+    const roll = this.rng();
     if (roll < 0.24) this._salvageSignal(player, world, onToast);
     else if (roll < 0.46) this._asteroidSurge(onToast);
     else if (roll < 0.66) {
@@ -52,10 +53,10 @@ class EventManager {
   }
 
   _salvageSignal(player, world, onToast) {
-    const p = this._dirAhead(player, randRangeSimple(700, 1100));
+    const p = this._dirAhead(player, randRange(this.rng,700, 1100));
     const rng = mulberry32(hashSeed('signal', Math.round(p.x), Math.round(p.y)));
     for (let i = 0; i < randInt(rng, 4, 7); i++) {
-      world.injectPickup(new Pickup(p.x + randRangeSimple(-90, 90), p.y + randRangeSimple(-90, 90), 'salvage', rng));
+      world.injectPickup(new Pickup(p.x + randRange(this.rng,-90, 90), p.y + randRange(this.rng,-90, 90), 'salvage', rng));
     }
     this.beacons.push({ x: p.x, y: p.y, life: 40, color: '160,255,190', label: 'SALVAGE SIGNAL' });
     onToast('SALVAGE SIGNAL', 'A wreck nearby is broadcasting — salvage detected.');
@@ -77,7 +78,7 @@ class EventManager {
   }
 
   _distressBeacon(player, world, onToast) {
-    const p = this._dirAhead(player, randRangeSimple(900, 1400));
+    const p = this._dirAhead(player, randRange(this.rng,900, 1400));
     const rng = mulberry32(hashSeed('distress', Math.round(p.x), Math.round(p.y)));
     world.injectPickup(new Pickup(p.x, p.y, 'rarecore', rng));
     for (let i = 0; i < 3; i++) {

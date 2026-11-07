@@ -85,9 +85,9 @@ class UIManager {
     this.hullFill.style.background = player.hull / player.maxHull < 0.25 ? 'var(--accent-danger)' : '';
     this.fuelFill.style.background = player.fuel / player.maxFuel < 0.15 ? 'var(--accent-danger)' : '';
 
-    if (player.maxShield > 0) {
+    if (player.maxShield > 0||player.shieldBoostTime>0) {
       this.shieldRow.classList.remove('hidden');
-      this.shieldFill.style.width = clamp((player.shieldCharge / player.maxShield) * 100, 0, 100) + '%';
+      this.shieldFill.style.width = clamp(((player.shieldCharge+player.temporaryShield) / Math.max(1,player.maxShield+(player.shieldBoostTime>0?40:0))) * 100, 0, 100) + '%';
     } else {
       this.shieldRow.classList.add('hidden');
     }
@@ -106,6 +106,32 @@ class UIManager {
     this.sectorBanner.classList.add('show');
     clearTimeout(this._sectorBannerTimer);
     this._sectorBannerTimer = setTimeout(() => this.sectorBanner.classList.remove('show'), 3400);
+  }
+  resetRun(){
+    this.toastsEl.replaceChildren();this.warningsEl.replaceChildren();
+    clearTimeout(this._rewardTimer);const reward=document.getElementById('rewardText');reward.textContent='';reward.classList.remove('show');this.updateWarnings([]);
+  }
+  rewardFeedback(text){
+    const el=document.getElementById('rewardText');el.textContent=text;el.classList.remove('show');
+    void el.offsetWidth;el.classList.add('show');
+    clearTimeout(this._rewardTimer);this._rewardTimer=setTimeout(()=>{el.classList.remove('show');el.textContent='';},1300);
+  }
+  updateSurvival(player,director,stats){
+    const set=(id,text)=>{const el=document.getElementById(id);if(el.textContent!==text)el.textContent=text;};
+    const m=director.mission;
+    set('missionTitle',m?m.label+' · '+Math.min(m.target,m.progress)+' / '+m.target:'OPTIONAL SIGNALS');
+    set('missionDetail',m?(m.type==='salvage'?'Gather 30 salvage':m.type==='cargo'?'Open a mystery container':'Reach the green checkpoint'):'Next signal in '+Math.ceil(director.missionDelay)+'s');
+    set('powerStatus',player.lowPower?'LOW POWER · weak thrust; coast to recharge':'NORMAL POWER · fuel for travel, energy for utilities');
+    document.getElementById('powerStatus').classList.toggle('low-power',player.lowPower);
+    set('activeBoosts',player.shieldBoostTime>0?'SHIELD '+Math.ceil(player.shieldBoostTime)+'s · '+Math.ceil(player.temporaryShield)+' HP':'SURVIVED '+Math.floor(stats.survivalTime)+'s · MISSIONS '+stats.missionsCompleted);
+    const reserve=document.getElementById('btnReserve');
+    reserve.disabled=player.fuel>=15||player.reserveCooldown>0||(player.salvage<10&&player.energy<25);
+    reserve.textContent=player.reserveCooldown>0?'RESERVE '+Math.ceil(player.reserveCooldown)+'s':player.salvage>=10?'RESERVE · 10 SALV':'RESERVE · 25 ENERGY';
+    const points=director.markers();let nearest=null,best=Infinity;
+    for(const point of points){const d=distance(point.x,point.y,player.x,player.y);if(d<best){best=d;nearest=point;}}
+    const arrows=['→','↘','↓','↙','←','↖','↑','↗'];
+    const angle=nearest?Math.atan2(nearest.y-player.y,nearest.x-player.x):0;
+    set('supplyHint',nearest?nearest.label+' · '+Math.round(best)+' m '+arrows[(Math.round(angle/(Math.PI/4))+8)%8]:'R: synthesize fuel below 15 · seek orange supplies');
   }
 
   updateWarnings(list) {
