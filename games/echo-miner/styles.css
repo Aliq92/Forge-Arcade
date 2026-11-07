@@ -315,3 +315,50 @@ html, body {
   }
 }
 
+/* Navigation additions keep the central sonar field open. */
+[hidden]{display:none!important;}
+button{cursor:pointer;}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+.screen{touch-action:pan-y;overscroll-behavior:contain;max-height:90dvh;}
+.settings-row{flex-wrap:wrap;gap:10px;}.settings-row label{min-height:32px;}
+.control-guide{color:#9fb6c7;font-size:12px;line-height:1.7;margin:12px 0;}
+#hud{padding-right:210px;}
+#hud-top{justify-content:flex-start;flex-wrap:wrap;}
+#hud-awareness{width:180px;}
+#map-tools{position:absolute;top:88px;left:max(10px,env(safe-area-inset-left));z-index:7;width:160px;}
+#minimap-button{display:block;padding:0;width:100%;overflow:hidden;border:1px solid #29515f;border-radius:10px;background:#050d15;color:#91b6c3;}
+#minimap{display:block;width:100%;height:132px;}
+#map-caption{display:block;font-size:9px;letter-spacing:1px;padding:5px 2px;border-top:1px solid #15303d;}
+.map-actions{display:flex;gap:5px;margin-top:5px;}
+.map-actions button{flex:1;min-height:44px;border:1px solid #25434e;border-radius:7px;color:#a7c5cc;background:#08121be6;font-size:10px;}
+#expedition-tools{position:absolute;top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));display:flex;gap:8px;z-index:6;}
+#expedition-tools button{min-height:50px;border-radius:10px;border:1px solid #326174;color:#d6f7f2;background:#091923e6;}
+#btn-scan{width:130px;font-size:12px;letter-spacing:.5px;}#scan-status{display:block;font-size:10px;color:#5de8ce;margin-top:3px;}
+#btn-scan:disabled{opacity:.65;cursor:default;}#btn-pause{width:50px;font-size:16px;}
+#field-message{pointer-events:none;position:absolute;bottom:28px;left:50%;transform:translateX(-50%);max-width:60vw;text-align:center;font-size:12px;letter-spacing:.4px;color:#78f3d8;background:#07161bd9;padding:7px 10px;border-radius:7px;z-index:4;}
+#field-message:empty{display:none;}
+#tremor-warning{border:1px solid #b99cf2;border-radius:8px;background:#21172fe8;padding:8px 10px;color:#dfcfff;font-size:12px;max-width:430px;}
+.map-panel{width:min(820px,94vw);padding:18px;}
+.map-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;}.map-heading h2{font-size:17px;letter-spacing:2px;margin:0;color:#79e1df;}
+#btn-map-close{border:1px solid #456075;border-radius:7px;background:#10202f;color:#d7e5ed;min-height:44px;padding:8px 15px;}
+.map-note{font-size:11px;color:#92b2c1;margin:8px 0;}
+#expanded-map{display:block;width:100%;height:min(60dvh,540px);border-radius:8px;border:1px solid #254957;}
+.map-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 16px;font-size:11px;margin-top:12px;color:#e0eff6;}.map-legend span:nth-child(2){color:#ffc867;}.map-legend span:nth-child(3){color:#55f2d5;}.map-legend span:nth-child(4){color:#c99cff;}
+.reduced-motion *, .reduced-motion *::before{animation:none!important;transition:none!important;}
+@media(max-width:600px){
+ #hud{padding-right:190px;}#hud-top{gap:4px;}.hud-chip{font-size:11px;padding:5px 7px;}#hud-status{font-size:10px;}#hud-awareness{width:105px;}
+ #btn-scan{width:112px;}#expedition-tools{gap:6px;}#map-tools{top:102px;width:132px;}#minimap{height:110px;}#map-caption{font-size:8px;letter-spacing:.3px;}
+ body.has-tremor #map-tools{top:156px;}#tremor-warning{position:fixed;top:92px;left:10px;right:10px;font-size:10px;}
+ #field-message{bottom:224px;left:10px;transform:none;max-width:calc(100vw - 118px);font-size:10px;}
+ .map-panel{padding:12px;}.map-heading h2{font-size:14px;letter-spacing:1px;}.map-legend{font-size:10px;gap:8px;}#expanded-map{height:54dvh;}
+ .screen.tutorial-banner{margin-top:285px;width:92vw;padding:10px;}
+}
+@media(orientation:landscape) and (max-height:500px){
+ #move-pad{height:38%;}
+ #map-tools{width:116px;top:78px;}#minimap{height:90px;}#map-caption{font-size:8px;letter-spacing:0;}.map-actions button{font-size:9px;}
+ #action-buttons{flex-direction:row;gap:10px;bottom:12px;right:12px;}.touch-btn{width:66px;height:66px;}
+ #tremor-warning{position:fixed;top:70px;left:30%;right:12px;font-size:10px;}
+ #expanded-map{height:49dvh;}.map-panel{padding:10px;}.map-note{margin:5px 0;}.map-heading h2{font-size:14px;}.map-legend{font-size:10px;margin-top:5px;}
+ #field-message{bottom:12px;max-width:40vw;font-size:10px;}.screen.tutorial-banner{margin-top:80px;margin-left:145px;width:48vw;}
+}
+

@@ -4,6 +4,7 @@ import { createInputManager } from './input.mjs';
 import { createRenderer, renderFrame, resizeRenderer } from './render.mjs';
 import { createAudioManager } from './audio.mjs';
 import { detectStorage, loadRecords, recordResult, saveSettings } from './storage.mjs';
+import {createMapRenderer,renderMap} from './map.mjs';
 
 const TUTORIAL_SEED = 777;
 const TUTORIAL_COMPLETE_HOLD_SECONDS = 1.6;
@@ -34,6 +35,7 @@ const screenEls = {
   paused: document.getElementById('screen-paused'),
   victory: document.getElementById('screen-victory'),
   defeat: document.getElementById('screen-defeat'),
+  map:document.getElementById('screen-map'),
 };
 
 const hudCrystals = document.getElementById('hud-crystals');
@@ -45,6 +47,10 @@ const titleRecordsEl = document.getElementById('title-records');
 const tutorialStepText = document.getElementById('tutorial-step-text');
 const toggleSound = document.getElementById('toggle-sound');
 const toggleVibration = document.getElementById('toggle-vibration');
+const toggleReduced=document.getElementById('toggle-reduced');
+const mapTools=document.getElementById('map-tools'),minimapButton=document.getElementById('minimap-button'),scanStatus=document.getElementById('scan-status'),warning=document.getElementById('tremor-warning');
+const compactMap=createMapRenderer(document.getElementById('minimap')),expandedMap=createMapRenderer(document.getElementById('expanded-map'));
+let mapVisible=true;
 
 let gameState = createGameState();
 let currentRun = null;
@@ -77,7 +83,7 @@ function ensureGameplayInput() {
     movePad: document.getElementById('move-pad'),
     sonarButton: document.getElementById('btn-sonar'),
     sprintButton: document.getElementById('btn-sprint'),
-    pauseButton: document.getElementById('btn-pause'),
+    scanButton:document.getElementById('btn-scan'),
   });
 }
 
@@ -100,6 +106,14 @@ function showScreenFor(screen) {
     if (!el) continue;
     el.classList.toggle('hidden', key !== screen);
   }
+  const live=isSimScreen(screen);
+  mapTools.hidden=!live;document.getElementById('expedition-tools').hidden=!live;
+  document.getElementById('hud').hidden=!live;document.getElementById('touch-controls').hidden=!live;
+  document.getElementById('hud').setAttribute('aria-hidden',String(!live));document.getElementById('touch-controls').setAttribute('aria-hidden',String(!live));
+  document.getElementById('field-message').hidden=!live;
+  document.getElementById('btn-restart').hidden=gameState.resumeScreen==='tutorial';
+  if(screen==='map')document.getElementById('btn-map-close').focus();
+  else if(live)document.getElementById('game-canvas').focus({preventScroll:true});
 }
 
 function formatTime(seconds) {
@@ -132,6 +146,19 @@ function updateHud(run) {
   hudCrystals.textContent = `Crystals: ${run.player.crystals} / ${run.quota}`;
   hudStatus.textContent = run.liftActive ? 'Lift active — return to the surface' : 'Descending';
   hudAwarenessFill.style.width = `${Math.round(run.hunter.awareness * 100)}%`;
+  const cooldown=Math.max(0,run.scanner.cooldownUntil-run.elapsed);
+  scanStatus.textContent=cooldown?`${Math.ceil(cooldown)}s`:'READY';
+  document.getElementById('btn-scan').disabled=cooldown>0;
+  const tremor=run.tremor,phase=tremor.phase;
+  warning.hidden=phase==='quiet';
+  document.body.classList.toggle('has-tremor',phase!=='quiet');
+  const warningText=phase==='warning'?`TREMOR IN ${Math.ceil(tremor.until-run.elapsed)}s · Avoid violet markers`:phase==='active'?`FALLING DEBRIS · Clears in ${Math.ceil(tremor.until-run.elapsed)}s`:'TREMOR EASING · Passages restored';
+  if(warning.textContent!==warningText)warning.textContent=warningText;
+  const message=document.getElementById('field-message');
+  const scanMessage=run.scanner.highlightUntil>run.elapsed?`SILENT SCAN · ${run.scanner.crystals.filter(c=>run.remainingCrystals.some(r=>r.id===c.id)).length} crystals · ${run.scanner.passages.length} uncharted passages`:'';
+  if(message.textContent!==scanMessage)message.textContent=scanMessage;
+  if(mapVisible)renderMap(compactMap,run);
+  document.getElementById('map-caption').textContent=`CAVE MEMORY · ${Math.floor(run.exploration.indices.length/run.cave.tiles.length*100)}% charted`;
 }
 
 function updateTutorialText() {
@@ -148,6 +175,7 @@ function applyEvent(event) {
   gameState = transition(gameState, event);
   const wasSim = isSimScreen(prevScreen);
   const isSim = isSimScreen(gameState.screen);
+  if(prevScreen!==gameState.screen||event.type==='RESTART')accumulator=0;
 
   if (event.type === 'START' && gameState.screen === 'playing' && prevScreen !== 'playing') {
     disposeRun(currentRun);
@@ -159,12 +187,13 @@ function applyEvent(event) {
     currentRun = createRun({ difficulty: gameState.difficulty, seed: gameState.seed });
   } else if (event.type === 'START_TUTORIAL' && gameState.screen === 'tutorial') {
     disposeRun(tutorialRun);
-    tutorialRun = createRun({ difficulty: 'survey', seed: TUTORIAL_SEED, cave: buildTutorialCave() });
+    tutorialRun = createRun({ difficulty: 'survey', seed: TUTORIAL_SEED, cave: buildTutorialCave(),tutorial:true });
     tutorialSpawn = { x: tutorialRun.player.x, y: tutorialRun.player.y };
     tutorialProgress = { moved: false, sonarUsed: false, crystalCollected: false, hunterReacted: false };
     tutorialCompleteAt = null;
     updateTutorialText();
   }
+  if(event.type==='START'||event.type==='RESTART'||event.type==='START_TUTORIAL'){renderer.prevPlayer=null;renderer.prevHunter=null;}
 
   if (!wasSim && isSim) ensureGameplayInput();
   if (wasSim && !isSim) {
@@ -198,6 +227,13 @@ function applyEvent(event) {
 }
 
 function wireButtons() {
+  const openMap=()=>{if(isSimScreen(gameState.screen))applyEvent({type:'OPEN_MAP'});};
+  const toggleMap=()=>{mapVisible=!mapVisible;minimapButton.hidden=!mapVisible;document.getElementById('btn-map-toggle').setAttribute('aria-pressed',String(mapVisible));canvas.focus({preventScroll:true});};
+  document.getElementById('btn-map-toggle').addEventListener('click',toggleMap);
+  document.getElementById('btn-map-expand').addEventListener('click',openMap);
+  minimapButton.addEventListener('click',openMap);
+  document.getElementById('btn-map-close').addEventListener('click',()=>applyEvent({type:'CLOSE_MAP'}));
+  document.getElementById('btn-restart').addEventListener('click',()=>applyEvent({type:'RESTART',seed:currentRun?.seed}));
   document.getElementById('btn-start')?.addEventListener('click', () => {
     audio.unlock();
     applyEvent({ type: 'START', difficulty: gameState.difficulty, seed: randomSeed() });
@@ -228,7 +264,7 @@ function wireButtons() {
     applyEvent({ type: 'QUIT_TO_TITLE' });
   });
   document.getElementById('btn-pause')?.addEventListener('click', () => {
-    if (gameState.screen === 'playing') applyEvent({ type: 'PAUSE' });
+    if (isSimScreen(gameState.screen)) applyEvent({ type: 'PAUSE' });
   });
 
   for (const btn of document.querySelectorAll('.difficulty-btn')) {
@@ -247,6 +283,7 @@ function wireButtons() {
   toggleVibration?.addEventListener('change', (e) => {
     records = saveSettings({ vibration: e.target.checked }, storage);
   });
+  toggleReduced.addEventListener('change',e=>{records=saveSettings({reducedMotion:e.target.checked},storage);renderer.reducedMotion=e.target.checked;document.body.classList.toggle('reduced-motion',e.target.checked);});
 
   document.getElementById('btn-fullscreen')?.addEventListener('click', () => {
     try {
@@ -261,12 +298,19 @@ function wireButtons() {
   });
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && gameState.screen === 'playing') {
+    if(e.repeat||['INPUT','TEXTAREA','SELECT'].includes(e.target?.tagName))return;
+    if(e.code==='KeyM'&&isSimScreen(gameState.screen)){e.preventDefault();toggleMap();return;}
+    if(e.key==='Tab'&&(isSimScreen(gameState.screen)||gameState.screen==='map')){e.preventDefault();applyEvent({type:gameState.screen==='map'?'CLOSE_MAP':'OPEN_MAP'});return;}
+    if(e.key==='Escape'&&gameState.screen==='map'){applyEvent({type:'CLOSE_MAP'});return;}
+    if(e.code==='KeyR'&&gameState.screen==='paused'&&gameState.resumeScreen!=='tutorial'){applyEvent({type:'RESTART',seed:currentRun?.seed});return;}
+    if (e.key === 'Escape' && isSimScreen(gameState.screen)) {
       applyEvent({ type: 'PAUSE' });
     } else if (e.key === 'Escape' && gameState.screen === 'paused') {
       applyEvent({ type: 'RESUME' });
     }
   });
+  document.addEventListener('visibilitychange',()=>{if(document.hidden&&isSimScreen(gameState.screen))applyEvent({type:'PAUSE'});});
+  window.addEventListener('blur',()=>{if(isSimScreen(gameState.screen))applyEvent({type:'PAUSE'});});
 }
 
 const canvas = document.getElementById('game-canvas');
@@ -281,7 +325,7 @@ function frame(now) {
   let delta = (now - lastTime) / 1000;
   lastTime = now;
   if (delta > MAX_FRAME_SECONDS) delta = MAX_FRAME_SECONDS;
-  accumulator += delta;
+  if(isSimScreen(gameState.screen))accumulator+=delta;else accumulator=0;
 
   while (accumulator >= STEP_SECONDS) {
     const screen = gameState.screen;
@@ -297,6 +341,7 @@ function frame(now) {
 
     const prevPulseCount = run.pulses.length;
     const prevCrystals = run.player.crystals;
+    const prevScan=run.scanner.serial,prevTremor=run.tremor.phase;
     let updated = updateRun(run, screen === 'tutorial' ? { ...input, pausePressed: false } : input, STEP_SECONDS);
     // The tutorial is a guided demo, not a real expedition: the Hunter may
     // still corner the player in its small room, but that must never end
@@ -311,6 +356,8 @@ function frame(now) {
       audio.playCue('crystal');
       vibrate(25);
     }
+    if(updated.scanner.serial!==prevScan)audio.playCue('scanner');
+    if(updated.tremor.phase==='warning'&&prevTremor!=='warning')audio.playCue('tremor');
 
     if (screen === 'playing') {
       currentRun = updated;
@@ -338,12 +385,12 @@ function frame(now) {
     accumulator -= STEP_SECONDS;
   }
 
-  const activeRun = gameState.screen === 'playing' ? currentRun : gameState.screen === 'tutorial' ? tutorialRun : null;
+  const activeRun = gameState.screen === 'tutorial'||(gameState.screen==='map'&&gameState.mapReturn==='tutorial')||(gameState.screen==='paused'&&gameState.resumeScreen==='tutorial')?tutorialRun:currentRun;
   if (activeRun) {
-    updateHud(activeRun);
-    audio.setAwareness(activeRun.hunter.awareness);
-    const alpha = accumulator / STEP_SECONDS;
+    if(isSimScreen(gameState.screen)){updateHud(activeRun);audio.setAwareness(activeRun.hunter.awareness);}
+    const alpha = isSimScreen(gameState.screen)?Math.min(1,accumulator / STEP_SECONDS):1;
     renderFrame(renderer, activeRun, alpha);
+    if(gameState.screen==='map')renderMap(expandedMap,activeRun,true);
   }
 
   requestAnimationFrame(frame);
@@ -351,6 +398,8 @@ function frame(now) {
 
 toggleSound && (toggleSound.checked = records.settings.sound);
 toggleVibration && (toggleVibration.checked = records.settings.vibration);
+toggleReduced.checked=records.settings.reducedMotion??window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+renderer.reducedMotion=toggleReduced.checked;document.body.classList.toggle('reduced-motion',toggleReduced.checked);
 renderRecords();
 
 wireButtons();

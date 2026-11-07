@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#04070c" />
   <title>Echo Miner</title>
-  <link rel="stylesheet" href="styles.css?v=controls-120" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23040b12'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%2338e1c6'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23effaff'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css?v=survey-4" />
 </head>
 <body>
   <div id="app">
-    <canvas id="game-canvas" aria-label="Echo Miner cave view"></canvas>
+    <canvas id="game-canvas" tabindex="0" aria-label="Echo Miner cave view"></canvas>
 
     <div id="hud" aria-hidden="true">
       <div id="hud-top">
@@ -19,12 +20,25 @@
       <div id="hud-awareness" role="img" aria-label="Hunter awareness meter">
         <div id="hud-awareness-fill"></div>
       </div>
+      <div id="tremor-warning" role="status" aria-live="polite" hidden></div>
     </div>
+
+    <nav id="map-tools" aria-label="Cave navigation" hidden>
+      <button id="minimap-button" aria-label="Expand discovered cave map" type="button"><canvas id="minimap" width="160" height="132"></canvas><span id="map-caption">CAVE MEMORY</span></button>
+      <div class="map-actions"><button type="button" id="btn-map-toggle" aria-pressed="true">Map · M</button><button type="button" id="btn-map-expand">Expand · Tab</button></div>
+    </nav>
+    <div id="expedition-tools" hidden>
+      <button type="button" id="btn-scan" aria-label="Crystal Scanner">SCAN · C <span id="scan-status">READY</span></button>
+      <button type="button" id="btn-pause" aria-label="Pause">II</button>
+    </div>
+    <p id="field-message" role="status" aria-live="polite"></p>
 
     <div id="overlays">
       <section id="screen-title" class="screen" role="dialog" aria-labelledby="title-heading">
         <h1 id="title-heading">ECHO MINER</h1>
         <p class="tagline">Sonar reveals the dark. Sonar also calls the Hunter.</p>
+        <p class="control-guide">Move: WASD / arrows or drag · Sonar: Space<br>Silent scanner: C · Map: M / Tab · Pause: Esc</p>
+        <p class="control-guide">Sonar charts the cave but attracts the Hunter.<br>Scan silently marks crystals and uncharted passages for 5s.<br>Violet tremor warnings give 4s to move; debris clears in 6s.</p>
         <div class="difficulty-picker" role="radiogroup" aria-label="Difficulty">
           <button type="button" class="difficulty-btn" data-difficulty="survey">Survey</button>
           <button type="button" class="difficulty-btn" data-difficulty="descent" aria-pressed="true">Descent</button>
@@ -36,6 +50,7 @@
         <div class="settings-row">
           <label><input type="checkbox" id="toggle-sound" checked /> Sound</label>
           <label><input type="checkbox" id="toggle-vibration" checked /> Vibration</label>
+          <label><input type="checkbox" id="toggle-reduced" /> Calm motion</label>
         </div>
         <button type="button" id="btn-fullscreen" class="secondary-btn">Fullscreen</button>
       </section>
@@ -49,7 +64,16 @@
       <section id="screen-paused" class="screen hidden" role="dialog" aria-labelledby="paused-heading">
         <h2 id="paused-heading">Paused</h2>
         <button type="button" id="btn-resume" class="primary-btn">Resume</button>
+        <button type="button" id="btn-restart" class="secondary-btn">Restart Expedition · R</button>
         <button type="button" id="btn-quit" class="secondary-btn">Quit to Title</button>
+      </section>
+
+      <section id="screen-map" class="screen map-panel hidden" role="dialog" aria-modal="true" aria-labelledby="map-heading">
+        <div class="map-heading"><h2 id="map-heading">CAVE MEMORY</h2><button id="btn-map-close" type="button" aria-label="Close expanded map">Close ×</button></div>
+        <p class="map-note">Expedition paused · Uncharted rock stays hidden</p>
+        <canvas id="expanded-map" width="640" height="540" aria-label="Discovered cave overview"></canvas>
+        <div class="map-legend"><span>● You</span><span>◆ Crystal / lift</span><span>◇ Uncharted passage</span><span>× Danger / last sighting</span></div>
+        <p class="map-note">N ↑ · No panning needed · Tab or Esc to return</p>
       </section>
 
       <section id="screen-victory" class="screen hidden" role="dialog" aria-labelledby="victory-heading">
@@ -73,7 +97,6 @@
         <button type="button" id="btn-sonar" class="touch-btn" aria-label="Sonar pulse">Sonar</button>
         <button type="button" id="btn-sprint" class="touch-btn" aria-label="Sprint">Sprint</button>
       </div>
-      <button type="button" id="btn-pause" class="touch-btn small" aria-label="Pause">II</button>
     </div>
   </div>
 

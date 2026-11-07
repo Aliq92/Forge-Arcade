@@ -89,6 +89,8 @@ export function createAudioManager() {
   }
 
   const cues = {
+    scanner:()=>{tone(950,.35,'sine',.16);tone(1425,.45,'triangle',.07);},
+    tremor:()=>tone(65,.9,'sine',.14),
     sonar: () => tone(660, 0.5, 'sine', 0.3),
     crystal: () => tone(880, 0.25, 'triangle', 0.3),
     sprintStep: () => noiseBurst(0.08, 0.05),

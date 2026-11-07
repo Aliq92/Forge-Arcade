@@ -13,8 +13,10 @@ import { createHunter, updateHunter, HUNTER_STATES } from './hunter.mjs';
 import { createPulse, updatePulses, applyPulseReveal } from './sonar.mjs';
 import { createSoundEvent } from './sound-events.mjs';
 import { findPath } from './pathfinding.mjs';
+import {createExploration,rememberDiscoveries,createScanner,scan} from './exploration.mjs';
+import {createTremor,updateTremor} from './tremor.mjs';
 
-const VALID_SCREENS = new Set(['title', 'tutorial', 'playing', 'paused', 'victory', 'defeat']);
+const VALID_SCREENS = new Set(['title', 'tutorial', 'playing', 'paused', 'map', 'victory', 'defeat']);
 
 export function createGameState() {
   return {
@@ -43,12 +45,19 @@ export function transition(state, event) {
       };
 
     case 'PAUSE':
-      if (state.screen !== 'playing') return state;
-      return { ...state, screen: 'paused' };
+      if (state.screen !== 'playing'&&state.screen!=='tutorial') return state;
+      return { ...state,resumeScreen:state.screen, screen: 'paused' };
 
     case 'RESUME':
       if (state.screen !== 'paused') return state;
-      return { ...state, screen: 'playing' };
+      return { ...state, screen: state.resumeScreen||'playing' };
+
+    case 'OPEN_MAP':
+      if(state.screen!=='playing'&&state.screen!=='tutorial')return state;
+      return {...state,screen:'map',mapReturn:state.screen};
+    case 'CLOSE_MAP':
+      if(state.screen!=='map')return state;
+      return {...state,screen:state.mapReturn||'playing'};
 
     case 'WIN':
       if (state.screen !== 'playing') return state;
@@ -59,7 +68,7 @@ export function transition(state, event) {
       return { ...state, screen: 'defeat', lastResult: event.result ?? state.lastResult };
 
     case 'RESTART':
-      if (state.screen !== 'victory' && state.screen !== 'defeat') return state;
+      if (state.screen !== 'victory' && state.screen !== 'defeat'&&state.screen!=='paused') return state;
       return {
         ...state,
         screen: 'playing',
@@ -88,7 +97,7 @@ function distance(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
-export function createRun({ difficulty, seed, cave: caveOverride }) {
+export function createRun({ difficulty, seed, cave: caveOverride, tutorial=false }) {
   const preset = DIFFICULTIES[difficulty];
   if (!preset) throw new Error(`Unknown difficulty: ${difficulty}`);
 
@@ -103,6 +112,10 @@ export function createRun({ difficulty, seed, cave: caveOverride }) {
     cave,
     player,
     hunter,
+    exploration:createExploration(cave,player),
+    scanner:createScanner(),
+    tremor:createTremor(seed),
+    tutorial,
     pulses: [],
     soundEvents: [],
     particles: [],
@@ -125,7 +138,10 @@ export function updateRun(run, input, dt) {
   if (run.outcome) return run;
 
   const elapsed = run.elapsed + dt;
-  let player = updatePlayer(run.player, input, run.cave, dt);
+  const scanner=input.scanPressed?scan(run.cave,run.player,run.remainingCrystals,run.exploration,run.scanner,elapsed):run.scanner;
+  const tremor=updateTremor(run.tremor,{cave:run.cave,player:run.player,hunter:run.hunter,crystals:run.remainingCrystals,now:elapsed,enabled:!run.tutorial});
+  const collisionCave=tremor.grid||run.cave;
+  let player = updatePlayer(run.player, input, collisionCave, dt);
 
   const remainingCrystals = [];
   let soundEvents = run.soundEvents;
@@ -173,7 +189,7 @@ export function updateRun(run, input, dt) {
 
   const hunter = updateHunter(
     run.hunter,
-    { cave: run.cave, player, soundEvents, now: elapsed, difficulty: run.preset, findPath },
+    { cave: collisionCave, player, soundEvents, now: elapsed, difficulty: run.preset, findPath },
     dt,
   );
 
@@ -189,7 +205,7 @@ export function updateRun(run, input, dt) {
     result = { difficulty: run.difficulty, timeSeconds: elapsed, crystals: player.crystals };
   }
 
-  return {
+  const updated={
     ...run,
     player,
     hunter,
@@ -203,7 +219,11 @@ export function updateRun(run, input, dt) {
     elapsed,
     outcome,
     result: result ?? run.result ?? null,
+    scanner,
+    tremor,
   };
+  rememberDiscoveries(updated);
+  return updated;
 }
 
 export function disposeRun(run) {

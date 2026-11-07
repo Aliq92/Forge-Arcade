@@ -19,12 +19,13 @@ const DRAG_MAX_RADIUS = 60;
  */
 export function createInputManager(element, actions = {}) {
   const target = element ?? (typeof document !== 'undefined' ? document : null);
-  const { movePad, sonarButton, sprintButton, pauseButton } = actions;
+  const { movePad, sonarButton, sprintButton, pauseButton,scanButton } = actions;
 
   const heldKeys = new Set();
   let shiftHeld = false;
   let sonarQueued = false;
   let pauseQueued = false;
+  let scanQueued=false;
   let touchSprintHeld = false;
 
   let dragPointerId = null;
@@ -53,6 +54,7 @@ export function createInputManager(element, actions = {}) {
   }
 
   function handleKeyDown(e) {
+    if(['INPUT','TEXTAREA','SELECT'].includes(e.target?.tagName))return;
     if (e.code in MOVE_KEYS) {
       heldKeys.add(e.code);
     } else if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
@@ -60,6 +62,8 @@ export function createInputManager(element, actions = {}) {
     } else if (e.code === 'Space') {
       if (!e.repeat) sonarQueued = true;
       e.preventDefault?.();
+    } else if(e.code==='KeyC'){
+      if(!e.repeat)scanQueued=true;
     } else if (e.code === 'Escape') {
       if (!e.repeat) pauseQueued = true;
     }
@@ -77,6 +81,8 @@ export function createInputManager(element, actions = {}) {
     dragPointerId = null;
     dragX = 0;
     dragY = 0;
+    sonarQueued=false;scanQueued=false;pauseQueued=false;
+    sonarButton?.classList.remove('active');sprintButton?.classList.remove('active');
   }
 
   on(target, 'keydown', handleKeyDown);
@@ -139,6 +145,7 @@ export function createInputManager(element, actions = {}) {
     on(sonarButton, 'pointercancel', handleSonarUp);
     on(sonarButton, 'pointerleave', handleSonarUp);
   }
+  on(scanButton,'pointerdown',e=>{scanQueued=true;e.preventDefault?.();});
 
   function handleSprintDown(e) {
     touchSprintHeld = true;
@@ -180,10 +187,12 @@ export function createInputManager(element, actions = {}) {
       sprint: shiftHeld || touchSprintHeld,
       sonarPressed: sonarQueued,
       pausePressed: pauseQueued,
+      scanPressed:scanQueued,
     };
 
     sonarQueued = false;
     pauseQueued = false;
+    scanQueued=false;
 
     return snapshot;
   }
@@ -193,9 +202,9 @@ export function createInputManager(element, actions = {}) {
     if (destroyed) return;
     destroyed = true;
     for (const off of listeners.splice(0)) off();
-    heldKeys.clear();
+    handleBlur();
   }
 
-  return { getInput, destroy };
+  return { getInput, destroy,reset:handleBlur };
 }
 
