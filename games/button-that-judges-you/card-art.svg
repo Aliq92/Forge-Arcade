@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+<title id="title">The Button That Judges You — Judgment Chamber artwork</title><desc id="desc">A glossy crimson button on a metal pedestal in a plum-coloured mysterious room, lit by a soft amber ceiling light.</desc>
+<defs>
+ <linearGradient id="wall" x2="1" y2="1"><stop stop-color="#302334"/><stop offset=".55" stop-color="#211c2b"/><stop offset="1" stop-color="#0e101a"/></linearGradient>
+ <linearGradient id="beam" x2="0" y2="1"><stop stop-color="#e8c591" stop-opacity=".12"/><stop offset="1" stop-color="#e8c591" stop-opacity="0"/></linearGradient>
+ <linearGradient id="base"><stop stop-color="#514552"/><stop offset=".5" stop-color="#312b3b"/><stop offset="1" stop-color="#1a1a28"/></linearGradient>
+ <linearGradient id="metal" x2=".3" y2="1"><stop stop-color="#c2a9a4"/><stop offset=".4" stop-color="#4c4356"/><stop offset=".8" stop-color="#8c7886"/><stop offset="1" stop-color="#372d40"/></linearGradient>
+ <radialGradient id="cap" cx=".35" cy=".2" r=".9"><stop stop-color="#ec9290"/><stop offset=".4" stop-color="#c24b60"/><stop offset="1" stop-color="#76203d"/></radialGradient>
+ <radialGradient id="glow"><stop stop-color="#c8445c" stop-opacity=".22"/><stop offset="1" stop-color="#c8445c" stop-opacity="0"/></radialGradient>
+ <linearGradient id="shade"><stop stop-color="#0d0b17" stop-opacity=".8"/><stop offset="1" stop-color="#0d0b17" stop-opacity="0"/></linearGradient>
+</defs>
+<path fill="url(#wall)" d="M0 0h1200v675H0z"/><path fill="#0b0a14" opacity=".4" d="M0 0l125 85v365L0 560zM1200 0l-85 85v365l85 110z"/>
+<g stroke="#a28a9d" opacity=".07"><path d="M180 65v410M280 65v410M380 65v410M480 65v410M580 65v410M680 65v410M780 65v410M880 65v410M980 65v410M1080 65v410"/></g>
+<path fill="#11121d" d="M125 450h990l85 110v115H0V560z"/><g stroke="#8d748e" opacity=".12"><path d="M600 450L0 675m600-225L240 675m360-225L480 675m120-225L720 675m-120-225L960 675m-360-225l600 225M50 520h1100M0 595h1200"/></g>
+<path fill="url(#beam)" d="M836 80h68l185 530H650z"/><path stroke="#060711" stroke-width="4" d="M870 0v73"/><path fill="#0c0b16" d="M821 72h98v12h-98z"/><path fill="#ceb382" opacity=".4" d="M833 83h74v3h-74z"/>
+<g fill="none" stroke="#c9a873" opacity=".25"><path d="M1039 210h46v65h-46z"/><circle cx="1062" cy="240" r="10"/><path d="M1049 258h26"/></g>
+<ellipse cx="866" cy="575" rx="225" ry="36" fill="#04040c" opacity=".55"/><ellipse cx="866" cy="360" rx="270" ry="190" fill="url(#glow)"/>
+<path fill="url(#base)" stroke="#817082" stroke-opacity=".22" d="M718 365h298l28 192-10 16H698l-12-16z"/><path fill="none" stroke="#756274" stroke-opacity=".3" d="M708 415h310v134H708z"/>
+<ellipse cx="866" cy="367" rx="187" ry="112" fill="#171321"/><ellipse cx="866" cy="350" rx="187" ry="112" fill="url(#metal)" stroke="#1b1525" stroke-width="3"/><ellipse cx="866" cy="351" rx="173" ry="99" fill="none" stroke="#d6b6ac" stroke-opacity=".4"/>
+<ellipse cx="866" cy="347" rx="163" ry="91" fill="#43172d"/><ellipse cx="866" cy="331" rx="163" ry="91" fill="url(#cap)" stroke="#f2b19c" stroke-opacity=".5"/><ellipse cx="817" cy="273" rx="69" ry="13" fill="#ffdbbd" opacity=".13" transform="rotate(-10 817 273)"/>
+<text x="866" y="333" text-anchor="middle" fill="#f3c2b1" font-family="system-ui,sans-serif" font-size="19" letter-spacing="5">PRESS</text><text x="866" y="353" text-anchor="middle" fill="#db9292" font-family="monospace" font-size="6" letter-spacing="2">IT HAS OPINIONS</text>
+<path fill="#665137" stroke="#c8ab77" stroke-opacity=".25" d="M807 491h118v37H807z"/><text x="866" y="516" fill="#d5b582" text-anchor="middle" font-family="Georgia,serif" font-size="20">07</text>
+<path fill="url(#shade)" d="M0 0h700v675H0z"/><g fill="#c7a986" font-family="monospace" font-size="10" letter-spacing="3"><text x="72" y="205">THE JUDGMENT CHAMBER</text></g>
+<g fill="#eddbbd" font-family="Georgia,serif" font-size="48"><text x="68" y="281">THE BUTTON</text><text x="68" y="340">THAT JUDGES</text><text x="68" y="399">YOU</text></g><text x="72" y="449" fill="#b59cae" font-family="Georgia,serif" font-size="19" font-style="italic">It has opinions. Unfortunately.</text>
+</svg>
