@@ -1,0 +1,31 @@
+# Mandelbrot Explorer Infinite Fractal implementation plan
+
+Goal: Improve the existing WebGL explorer's mathematical reliability, colours, exploration and responsiveness while retaining familiar controls, destinations, bookmark key, rename/delete and Arcade navigation. Brief: BRIEF.md. Local branch codex/mandelbrot-infinite-fractal; no publishing or merging.
+
+Architecture decision: retain WebGL2, the existing double-single arithmetic, camera/input classes, preset coordinates, bookmark UI and palette IDs. Split the existing bundled definitions from application orchestration. Add a small pure math/settings module and a progressive WebGL renderer with cached escape data. No dependencies. A worker/Canvas replacement would duplicate the already working GPU renderer; arbitrary precision/perturbation and optional Julia are outside this update. Backend/math changes need numerical evidence before claims.
+
+Visual direction: an unobstructed fractal with a dark navy/violet instrument panel, pale type, cyan accents and warm discovery controls; compact controls, optional collapsible information/settings/help. Six named modern palettes plus all legacy palettes. Restrained 180ms navigation; stationary reduced-motion views; cycling off by default.
+
+Precision decision: preserve double-single iteration and use z0=0, escape radius16. Clamp half-height to1e-8 (150million× from initial1.5), much more conservative than the old8e-15 floor; explicitly explain finite nonescape and approximate boundary detail. Validate actual GPU pixels against independent CPU double and 96-bit fixed-point reference grids at multiple depths. Refine limit if measurements disagree. Do not claim arbitrary precision or infinite reliable zoom. Legacy bookmarks below limit are retained and visibly clamped on restore.
+
+Files: existing index/assets bundle (camera, controls, shaders, presets, UI definitions) retained and amended; assets/fractal-core.js pure math/palettes/preferences; assets/renderer.js GPU cache, progressive stages/tiles and generation cancellation; assets/explorer.js orchestration, settings, cycling, visibility, diagnostics; assets/infinite.css responsive UI. Tests under game/tests; update tests/mandelbrot-performance.test.mjs to use actual new pipeline and public diagnostics instead of minifier variable assumptions. No other games/shared cards/config.
+
+- [x] Capture original screenshots and run all baseline tests.
+- [x] RED then GREEN math tests: recurrence/reference orbit, finite nonescape, safe smoothing, mapping, stationary focal zoom, pan, iteration budgets, palette/cycling invariance, bookmark validation/legacy compatibility/storage failures and precision clamp.
+- [x] RED then GREEN renderer lifecycle tests: preview/refine, bounded tiles, cached recolour, obsolete generation cancellation, resize dedup, hidden/context-loss behavior, settled RAF sleeps.
+- [x] Implement cached GPU escape textures with packed iteration/smooth data and cheap palette pass. Preview immediately, refine into a separate texture in chunks, atomically present completed texture; never show mixed-view tiles. Use per-job generations, bounded pixel/iteration budgets, cancellation and optional supersampling quality.
+- [x] Preserve original camera/input/presets/rename/delete; correct zoom anchoring during interrupted animations, ignore editable controls, clear pointer gestures on visibility changes. Add reduced motion, high contrast, quality, maximum iterations, colour cycle/freeze/speed and phase; save preferences safely. Keyboard and touch controls remain familiar.
+- [x] Browser checks at desktop/tablet/phone/landscape: actual wheel/drag/double click, real touch via CDP pinch/drag/doubletap, palette/cycling cache, bookmarks save/restore/rename/delete, legacy malformed saves, reset, settings, screenshots at multiple depths, resize and visibility. Read actual GPU buffers vs independent reference, benchmark preview/settled times and input latency; no FPS claims from submission timings.
+- [x] Independent review, repository regression, static build, report sources/limitations/palettes/screenshots/performance. Commit only Mandelbrot and directly necessary tests on development branch; do not publish.
+
+Review focus: stale render tile after rapid inputs; logarithm or precision artifacts mistaken for detail; wheel focal drift while animation is pending; gesture jumps after two-to-one pointer transitions; keyboard shortcuts firing while editing a bookmark; saved Infinity/NaN/out-of-range state; hidden cycling wasting frames; context restoration using dead GPU resources; controls covering the canvas on short screens.
+
+## Implementation rulings and evidence
+
+- Numerical probe found large deep-zoom discrepancies in the inherited GPU double-single path (192/192 iteration-count mismatches in a difficult1e-8 sample before correction). It is now explicitly an approximate navigation preview. Final pixels use fixed double-double arithmetic in a cancellable Worker, validated against an independent96-bit fixed-point reference using exact Float64 input bits. All768 comparison points pass. This is fixed precision, not arbitrary precision. View coordinates remain Float64.
+- Refinement begins after movement settles. Worker batches1024 pixels; fallback chunks256 pixels on the main thread if Worker construction/import fails. Detailed texture is presented atomically, keeping mixed generations off screen. Deep balanced resolutions are capped350k desktop/180k coarse pixels; High allows700k, trading refinement time for detail.
+- Independent review found a final camera snap/cache mismatch. A regression reproduced it before the fix; the frame now compares camera fields before/after update even when update returnsfalse.
+- Narrow phone testing found the inherited drag threshold discarded the first small displacement. A regression reproduced it; crossing threshold now includes the whole initial drag.
+- Bookmark coordinates outside the initial set are supported up to magnitude1e6 (finite, sensible bounds); extremely deep legacy bookmarks are retained but visibly clamped on restore.
+
+- Portrait reset framing now uses max(1.5,1.65×height/width), bounded by the zoom-out limit6, so the entire set is visible on supported phones. Numerical coordinates and exploration state are preserved during ordinary resize.

@@ -2,33 +2,38 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#05070c" />
-    <meta name="description" content="Mandelbrot Explorer — an elegant, infinitely deep fractal exploration toy." />
+    <meta name="description" content="Mandelbrot Explorer — a precise, colourful fractal explorer with saved discovery bookmarks." />
     <title>Mandelbrot Explorer</title>
     <link rel="icon" href="data:,">
-    <script type="module" crossorigin src="./assets/index-324e7ec1.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-D640x9CW.css">
+    <script defer src="./assets/fractal-core.js?v=10"></script>
+    <script defer src="./assets/precision.js?v=10"></script>
+    <script defer src="./assets/renderer.js?v=10"></script>
+    <script defer src="./assets/index-324e7ec1.js?v=10"></script>
+    <script defer src="./assets/explorer.js?v=10"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-D640x9CW.css"><link rel="stylesheet" href="./assets/infinite.css?v=10">
   </head>
   <body>
     <div id="app">
-      <canvas id="fractal-canvas"></canvas>
+      <canvas id="fractal-canvas" tabindex="0" aria-label="Mandelbrot fractal. Drag to pan, wheel or pinch to zoom. Press plus or minus to zoom, R to reset."></canvas>
+      <header id="explorer-bar"><div class="wordmark"><span class="brand-symbol" aria-hidden="true">∞</span><div><b>MANDELBROT</b><span id="palette-current">Nebula</span></div></div><div class="top-actions"><button id="btn-info" class="icon-btn" aria-expanded="false" aria-controls="hud">Info</button><button id="btn-settings" class="icon-btn">Settings</button><button id="btn-help" class="icon-btn">Help</button></div></header><div id="render-status" role="status" aria-live="polite">Preview</div>
 
       <section id="intro" aria-hidden="false">
         <div class="intro-content">
-          <h1 class="intro-title">MANDELBROT EXPLORER</h1>
-          <p class="intro-tagline">&ldquo;Infinity hides between the numbers.&rdquo;</p>
-          <button id="begin-dive" class="btn btn-primary">BEGIN DIVE</button>
+          <p class="intro-eyebrow">THE INFINITE FRACTAL UPDATE</p><h1 class="intro-title">MANDELBROT EXPLORER</h1>
+          <p class="intro-tagline">An infinite universe inside a simple equation.</p>
+          <button id="begin-dive" class="btn btn-primary">BEGIN DIVE</button><p class="intro-note">Drag to explore · scroll or pinch to dive deeper</p>
         </div>
       </section>
 
-      <div id="hud" class="panel hud" aria-hidden="true">
+      <div id="hud" class="panel hud" hidden aria-hidden="true">
         <div class="hud-row"><span class="hud-label">X</span><span id="hud-x" class="hud-value" tabindex="0"></span></div>
         <div class="hud-row"><span class="hud-label">Y</span><span id="hud-y" class="hud-value" tabindex="0"></span></div>
         <div class="hud-row"><span class="hud-label">Zoom</span><span id="hud-zoom" class="hud-value"></span></div>
         <div class="hud-row"><span class="hud-label">Iter</span><span id="hud-iter" class="hud-value"></span></div>
-        <div class="hud-row"><span class="hud-label">Frame</span><span id="hud-fps" class="hud-value"></span></div>
-        <div id="hud-precision" class="hud-precision" hidden>Precision limit reached</div>
+        <div class="hud-row"><span class="hud-label">Render</span><span id="hud-fps" class="hud-value"></span></div>
+        <div class="hud-row"><span class="hud-label">Width</span><span id="hud-width" class="hud-value"></span></div><div class="hud-row"><span class="hud-label">Palette</span><span id="hud-palette" class="hud-value"></span></div><p class="numerical-note">Dark regions have not escaped within this iteration limit; this is not a membership proof.</p><div id="hud-precision" class="hud-precision" hidden>Precision limit reached</div>
       </div>
 
       <div id="toast" class="toast" hidden></div>
@@ -51,7 +56,7 @@
 
       <div id="palette-panel" class="panel side-panel" hidden>
         <div class="panel-header"><span>Palette</span><button class="close-btn" data-close="palette-panel">&times;</button></div>
-        <div id="palette-list" class="palette-list"></div>
+        <div id="palette-list" class="palette-list"></div><div class="palette-footer"><button id="btn-cycle" class="icon-btn" aria-pressed="false">Cycle colours</button><span>Colours move; the mathematics stays still.</span></div>
       </div>
 
       <div id="places-panel" class="panel side-panel" hidden>
@@ -64,6 +69,8 @@
           <p id="bookmarks-empty" class="empty-note">No saved locations yet. Explore, then tap Save.</p>
         </div>
       </div>
+      <section id="settings-panel" class="panel side-panel" hidden aria-label="Explorer settings"><div class="panel-header"><span>Exploration settings</span><button class="close-btn" data-close="settings-panel">×</button></div><div class="settings-scroll"><label>Quality<select id="quality"><option value="economy">Economy</option><option value="balanced">Balanced</option><option value="high">High · supersampled</option></select></label><label>Iteration ceiling<select id="max-iterations"><option value="512">512</option><option value="1000">1000</option><option value="2000">2000</option><option value="3000">3000</option><option value="4000">4000</option></select></label><label>Cycle speed<input id="cycle-speed" type="range" min=".01" max=".3" step=".01"></label><label>Colour position<input id="colour-phase" type="range" min="0" max="1" step=".01"></label><label>Reduced motion<input id="reduced-motion" type="checkbox"></label><label>High contrast interface<input id="high-contrast" type="checkbox"></label><p>Economy lowers resolution. Reduced motion stops colour cycling and navigation animation.</p></div></section>
+      <section id="help-panel" class="panel side-panel" hidden aria-label="Controls and mathematical limits"><div class="panel-header"><span>Explore the equation</span><button class="close-btn" data-close="help-panel">×</button></div><div class="help-scroll"><p class="equation">z₀ = 0 &nbsp; · &nbsp; zₙ₊₁ = zₙ² + c</p><p>Drag to pan. Scroll, pinch, double-click or double-tap to zoom towards that point. A single mouse click also zooms, as in the original explorer.</p><p><kbd>+</kbd> / <kbd>−</kbd> zoom · arrows pan · <kbd>R</kbd> reset · <kbd>S</kbd> save · <kbd>D</kbd> random dive · <kbd>[</kbd> / <kbd>]</kbd> iterations · Escape closes panels.</p><p>Places are navigation bookmarks, not levels. Save your location, rename it or revisit it later on this device.</p><p><strong>Numerical limits</strong><br>GPU previews and double-double background refinement; supported half-height ≥ 10⁻⁸ (up to 150 million×). No arbitrary precision or unlimited accurate zoom. Boundary detail can remain approximate. Dark pixels mean finite-iteration nonescape. Increase iterations to check unresolved boundaries.</p><p>Saved views beyond the supported range are retained and opened at the zoom limit. Render time is elapsed refinement time, not measured FPS.</p></div></section>
     </div>
     <a href="../../index.html" id="forge-back-link" style="position:fixed;right:12px;bottom:12px;z-index:2147483000;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;font:500 12px/1.2 system-ui,-apple-system,sans-serif;color:#e8e8ec;background:rgba(10,10,14,.55);border:1px solid rgba(255,255,255,.14);border-radius:999px;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:.55;transition:opacity .15s ease;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.55">← Arcade</a>
   </body>

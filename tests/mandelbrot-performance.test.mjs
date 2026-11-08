@@ -1,111 +1,34 @@
-import { readFileSync } from 'node:fs';
+import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-// Execute the shipped application; record the GPU boundary and control time.
-// These measure submitted work and input behavior, not physical-device FPS.
-function boot(mobile = true) {
-  let now = 0, serial = 0, draws = 0;
-  const frames = new Map(), timers = new Map(), elements = new Map();
-  const target = () => ({ listeners: {}, addEventListener(k, f) { this.listeners[k] = f; },
-    removeEventListener() {}, fire(k, e = {}) { this.listeners[k]?.(e); } });
-  const gl = new Proxy({ createShader: () => ({}), createProgram: () => ({}),
-    getShaderParameter: () => true, getProgramParameter: () => true,
-    drawArrays: () => { draws++; } }, { get: (o, k) => o[k] ?? (() => {}) });
-  const element = () => Object.assign(target(), { clientWidth: 412, clientHeight: 915,
-    style: {}, dataset: {}, relList: { supports: () => true },
-    classList: { add() {}, remove() {}, toggle() {} }, appendChild() {},
-    setAttribute() {}, querySelectorAll: () => [], setPointerCapture() {},
-    releasePointerCapture() {}, getContext: () => gl });
-  const document = Object.assign(target(), { hidden: false, createElement: element,
-    querySelectorAll: () => [], getElementById(id) {
-      if (!elements.has(id)) elements.set(id, element()); return elements.get(id);
-    } });
-  const window = Object.assign(target(), { innerWidth: 412, innerHeight: 915,
-    devicePixelRatio: 2.625, matchMedia: () => ({ matches: mobile }),
-    setTimeout(f, ms) { const id = ++serial; timers.set(id, { f, at: now + ms }); return id; },
-    clearTimeout(id) { timers.delete(id); } });
-  const context = vm.createContext({ document, window, performance: { now: () => now },
-    requestAnimationFrame(f) { const id = ++serial; frames.set(id, f); return id; },
-    cancelAnimationFrame(id) { frames.delete(id); },
-    localStorage: { getItem: () => null, setItem() {} } });
-  const html = readFileSync(new URL('../games/mandelbrot-explorer/index.html', import.meta.url), 'utf8');
-  const asset = html.match(/src="\.\/assets\/([^"?]+)/)[1];
-  vm.runInContext(readFileSync(new URL(`../games/mandelbrot-explorer/assets/${asset}`, import.meta.url), 'utf8'), context);
-  function tick(count = 1) {
-    for (let i = 0; i < count; i++) {
-      now += 1000 / 60;
-      for (const [id, t] of [...timers]) if (t.at <= now) { timers.delete(id); t.f(); }
-      const pending = [...frames.values()]; frames.clear(); pending.forEach(f => f(now));
-    }
-  }
-  return { tick, window, document, canvas: elements.get('fractal-canvas'),
-    click(id) { elements.get(id).fire('click'); },
-    read(code) { return vm.runInContext(code, context); },
-    get draws() { return draws; }, get pending() { return frames.size; } };
+// Executes shipped scripts with a fake GPU/worker boundary. Browser tests exercise the real GPU and worker.
+function boot(mobile=true){
+ let now=0,serial=0,draws=0;const frames=new Map(),timers=new Map(),elements=new Map();
+ const target=()=>({listeners:{},addEventListener(k,f){(this.listeners[k]??=[]).push(f);},removeEventListener(){},fire(k,e={}){for(const f of this.listeners[k]||[])f(e);}});
+ const gl=new Proxy({FRAMEBUFFER_COMPLETE:7,createShader:()=>({}),createProgram:()=>({}),createTexture:()=>({}),createFramebuffer:()=>({}),getShaderParameter:()=>true,getProgramParameter:()=>true,getShaderPrecisionFormat:()=>({precision:23}),checkFramebufferStatus:()=>7,getUniformLocation:()=>({}),drawArrays(){draws++;}},{get:(o,k)=>o[k]??(()=>{})});
+ const element=()=>Object.assign(target(),{clientWidth:412,clientHeight:915,style:{},dataset:{},attributes:{},relList:{supports:()=>true},classList:{add(){},remove(){},toggle(){}},appendChild(){},setAttribute(k,v){this.attributes[k]=v;},getAttribute(k){return this.attributes[k];},querySelectorAll:()=>[],querySelector:()=>null,setPointerCapture(){},releasePointerCapture(){},getContext:()=>gl,focus(){}});
+ const document=Object.assign(target(),{hidden:false,body:element(),createElement:element,querySelectorAll:()=>[],getElementById(id){if(!elements.has(id))elements.set(id,element());return elements.get(id);}});
+ const timeout=(f,ms)=>{const id=++serial;timers.set(id,{f,at:now+ms});return id;};
+ class Worker{postMessage(job){timeout(()=>{if(this.stopped)return;const data=new Uint8Array(job.width*job.height*4);this.onmessage?.({data:{generation:job.generation,start:0,count:job.width*job.height,data,done:true}});},1);}terminate(){this.stopped=true;}}
+ const window=Object.assign(target(),{innerWidth:412,innerHeight:915,devicePixelRatio:2.625,matchMedia:q=>({matches:q.includes('pointer')&&mobile}),setTimeout:timeout,clearTimeout:id=>timers.delete(id)});
+ const context=vm.createContext({document,window,Worker,console,performance:{now:()=>now},setTimeout:timeout,clearTimeout:id=>timers.delete(id),requestAnimationFrame(f){const id=++serial;frames.set(id,f);return id;},cancelAnimationFrame:id=>frames.delete(id),localStorage:{getItem:()=>null,setItem(){}}});
+ // Browser globals are available as window properties and unqualified names.
+ vm.runInContext('Object.assign(globalThis,window);window=globalThis;',context);
+ const html=readFileSync(new URL('../games/mandelbrot-explorer/index.html',import.meta.url),'utf8');
+ for(const match of html.matchAll(/src="\.\/assets\/([^"?]+)/g))vm.runInContext(readFileSync(new URL('../games/mandelbrot-explorer/assets/'+match[1],import.meta.url),'utf8'),context);
+ function tick(count=1){for(let i=0;i<count;i++){now+=1000/60;for(const[id,t]of [...timers])if(t.at<=now){timers.delete(id);t.f();}const pending=[...frames.values()];frames.clear();pending.forEach(f=>f(now));}}
+ return {tick,document,canvas:elements.get('fractal-canvas'),click(id){elements.get(id).fire('click');},read:s=>vm.runInContext(s,context),fireWindow(k,e){vm.runInContext('window',context).fire(k,e);},get pending(){return frames.size;},get draws(){return draws;}};
 }
-const pointer = (x = 100, id = 1) => ({ pointerId: id, pointerType: 'touch', clientX: x, clientY: 250 });
+const pointer=(x=100,id=1)=>({pointerId:id,pointerType:'touch',clientX:x,clientY:250});
+test('settled views sleep and iteration/zoom controls wake and finish progressive rendering',()=>{const b=boot();b.tick(60);assert.equal(b.pending,0);const count=b.read('MandelbrotDebug.inspect().renderer.escapeDraws');b.click('btn-iter-up');b.tick(60);assert.ok(b.read('MandelbrotDebug.inspect().renderer.escapeDraws')>count);assert.equal(b.pending,0);const originalScale=b.read('MandelbrotDebug.camera.scale');b.click('btn-zoom-in');b.tick(240);assert.ok(b.read('MandelbrotDebug.camera.scale')<originalScale);assert.equal(b.pending,0);});
+test('stationary pointers stop drawing; dragging and pinching invalidate the current generation',()=>{const b=boot();b.tick(60);b.canvas.fire('pointerdown',pointer());b.tick(60);const count=b.draws;b.tick(60);assert.equal(b.draws,count);b.fireWindow('pointermove',pointer(180));b.tick(60);assert.ok(b.draws>count);const gen=b.read('MandelbrotDebug.inspect().renderer.generation');b.canvas.fire('pointerdown',pointer(250,2));b.fireWindow('pointermove',pointer(300,2));b.tick(60);assert.ok(b.read('MandelbrotDebug.inspect().renderer.generation')>gen);b.fireWindow('pointerup',pointer(300,2));b.fireWindow('pointerup',pointer(180));b.tick(60);assert.equal(b.pending,0);});
+test('mobile pixel budget stays below650k and desktop retains high density',()=>{const a=boot();a.tick(60);assert.ok(a.canvas.width*a.canvas.height<650000);const b=boot(false);b.tick(60);assert.equal(b.canvas.width,824);assert.equal(b.canvas.height,1830);assert.equal(b.read('MandelbrotDebug.camera.screenToComplex(206,457.5,{width:412,height:915}).x'),-.5);});
+test('hidden rendering stays asleep, clears gestures and refines again when visible',()=>{const b=boot();b.tick(60);b.canvas.fire('pointerdown',pointer());b.document.hidden=true;b.document.fire('visibilitychange');const draws=b.draws;b.fireWindow('resize',{});b.tick(60);assert.equal(b.draws,draws);assert.equal(b.pending,0);assert.equal(b.read('MandelbrotDebug.inspect().interacting'),false);b.document.hidden=false;b.document.fire('visibilitychange');b.tick(60);assert.ok(b.draws>draws);assert.equal(b.pending,0);});
+test('wheel during a held pointer does not leave interaction or RAF stuck',()=>{const b=boot();b.tick(60);b.canvas.fire('pointerdown',pointer());b.canvas.fire('wheel',{...pointer(),deltaY:-50,preventDefault(){}});b.fireWindow('pointerup',pointer());b.tick(240);assert.equal(b.read('MandelbrotDebug.inspect().interacting'),false);assert.equal(b.pending,0);});
+test('conservative GPU preview interior shortcut excludes boundary and known exterior points',()=>{const b=boot(),body=b.read('pt').match(/bool knownInterior\(float cx, float cy\) \{([\s\S]*?)\n\}/)?.[1];assert.ok(body);const inside=new Function('cx','cy',body.replace(/\bfloat\b/g,'let'));assert.equal(inside(0,0),true);assert.equal(inside(-1,0),true);for(const[x,y]of [[.25,0],[-.75,0],[1,1]])assert.equal(inside(x,y),false);let skipped=0;for(let y=-1.5;y<=1.5;y+=.025)for(let x=-2;x<=1;x+=.025){if(!inside(x,y))continue;skipped++;let zr=0,zi=0;for(let i=0;i<1000;i++){const next=zr*zr-zi*zi+x;zi=2*zr*zi+y;zr=next;assert.ok(zr*zr+zi*zi<=256);}}assert.ok(skipped>1800);});
 
-test('settled views stop requesting animation frames and controls wake rendering', () => {
-  const b = boot(); b.tick(60); assert.equal(b.pending, 0);
-  const before = b.draws; b.click('btn-iter-up'); b.tick(); assert.equal(b.draws, before + 1);
-  b.click('btn-zoom-in'); b.tick(180);
-  assert.ok(b.read('h.scale') < 1.5); assert.equal(b.pending, 0);
-});
+test('settled camera coordinates exactly match the completed cached viewport',()=>{const b=boot();b.tick(60);b.click('btn-zoom-in');b.tick(240);assert.equal(b.read('MandelbrotDebug.inspect().renderer.view.scale'),b.read('MandelbrotDebug.camera.scale'));});
 
-test('holding still submits no repeated draws, drag and pinch wake the renderer', () => {
-  const b = boot(); b.tick(); b.canvas.fire('pointerdown', pointer()); b.tick();
-  const held = b.draws; b.tick(60); assert.equal(b.draws, held);
-  b.window.fire('pointermove', pointer(180)); b.tick(); assert.ok(b.draws > held);
-  const dragged = b.draws; b.canvas.fire('pointerdown', pointer(250, 2)); b.tick();
-  b.window.fire('pointermove', pointer(300, 2)); b.tick(); assert.ok(b.draws > dragged);
-  b.window.fire('pointerup', pointer(300, 2)); b.window.fire('pointerup', pointer(180));
-  b.tick(30); assert.equal(b.pending, 0);
-});
-
-test('mobile pixel budget falls below 650k while desktop retains high density', () => {
-  const mobile = boot(); mobile.tick();
-  assert.ok(mobile.canvas.width * mobile.canvas.height < 650000);
-  const desktop = boot(false); desktop.tick();
-  assert.equal(desktop.canvas.width, 824); assert.equal(desktop.canvas.height, 1830);
-  assert.equal(mobile.read('h.screenToComplex(206,457.5,{width:412,height:915}).x'), -.5);
-});
-
-test('hidden views stay asleep even if invalidated and repaint when visible', () => {
-  const b = boot(); b.tick(); b.document.hidden = true; b.document.fire('visibilitychange');
-  const before = b.draws; b.window.fire('resize'); b.tick(60);
-  assert.equal(b.draws, before); assert.equal(b.pending, 0);
-  b.document.hidden = false; b.document.fire('visibilitychange'); b.tick();
-  assert.equal(b.draws, before + 1);
-});
-
-test('wheel input during a held pointer does not leave interaction stuck active', () => {
-  const b = boot(); b.tick(); b.canvas.fire('pointerdown', pointer());
-  b.canvas.fire('wheel', { ...pointer(), deltaY: -50, preventDefault() {} });
-  b.window.fire('pointerup', pointer()); b.tick(240);
-  assert.equal(b.read('I'), false); assert.equal(b.pending, 0);
-});
-
-test('interior shortcut only accepts points whose reference orbit stays bounded', () => {
-  const b = boot();
-  // Execute the scalar GLSL predicate as JS against independent orbit results.
-  const shader = b.read('pt');
-  const body = shader.match(/bool knownInterior\(float cx, float cy\) \{([\s\S]*?)\n\}/)?.[1];
-  assert.ok(body, 'shader needs a conservative interior shortcut');
-  const inside = new Function('cx', 'cy', body.replace(/\bfloat\b/g, 'let'));
-  assert.equal(inside(0, 0), true); assert.equal(inside(-1, 0), true);
-  assert.equal(inside(.25, 0), false); assert.equal(inside(-.75, 0), false);
-  assert.equal(inside(1, 1), false);
-  let skipped = 0;
-  for (let y = -1.5; y <= 1.5; y += .025) for (let x = -2; x <= 1; x += .025) {
-    if (!inside(x, y)) continue;
-    skipped++;
-    let zr = x, zi = y;
-    for (let i = 0; i < 1000; i++) {
-      const next = zr * zr - zi * zi + x; zi = 2 * zr * zi + y; zr = next;
-      assert.ok(zr * zr + zi * zi <= 256, `false interior at ${x}, ${y}`);
-    }
-  }
-  assert.ok(skipped > 1800, 'overview should skip a substantial solid interior');
-});
+test('crossing the drag threshold retains the initial small pointer movement',()=>{const b=boot();b.tick(60);const scale=b.read('MandelbrotDebug.camera.scale');b.canvas.fire('pointerdown',pointer(100));b.fireWindow('pointermove',pointer(102));b.fireWindow('pointermove',pointer(120));assert.ok(Math.abs(b.read('MandelbrotDebug.camera.centerX')-(-.5-20*2*scale/915))<1e-14);});
