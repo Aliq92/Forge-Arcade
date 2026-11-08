@@ -37,6 +37,7 @@ RR.Game = (function () {
     completingTimer: 0,
     timeScale: 1,
     failing: false,
+    pendingFailure: false,
     shakeAmount: 0,
     settings: RR.Storage.getSettings(),
     zen: RR.Storage.getZen(),
@@ -65,7 +66,7 @@ RR.Game = (function () {
       const sx = W / oldW, sy = H / oldH;
       this.W = W; this.H = H;
 
-      if (this.level && (this.state === 'playing' || this.state === 'paused')) {
+      if (this.level && !this.zenActive && (this.state === 'playing' || this.state === 'paused')) {
         for (const orb of this.orbs) { orb.x *= sx; orb.y *= sy; }
         this.level = RR.Levels.build(this.currentLevelIndex, W, H);
         this.deco = RR.Renderer.generateDecorations('level-' + this.level.id, W, H);
@@ -87,6 +88,9 @@ RR.Game = (function () {
 
     // ---------------- Level flow ----------------
     startLevel(index) {
+      if(RR.Renderer.resetEffects)RR.Renderer.resetEffects();
+      this.runId=(this.runId||0)+1;
+      this.zenActive=false;
       this.currentLevelIndex = index;
       this.level = RR.Levels.build(index, this.W, this.H);
       this.orbs = [new OrbMod.Orb(this.level.start.x, this.level.start.y, { radius: 12 })];
@@ -98,6 +102,7 @@ RR.Game = (function () {
       this.hazardPenalties = 0;
       this.completing = false;
       this.failing = false;
+      this.pendingFailure = false;
       this.timeScale = 1;
       this._goalPulsed = false;
       for (const hz of this.level.hazards) hz.reset();
@@ -119,12 +124,21 @@ RR.Game = (function () {
     },
 
     pauseGame() {
-      if (this.state === 'playing') { this.prevState = 'playing'; this.state = 'paused'; }
+      if (this.state === 'playing' || this.state === 'zen') { this.prevState = this.state; this.state = 'paused'; }
     },
     resumeGame() {
       if (this.state === 'paused') { this.state = this.prevState || 'playing'; }
+      if (this.pendingFailure && this.state === 'playing') {
+        this.pendingFailure = false;
+        this.failing = false;
+        this.state = 'fail';
+        this.emit('fail');
+      }
     },
     quitToMenu() {
+      this.pendingFailure = false;
+      if(RR.Renderer.resetEffects)RR.Renderer.resetEffects();
+      this.runId=(this.runId||0)+1;
       this.zenActive = false;
       this.state = 'title';
     },
@@ -161,10 +175,11 @@ RR.Game = (function () {
       for (let i = 0; i < count; i++) {
         const a = Math.random() * Math.PI * 2;
         const speed = U.rand(30, 110);
-        this.particles.push({
+        const particle = {
           x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed - 20,
           size: U.rand(1.2, 3), life: U.rand(0.3, 0.6), maxLife: 0.6
-        });
+        };
+        if(this.particles.length<240)this.particles.push(particle);
       }
     },
 
@@ -214,6 +229,9 @@ RR.Game = (function () {
 
     // ---------------- Zen ----------------
     enterZen() {
+      this.pendingFailure=false;this.failing=false;
+      if(RR.Renderer.resetEffects)RR.Renderer.resetEffects();
+      this.runId=(this.runId||0)+1;
       this.zenActive = true;
       this.state = 'zen';
       this.zen = RR.Storage.getZen();
@@ -226,6 +244,7 @@ RR.Game = (function () {
       RR.Audio.startAmbient();
     },
     exitZen() {
+      if(RR.Renderer.resetEffects)RR.Renderer.resetEffects();
       this.zenActive = false;
       RR.Storage.saveZen(this.zen);
       RR.Renderer.setRain(false);
@@ -240,6 +259,7 @@ RR.Game = (function () {
       ));
     },
     clearZenOrbs() {
+      if(RR.Renderer.resetEffects)RR.Renderer.resetEffects();
       this.orbs = [new OrbMod.Orb(this.W * 0.5, this.H * 0.5, { radius: 13 })];
       this.rippleManager.clear();
       this.particles = [];
@@ -360,14 +380,22 @@ RR.Game = (function () {
 
     getRenderState() {
       const shake = this.getShakeOffset();
+      if(this.state==='paused'||this.settings.reducedMotion){shake.x=0;shake.y=0;}
       const base = { W: this.W, H: this.H, shakeX: shake.x, shakeY: shake.y,
         reducedMotion: this.settings.reducedMotion, rippleGlow: this.settings.rippleGlow,
-        highContrast: this.settings.highContrast };
+        highContrast: this.settings.highContrast,glowIntensity:this.settings.glowIntensity,
+        particleEffects:this.settings.particleEffects,state:this.state,elapsed:this.elapsed,
+        completed:this.completing||this.state==='levelComplete',goalProgress:U.clamp(this.goalHoldTimer/HOLD_REQUIRED,0,1) };
+
+      if(this.zenActive&&(this.state==='zen'||this.state==='paused'))return Object.assign(base,{
+        theme:RR.Chromatic.activeTheme(this),sceneSeed:this.sceneSeed,deco:this.deco,orbs:this.orbs,
+        ripples:this.rippleManager.ripples,particles:this.particles,rocks:[],currents:[],shallow:[],hazards:[],goal:null,rain:this.zen.rain
+      });
 
       if (this.state === 'playing' || this.state === 'paused' || this.state === 'levelComplete' || this.state === 'fail') {
         const level = this.level;
         return Object.assign(base, {
-          theme: 'night', sceneSeed: this.sceneSeed, deco: this.deco,
+          theme: RR.Chromatic.activeTheme(this), sceneSeed: this.sceneSeed, deco: this.deco,
           orbs: this.orbs, ripples: this.rippleManager.ripples, particles: this.particles,
           rocks: level ? level.rocks : [], currents: level ? level.currents : [],
           shallow: level ? level.shallow : [], hazards: level ? level.hazards : [],
@@ -376,14 +404,14 @@ RR.Game = (function () {
       }
       if (this.state === 'zen') {
         return Object.assign(base, {
-          theme: this.zen.theme, sceneSeed: this.sceneSeed, deco: this.deco,
+          theme: RR.Chromatic.activeTheme(this), sceneSeed: this.sceneSeed, deco: this.deco,
           orbs: this.orbs, ripples: this.rippleManager.ripples, particles: this.particles,
           rocks: [], currents: [], shallow: [], hazards: [], goal: null,
           rain: this.zen.rain
         });
       }
       return Object.assign(base, {
-        theme: 'night', sceneSeed: 'ambient', deco: this.ambientDeco,
+        theme: RR.Chromatic.activeTheme(this), sceneSeed: 'ambient', deco: this.ambientDeco,
         orbs: [this.ambientOrb], ripples: this.rippleManager.ripples, particles: this.particles,
         rocks: [], currents: [], shallow: [], hazards: [], goal: null, rain: false
       });
@@ -391,7 +419,10 @@ RR.Game = (function () {
   };
 
   function setTimeoutFail(game) {
+    const runId=game.runId;
     window.setTimeout(() => {
+      if(game.runId!==runId||!game.failing)return;
+        if(game.state==='paused'){game.pendingFailure=true;return;}
       game.failing = false;
       game.state = 'fail';
       game.emit('fail');

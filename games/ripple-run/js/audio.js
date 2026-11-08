@@ -8,32 +8,39 @@ RR.Audio = (function () {
   let ambientNodes = null;
   let enabled = true;
   let musicEnabled = true;
+  let unlocked=false,visible=true;
 
   function ensureCtx() {
+    if(!unlocked)return null;
     if (ctx) return ctx;
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
       ctx = new AC();
       master = ctx.createGain();
-      master.gain.value = 0.55;
+      master.gain.value = enabled&&visible ? 0.55 : 0;
       master.connect(ctx.destination);
     } catch (e) { ctx = null; }
     return ctx;
   }
 
   function resume() {
+    unlocked=true;
+    if(!enabled)return;
     const c = ensureCtx();
     if (c && c.state === 'suspended') c.resume().catch(() => {});
+    startAmbient();
   }
 
-  function setEnabled(v) { enabled = v; }
+  function syncMaster(){if(master&&ctx)master.gain.setTargetAtTime(enabled&&visible?.55:0,ctx.currentTime,.025);}
+  function setVisible(v){visible=v;syncMaster();if(!v)stopAmbient();else startAmbient();}
+  function setEnabled(v) { enabled = v;syncMaster();if(!v)stopAmbient();else startAmbient(); }
   function setMusicEnabled(v) {
     musicEnabled = v;
     if (!v) stopAmbient(); else startAmbient();
   }
 
   function tone(freq, duration, opts) {
-    if (!enabled) return;
+    if (!enabled||!visible) return;
     const c = ensureCtx();
     if (!c) return;
     opts = opts || {};
@@ -70,7 +77,7 @@ RR.Audio = (function () {
   }
 
   function noiseBurst(duration, opts) {
-    if (!enabled) return;
+    if (!enabled||!visible) return;
     const c = ensureCtx();
     if (!c) return;
     opts = opts || {};
@@ -144,7 +151,7 @@ RR.Audio = (function () {
   }
 
   function startAmbient() {
-    if (!musicEnabled || !enabled) return;
+    if (!musicEnabled || !enabled||!visible||!unlocked) return;
     const c = ensureCtx();
     if (!c || ambientNodes) return;
     ambientGain = c.createGain();
@@ -179,7 +186,7 @@ RR.Audio = (function () {
   }
 
   return {
-    resume, setEnabled, setMusicEnabled,
+    resume, setEnabled, setMusicEnabled,setVisible,inspect:()=>({created:!!ctx,enabled,musicEnabled,unlocked,visible}),
     tap, ripple, splash, orbHit, goalPulse, levelComplete, fail, rockHit,
     startAmbient, stopAmbient
   };

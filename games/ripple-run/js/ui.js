@@ -3,14 +3,14 @@ window.RR = window.RR || {};
 
 RR.UI = (function () {
   const G = RR.Game;
-  let el = {};
+  let el = {};let settingsReturn='title',lastTheme='';
 
   function q(id) { return document.getElementById(id); }
 
   function cacheEls() {
     el = {
       hud: q('hud'), hudLevelName: q('hud-level-name'), hudTaps: q('hud-taps'),
-      btnPause: q('btn-pause'), btnRestart: q('btn-restart'),
+      btnPause: q('btn-pause'), btnRestart: q('btn-restart'),btnVisual:q('btn-visual'),btnTitleSound:q('btn-title-sound'),btnZenSettings:q('btn-zen-settings'),setTheme:q('set-theme'),setIntensity:q('set-intensity'),setParticles:q('set-particles'),
       levelTip: q('level-tip'),
 
       screenTitle: q('screen-title'), btnPlay: q('btn-play'), btnLevelSelect: q('btn-level-select'),
@@ -55,6 +55,7 @@ RR.UI = (function () {
     el.hud.classList.add('hidden');
     el.levelTip.classList.add('hidden');
     el.zenUi.classList.add('hidden');
+    el.btnCinematicExit.classList.add('hidden');
     G.state = 'title';
     el.screenTitle.classList.remove('hidden');
   }
@@ -72,7 +73,7 @@ RR.UI = (function () {
     RR.Levels.DATA.forEach((def, i) => {
       const unlocked = (i + 1) <= progress.unlocked;
       const stars = progress.ratings[def.id] || 0;
-      const stone = document.createElement('div');
+      const stone = document.createElement('button');stone.type='button';stone.disabled=!unlocked;stone.setAttribute('aria-label',`Level ${i+1}: ${def.name}${unlocked?'':' — locked'}`);
       stone.className = 'level-stone' + (unlocked ? '' : ' locked');
       if (unlocked) {
         stone.innerHTML = `<span class="num">${i + 1}</span><span class="stars-mini">${'★'.repeat(stars)}</span>`;
@@ -104,7 +105,7 @@ RR.UI = (function () {
   function U_clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
   function initSettingsUI() {
-    const s = G.settings;
+    const s = G.settings;el.setTheme.value=s.visualTheme;el.setIntensity.value=s.glowIntensity;el.setParticles.checked=s.particleEffects;
     el.setSound.checked = !!s.sound;
     el.setMusic.checked = !!s.music;
     el.setGlow.checked = !!s.rippleGlow;
@@ -119,12 +120,12 @@ RR.UI = (function () {
     el.btnLevelSelect.addEventListener('click', showLevelSelect);
     el.btnZen.addEventListener('click', enterZenUI);
     el.btnHowto.addEventListener('click', () => { hideAllScreens(); el.modalHowto.classList.remove('hidden'); });
-    el.btnSettings.addEventListener('click', () => { hideAllScreens(); initSettingsUI(); el.modalSettings.classList.remove('hidden'); });
+    el.btnSettings.addEventListener('click',openSettings);el.btnVisual.addEventListener('click',openSettings);el.btnZenSettings.addEventListener('click',openSettings);el.btnTitleSound.addEventListener('click',()=>{RR.Audio.resume();G.applySettings({sound:!G.settings.sound});sync();});el.setTheme.addEventListener('change',()=>{G.applySettings({visualTheme:el.setTheme.value});sync();});el.setIntensity.addEventListener('input',()=>G.applySettings({glowIntensity:Number(el.setIntensity.value)}));el.setParticles.addEventListener('change',()=>G.applySettings({particleEffects:el.setParticles.checked}));
 
     el.btnLsBack.addEventListener('click', showTitle);
     el.btnHowtoBack.addEventListener('click', showTitle);
     el.btnHowtoClose.addEventListener('click', showTitle);
-    el.btnSettingsBack.addEventListener('click', showTitle);
+    el.btnSettingsBack.addEventListener('click',closeSettings);
 
     el.setSound.addEventListener('change', () => G.applySettings({ sound: el.setSound.checked }));
     el.setMusic.addEventListener('change', () => G.applySettings({ music: el.setMusic.checked }));
@@ -138,18 +139,17 @@ RR.UI = (function () {
 
     // HUD
     el.btnPause.addEventListener('click', () => {
-      G.pauseGame();
-      el.overlayPause.classList.remove('hidden');
+      pause();
     });
     el.btnRestart.addEventListener('click', () => { G.retryLevel(); });
 
     // Pause overlay
-    el.btnResume.addEventListener('click', () => { G.resumeGame(); el.overlayPause.classList.add('hidden'); });
-    el.btnPauseRestart.addEventListener('click', () => { el.overlayPause.classList.add('hidden'); G.retryLevel(); });
+    el.btnResume.addEventListener('click',resume);
+    el.btnPauseRestart.addEventListener('click',()=>{el.overlayPause.classList.add('hidden');if(G.prevState==='zen'){G.clearZenOrbs();G.resumeGame();}else G.retryLevel();RR.Audio.setVisible(true);});
     el.btnPauseQuit.addEventListener('click', () => {
       el.overlayPause.classList.add('hidden');
       el.hud.classList.add('hidden');
-      G.quitToMenu();
+      if(G.zenActive)G.exitZen();else G.quitToMenu();RR.Audio.setVisible(true);
       showTitle();
     });
 
@@ -177,12 +177,13 @@ RR.UI = (function () {
     el.btnZenAddOrb.addEventListener('click', () => G.addZenOrb());
     el.btnZenClear.addEventListener('click', () => G.clearZenOrbs());
     el.btnZenRain.addEventListener('click', () => { G.setZenRain(!G.zen.rain); syncZenUI(); });
-    el.btnZenTheme.addEventListener('click', () => { G.setZenTheme(G.zen.theme === 'night' ? 'day' : 'night'); syncZenUI(); });
+    el.btnZenTheme.addEventListener('click',()=>{const order=['day','violet','coral','night'],current=RR.Chromatic.activeTheme(G),key=current==='aqua'?'day':current;G.applySettings({visualTheme:'auto'});G.setZenTheme(order[(order.indexOf(key)+1)%order.length]);syncZenUI();});
     el.btnZenCinematic.addEventListener('click', () => { G.setZenCinematic(true); syncZenUI(); });
     el.zenStrength.addEventListener('input', () => G.setZenRippleStrength(parseFloat(el.zenStrength.value)));
 
     // Game callbacks
     G.on('levelStart', ({ index, level }) => {
+      RR.Audio.setVisible(!document.hidden);
       hideOverlays();
       el.hudLevelName.textContent = `${index + 1} · ${level.name}`;
       el.hudTaps.textContent = '0';
@@ -203,7 +204,9 @@ RR.UI = (function () {
     });
     G.on('fail', () => {
       el.overlayFail.classList.remove('hidden');
+      const runId=G.runId;
       setTimeout(() => {
+        if(G.runId!==runId||G.state!=='fail')return;
         el.overlayFail.classList.add('hidden');
         G.retryLevel();
       }, 700);
@@ -224,7 +227,7 @@ RR.UI = (function () {
   }
   function syncZenUI() {
     el.btnZenRain.classList.toggle('active', !!G.zen.rain);
-    el.btnZenTheme.textContent = G.zen.theme === 'night' ? 'Night ☾' : 'Day ☀';
+    el.btnZenTheme.textContent=RR.Chromatic.THEMES[RR.Chromatic.activeTheme(G)].name;
     el.zenStrength.value = G.zen.rippleStrength || 1;
     if (G.zen.cinematic) {
       el.zenControls.classList.add('hidden');
@@ -237,12 +240,19 @@ RR.UI = (function () {
     }
   }
 
+  function openSettings(){settingsReturn=G.state;if(G.state==='playing'||G.state==='zen'){G.pauseGame();RR.Audio.setVisible(false);}else G.state='settings';hideAllScreens();initSettingsUI();el.modalSettings.classList.remove('hidden');}
+  function closeSettings(){el.modalSettings.classList.add('hidden');if(settingsReturn==='playing'||settingsReturn==='zen'){G.resumeGame();RR.Audio.setVisible(true);}else showTitle();}
+  function pause(){if(!['playing','zen'].includes(G.state))return;G.pauseGame();el.overlayPause.classList.remove('hidden');RR.Audio.setVisible(false);}
+  function resume(){G.resumeGame();el.overlayPause.classList.add('hidden');RR.Audio.setVisible(true);}
+  function sync(){const theme=RR.Chromatic.activeTheme(G);if(theme!==lastTheme){document.documentElement.style.setProperty('--accent',RR.Chromatic.THEMES[theme].accent);document.body.dataset.theme=theme;lastTheme=theme;}document.body.classList.toggle('reduced-motion',!!G.settings.reducedMotion);q('hud-theme').textContent=RR.Chromatic.THEMES[theme].name;q('goal-fill').style.width=Math.min(100,G.goalHoldTimer/.55*100)+'%';q('goal-progress').setAttribute('aria-valuenow',String(Math.round(Math.min(100,G.goalHoldTimer/.55*100))));el.btnTitleSound.textContent=G.settings.sound?'♪ Sound on':'♪ Sound off';el.btnTitleSound.setAttribute('aria-pressed',String(G.settings.sound));el.hud.inert=G.state!=='playing';el.zenUi.inert=G.state!=='zen';el.btnCinematicExit.inert=G.state!=='zen';for(const node of document.querySelectorAll('.screen,.overlay'))node.inert=node.classList.contains('hidden');}
   function init() {
     cacheEls();
     bindEvents();
     document.body.classList.toggle('high-contrast', !!G.settings.highContrast);
     showTitle();
+    sync();
+    document.addEventListener('keydown',e=>{if(['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)||e.repeat)return;const key=e.key.toLowerCase();if(key==='escape'&&!el.modalSettings.classList.contains('hidden')){closeSettings();return;}if(key==='escape'||key==='p'){if(G.state==='paused'&&el.modalSettings.classList.contains('hidden'))resume();else pause();}if(key==='r'&&['playing','zen','paused'].includes(G.state)&&el.modalSettings.classList.contains('hidden')){if(G.zenActive)G.clearZenOrbs();else G.retryLevel();}});
   }
 
-  return { init, showTitle };
+  return { init, showTitle,sync,pause,resume };
 })();

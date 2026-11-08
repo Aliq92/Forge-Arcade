@@ -7,7 +7,7 @@
 <title>Ripple Run</title>
 <meta name="description" content="A calm water-based puzzle game — tap to ripple, guide the light home.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='18' fill='%23bfe8ff'/%3E%3Ccircle cx='50' cy='50' r='32' fill='none' stroke='%2380c8ee' stroke-width='4' opacity='0.6'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=9"><link rel="stylesheet" href="chromatic.css?v=9">
 </head>
 <body>
 <div id="app">
@@ -17,11 +17,11 @@
   <!-- ===== In-game HUD ===== -->
   <div id="hud" class="hidden">
     <div class="hud-left">
-      <span id="hud-level-name">Level 1</span>
+      <span id="hud-level-name">Level 1</span><span id="hud-theme"></span><div id="goal-progress" role="progressbar" aria-label="Goal hold progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="goal-fill"></span></div>
     </div>
     <div class="hud-right">
       <div class="hud-stat"><span class="hud-stat-label">Taps</span><span id="hud-taps">0</span></div>
-      <button id="btn-pause" class="icon-btn" aria-label="Pause">⏸</button>
+      <button id="btn-visual" class="icon-btn" aria-label="Visual settings">⚙</button><button id="btn-pause" class="icon-btn" aria-label="Pause">⏸</button>
       <button id="btn-restart" class="icon-btn" aria-label="Restart">↺</button>
     </div>
   </div>
@@ -30,14 +30,14 @@
   <!-- ===== Title Screen ===== -->
   <div id="screen-title" class="screen">
     <div class="title-wrap">
-      <h1 class="game-title">Ripple Run</h1>
-      <p class="game-subtitle">tap the water &middot; guide the light</p>
+      <div class="water-emblem" aria-hidden="true">◌</div><p class="title-eyebrow">CHROMATIC WATERS</p><h1 class="game-title">RIPPLE RUN</h1>
+      <p class="game-subtitle">Every wave finds its way.</p>
       <div class="menu-buttons">
         <button id="btn-play" class="btn btn-primary">Play</button>
         <button id="btn-level-select" class="btn">Level Select</button>
         <button id="btn-zen" class="btn">Zen Mode</button>
         <button id="btn-howto" class="btn btn-ghost">How to Play</button>
-        <button id="btn-settings" class="btn btn-ghost">Settings</button>
+        <button id="btn-settings" class="btn btn-ghost">Settings</button><button id="btn-title-sound" class="title-sound" aria-pressed="true">♪ Sound on</button>
       </div>
     </div>
   </div>
@@ -77,7 +77,7 @@
         <button class="icon-btn back-btn" id="btn-settings-back" aria-label="Back">←</button>
         <h2>Settings</h2>
       </div>
-      <div class="settings-list">
+      <div class="settings-list"><label class="setting-row"><span>Visual theme</span><select id="set-theme"><option value="auto">Follow the levels</option><option value="aqua">Aqua Dawn</option><option value="violet">Violet Twilight</option><option value="coral">Coral Dream</option><option value="night">Luminous Night</option></select></label><label class="setting-row"><span>Glow strength</span><input type="range" id="set-intensity" min="0" max="1" step="0.1" value="0.65"></label><label class="setting-row"><span>Surface particles</span><input type="checkbox" id="set-particles"></label>
         <label class="setting-row"><span>Sound</span><input type="checkbox" id="set-sound"></label>
         <label class="setting-row"><span>Ambient Music</span><input type="checkbox" id="set-music"></label>
         <label class="setting-row"><span>Ripple Glow</span><input type="checkbox" id="set-glow"></label>
@@ -103,7 +103,7 @@
   <!-- ===== Level Complete overlay ===== -->
   <div id="overlay-complete" class="overlay hidden">
     <div class="panel panel-narrow center-panel">
-      <h2>Level Complete</h2>
+      <p class="complete-caption">LEVEL COMPLETE</p><h2>The light is home.</h2>
       <div id="complete-stars" class="stars">★★★</div>
       <div class="complete-stats">
         <div><span class="stat-label">Taps</span><span id="complete-taps">0</span></div>
@@ -126,7 +126,7 @@
   <div id="zen-ui" class="hidden">
     <button id="btn-zen-exit" class="icon-btn zen-exit" aria-label="Exit Zen Mode">✕</button>
     <div id="zen-controls" class="zen-controls">
-      <button id="btn-zen-add-orb" class="zen-btn">Add Orb</button>
+      <button id="btn-zen-settings" class="zen-btn">Settings</button><button id="btn-zen-add-orb" class="zen-btn">Add Orb</button>
       <button id="btn-zen-clear" class="zen-btn">Clear</button>
       <button id="btn-zen-rain" class="zen-btn">Rain</button>
       <button id="btn-zen-theme" class="zen-btn">Day / Night</button>
@@ -142,15 +142,15 @@
 </div>
 
 <script src="js/utils.js"></script>
-<script src="js/storage.js"></script>
-<script src="js/audio.js"></script>
+<script src="js/chromatic.js?v=9"></script><script src="js/storage.js?v=9"></script>
+<script src="js/audio.js?v=9"></script>
 <script src="js/orb.js"></script>
 <script src="js/ripples.js"></script>
 <script src="js/obstacles.js"></script>
 <script src="js/levels.js"></script>
-<script src="js/renderer.js"></script>
-<script src="js/game.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/main.js"></script>
+<script src="js/renderer.js?v=9"></script>
+<script src="js/game.js?v=9"></script>
+<script src="js/ui.js?v=9"></script>
+<script src="js/main.js?v=9"></script>
 <a href="../../index.html" id="forge-back-link" style="position:fixed;right:12px;bottom:12px;z-index:2147483000;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;font:500 12px/1.2 system-ui,-apple-system,sans-serif;color:#e8e8ec;background:rgba(10,10,14,.55);border:1px solid rgba(255,255,255,.14);border-radius:999px;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:.55;transition:opacity .15s ease;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.55">← Arcade</a></body>
 </html>

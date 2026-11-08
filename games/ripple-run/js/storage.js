@@ -24,10 +24,11 @@ RR.Storage = (function () {
   const defaultSettings = {
     sound: true,
     music: true,
-    reducedMotion: false,
+    reducedMotion: !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches),
     rippleGlow: true,
     screenShake: true,
-    highContrast: false
+    highContrast: false,
+    visualTheme: 'auto', glowIntensity: 0.65, particleEffects: true
   };
   const defaultZen = {
     rain: false,
@@ -39,7 +40,7 @@ RR.Storage = (function () {
   function getProgress() { return safeGet(KEY_PROGRESS, defaultProgress); }
   function saveProgress(p) { safeSet(KEY_PROGRESS, p); }
 
-  function getSettings() { return safeGet(KEY_SETTINGS, defaultSettings); }
+  function getSettings() { const s=safeGet(KEY_SETTINGS,defaultSettings);return Object.assign(s,RR.Chromatic.preferences(s)); }
   function saveSettings(s) { safeSet(KEY_SETTINGS, s); }
 
   function getZen() { return safeGet(KEY_ZEN, defaultZen); }
