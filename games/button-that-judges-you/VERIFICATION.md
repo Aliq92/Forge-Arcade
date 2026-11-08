@@ -77,7 +77,7 @@ Records are validated before use. An unreadable record is preserved and protecte
 
 ## Automated and browser verification
 
-**349 tests passed, zero failures**: existing 334 checks plus 15 game tests. The production build succeeded.
+**351 tests passed, zero failures**: existing 334 checks plus 17 game tests. The production build succeeded.
 
 ```powershell
 node --test tests/*.test.mjs games/comet-shepherd/tests/*.test.mjs games/void-drifter/tests/*.test.cjs games/echo-runner/tests/*.test.mjs games/echo-miner/tests/*.test.mjs games/elemental/tests/*.test.mjs games/molt/tests/*.test.cjs games/particle-lab/tests/*.test.cjs games/button-that-judges-you/tests/*.test.cjs
@@ -98,7 +98,7 @@ Independent review found two defects: a rare milestone could repeat the previous
 
 ## Performance measurements
 
-Final Chrome frame-work samples used **320 confetti pieces with full effects**, over 1.7 seconds after clearing samples. These measure JavaScript work, Canvas submission and DOM synchronization; they are not GPU completion times or displayed FPS.
+The original Fix #07 Chrome frame-work samples used **320 confetti pieces with full effects**, over 1.7 seconds after clearing samples. These measure JavaScript work, Canvas submission and DOM synchronization; they are not GPU completion times or displayed FPS.
 
 | Viewport | Mean frame work | 95th percentile |
 |---|---:|---:|
@@ -124,3 +124,9 @@ Evidence lives locally in ignored `test-results/judgment/`.
 Physical Android/iPhone, Safari, assistive-technology behavior, real background-tab transitions, prolonged thermal/battery effects and speaker levels remain unmeasured. Mobile checks use desktop Chrome emulation. Performance varies with hardware/load. The save is browser-local and has no cloud synchronization; simultaneous open game tabs can overwrite each other's latest records. There is no guarantee that all rare outcomes appear in a short session; Golden Touch has the explicit 50-press fallback. The brief's optional haptics were not added. The prepared card remains unwired, preserving the existing gallery.
 
 Integration and publication were authorized after local verification and review. This report records the tested source; public deployment is confirmed separately against its GitHub revision.
+
+## Side-wall colour follow-up
+
+Both perspective side walls change to a different muted colour on every accepted press, including the decoy. Eight colours cycle without consecutive repetition, with a 0.32-second fade; Calm effects use a stationary colour change. Colours derive from the saved press count, so reloading preserves the current colour without consuming judgment/event randomness. Reset restores the original neutral wall colour. Only the side-wall polygons are tinted. The room asset version is 7.1 to refresh cached clients.
+
+Two added tests verify colour changes, transition settling, unchanged-count behavior, reset and isolation from game randomness. A dedicated browser check verified actual left/right Canvas pixel changes from real mouse/touch input at 1440×900, 390×844, 320×740 (Calm) and 844×390, with zero page errors. See local walls-local-report.json and walls-public-report.json in test-results/judgment after deployment verification. The previous performance table describes the original Fix #07 benchmark; the colour-only follow-up did not rerun that full benchmark.
