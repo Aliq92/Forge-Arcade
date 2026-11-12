@@ -1,5 +1,7 @@
 # MOLT Fix #05 — Living World
 
+Historical report. The latest local update is documented in [Fix #13 — Colourful Creatures](VERIFICATION-13.md).
+
 Verified build, 8 November 2026. The user subsequently authorized integration into Forge Arcade. The arcade registry, gallery and existing card assets are unchanged by this update.
 
 ## Existing game and preserved rules

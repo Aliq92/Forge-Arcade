@@ -1,11 +1,14 @@
 const test=require('node:test'),assert=require('node:assert/strict'),harness=require('./harness.cjs');
 const plain=v=>JSON.parse(JSON.stringify(v));
 const snapshot=api=>{const {particles,floatingTexts,...data}=api.get();return plain(data);};
+// Fix #13 deliberately changes the opening food layout. Compare the original
+// simulation against the same new world fixture, retaining every other field.
+const alignOpeningFood=(original,updated)=>original.set({motes:plain(updated.get().motes)});
 test('simulation configuration, trait definitions and collision dimensions match original',()=>{
  const a=harness(true).api,b=harness().api;assert.deepEqual(plain(b.CFG),plain(a.CFG));for(const m of [0,22,40,160,850,2500])assert.equal(a.radiusForMass(m),b.radiusForMass(m));assert.deepEqual(plain(a.TRAITS.map(t=>({id:t.id,name:t.name,desc:t.desc}))),plain(b.TRAITS.map(t=>({id:t.id,name:t.name,desc:t.desc}))));
 });
 test('seeded movement, hunger, NPC steering, spawning and bounds match original over 600 simulation ticks',()=>{
- const a=harness(true,987).api,b=harness(false,987).api;a.start();b.start();
+ const a=harness(true,987).api,b=harness(false,987).api;a.start();b.start();alignOpeningFood(a,b);
  for(let i=0;i<600;i++){const x=Math.sin(i*.019),y=Math.cos(i*.027);a.input(x,y);b.input(x,y);a.update(1/60);b.update(1/60);assert.deepEqual(snapshot(b),snapshot(a),'tick '+i);if(a.get().state==='dead')break;}
 });
 test('food gain and every existing threshold preserve mutations and progression',()=>{
@@ -13,7 +16,7 @@ test('food gain and every existing threshold preserve mutations and progression'
  for(const threshold of a.CFG.moltThresholds){for(const api of [a,b]){const s=api.get();api.set({npcs:[],motes:[{x:s.player.x,y:s.player.y,phase:0}]});s.player.mass=threshold-2;api.update(1/60);}assert.deepEqual(snapshot(b),snapshot(a));assert.equal(b.get().state,'molting');}
 });
 test('fatal bites, second wind and lineage inheritance match original',()=>{
- for(const wind of [false,true]){const a=harness(true,52).api,b=harness(false,52).api;a.start();b.start();for(const api of [a,b]){const s=api.get();api.set({npcs:[],motes:[]});if(wind){s.player.hasSecondWind=true;s.player.traits=['wind'];}api.die('eaten');}assert.deepEqual(snapshot(b),snapshot(a));if(!wind){a.next();b.next();assert.deepEqual(snapshot(b),snapshot(a));}}
+ for(const wind of [false,true]){const a=harness(true,52).api,b=harness(false,52).api;a.start();b.start();for(const api of [a,b]){const s=api.get();api.set({npcs:[],motes:[]});if(wind){s.player.hasSecondWind=true;s.player.traits=['wind'];}api.die('eaten');}assert.deepEqual(snapshot(b),snapshot(a));if(!wind){a.next();b.next();alignOpeningFood(a,b);assert.deepEqual(snapshot(b),snapshot(a));}}
 });
 test('nearby hunting predators alert packmates outside the individual detection range',()=>{
  const a=harness(true,81).api,b=harness(false,81).api;for(const api of [a,b]){api.start();const s=api.get(),r=api.radiusForMass(s.player.mass);const base={...s.npcs[0],r:r*1.5,wanderTimer:1,vx:0,vy:0,packId:2};api.set({npcs:[{...base,x:s.player.x+100,y:s.player.y},{...base,x:s.player.x+220,y:s.player.y}],motes:[]});api.update(1/60);assert.equal(api.get().npcs[0].hunting,true);assert.equal(api.get().npcs[1].hunting,true);}assert.deepEqual(snapshot(b),snapshot(a));

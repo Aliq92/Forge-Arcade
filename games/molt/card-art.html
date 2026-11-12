@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="en"><meta charset="utf-8"><title>Molt · Living World card artwork</title>
+<html lang="en"><meta charset="utf-8"><title>Molt · Colourful Creatures card artwork</title>
 <style>*{box-sizing:border-box}html,body{margin:0;background:#09262c}canvas{display:block;width:1200px;height:675px}</style>
-<canvas width="1200" height="675" aria-label="A lantern nymph shedding its shell in a luminous primordial pool"></canvas>
-<script src="living-world.js?v=5"></script>
+<canvas width="1200" height="675" aria-label="A simple golden creature with two expressive eyes emerging from its shell in a colourful pool"></canvas>
+<script src="living-world.js?v=13"></script>
 <script>
 // Static composition from the same procedural creature renderer as the game.
 // Export at native resolution; deliberately not connected to the arcade cards.
@@ -15,9 +15,9 @@ for(const sign of [-1,1]){ctx.save();ctx.translate(730,390+sign*55);ctx.rotate(s
 ctx.fillStyle='#e8d59e0c';ctx.beginPath();ctx.arc(840,330,175,0,Math.PI*2);ctx.fill();
 art.creature(ctx,840,330,132,5,-.18,0);
 for(const [x,y,r]of [[612,544,11],[1060,180,8],[1030,500,6]]){ctx.fillStyle='#a8efcd';for(let i=0;i<3;i++){const a=i*Math.PI*2/3;ctx.beginPath();ctx.ellipse(x+Math.cos(a)*r*.45,y+Math.sin(a)*r*.45,r*.65,r*.38,a,0,Math.PI*2);ctx.fill();}ctx.fillStyle='#fff6bf';ctx.beginPath();ctx.arc(x,y,r*.24,0,Math.PI*2);ctx.fill();}
-ctx.fillStyle='#a9d5c5';ctx.font='600 14px system-ui';ctx.fillText('T H E   L I V I N G   W O R L D',74,217);
+ctx.fillStyle='#a9d5c5';ctx.font='600 14px system-ui';ctx.fillText('C O L O U R F U L   C R E A T U R E S',74,217);
 ctx.fillStyle='#f0d09a';ctx.font='300 105px system-ui';ctx.fillText('M O L T',66,332);
-ctx.fillStyle='#d9e9d8';ctx.font='400 22px system-ui';ctx.fillText('Eat. Grow. Transform. Survive.',74,387);
+ctx.fillStyle='#d9e9d8';ctx.font='400 22px system-ui';ctx.fillText('Eat. Grow. Transform.',74,387);
 ctx.fillStyle='#93bbaf';ctx.font='400 15px system-ui';ctx.fillText('A small life. An extraordinary transformation.',75,431);
 document.documentElement.dataset.ready='true';
 </script></html>

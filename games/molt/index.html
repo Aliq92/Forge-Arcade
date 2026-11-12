@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Molt</title>
 <style>
   :root{
@@ -84,7 +84,7 @@
     .panel{padding:20px 18px;}
   }
 </style>
-<link rel="stylesheet" href="living-world.css?v=5">
+<link rel="stylesheet" href="living-world.css?v=13">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230c3338'/%3E%3Cellipse cx='16' cy='17' rx='12' ry='9' fill='%23e8bd78'/%3E%3Ccircle cx='21' cy='14' r='3' fill='white'/%3E%3Ccircle cx='22' cy='14' r='1' fill='%23203e44'/%3E%3C/svg%3E">
 </head>
 <body>
@@ -101,6 +101,7 @@
     </div>
     <div id="growthCaption"><span id="stageName">Hatchling</span><span id="growthLabel">First molt · 40 mass</span></div>
     <div id="moltBarWrap" role="progressbar" aria-label="Growth toward next molt" aria-valuemin="0" aria-valuemax="100"><div id="moltBarFill"></div></div>
+    <p id="objectiveCue">Follow the bright seeds · each gives +6 mass</p>
     <div id="lineage"></div>
     <div id="traitRow"></div>
   </div>
@@ -118,14 +119,14 @@
 
   <div class="overlay show" id="startOverlay">
     <div class="panel">
-      <canvas id="menuCreature" width="360" height="260" aria-label="Lantern nymph creature preview"></canvas><div class="menuEyebrow">THE LIVING WORLD</div><h1>MOLT</h1><p class="tagline">Eat. Grow. Transform. Survive.</p>
+      <canvas id="menuCreature" width="360" height="260" aria-label="Colourful round creature with two eyes and tiny fins"></canvas><div class="menuEyebrow">A LITTLE LIFE. A BIG ADVENTURE.</div><h1>MOLT</h1><p class="tagline">Eat. Grow. Transform.</p>
       <p>You are a small creature in a primordial pool. Eat anything smaller. Avoid anything bigger. Grow enough and you'll <b style="color:var(--ink)">molt</b> — shedding your old form for a random mutation.</p>
       <div class="legend">
         <span><i style="background:var(--teal)"></i>edible</span>
         <span><i style="background:var(--violet)"></i>similar size</span>
         <span><i style="background:var(--coral)"></i>dangerous</span>
       </div>
-      <p>When you're eaten, your lineage continues — the next generation inherits one trait from the last. How many generations, and how many mutations, can your line discover?</p>
+      <p>Follow the nearby seed trail for your first transformation. Each seed gives <b>+6 mass</b>; smaller creatures are bigger rewards. Your next generation inherits a trait when this life ends.</p>
       <button class="cta" id="btnStart">Play</button>
     </div>
   </div>
@@ -143,7 +144,7 @@
   </div>
 </div>
 
-<script src="living-world.js?v=5"></script>
+<script src="living-world.js?v=13"></script>
 <script>
 (function(){
   "use strict";
@@ -151,7 +152,7 @@
   // ---------------- Canvas / world setup ----------------
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
-  let W = 0, H = 0, DPR = Math.min(window.devicePixelRatio || 1, 2);
+  let W = 0, H = 0, DPR = Math.min(window.devicePixelRatio || 1, 1.5);
 
   function resize(){
     const rect = canvas.getBoundingClientRect();
@@ -367,6 +368,24 @@
     while (npcs.length < CFG.npcCount) spawnNpc();
   }
 
+  // Reposition four existing opening seeds, without changing their value/count,
+  // NPC distribution, or the gameplay random stream. Aim into the clearest lane.
+  function placeStarterFood(){
+    const pr=radiusForMass(player.mass),threats=npcs.filter(n=>n.r>=pr*CFG.dangerRatio);
+    let best=null,bestScore=-Infinity;
+    for(let direction=0;direction<8;direction++){
+      const a=direction*Math.PI/4,c=Math.cos(a),s=Math.sin(a),points=[];let score=Infinity;
+      for(let i=0;i<4;i++){
+        const forward=38+i*21,side=(i-1.5)*7;
+        const x=player.x+c*forward-s*side,y=player.y+s*forward+c*side;
+        if(x<26||x>W-26||y<Math.max(110,H*.2)||y>H-28){score=-Infinity;break;}
+        points.push({x,y});for(const n of threats)score=Math.min(score,Math.hypot(x-n.x,y-n.y)-n.r);
+      }
+      if(points.length===4&&(!best||score>bestScore)){best=points;bestScore=score;}
+    }
+    if(best)for(let i=0;i<Math.min(4,motes.length);i++){motes[i].x=best[i].x;motes[i].y=best[i].y;}
+  }
+
   function resetArena(startMass, inheritedTrait){
     player = newPlayer(startMass, inheritedTrait);
     npcs = [];
@@ -376,6 +395,7 @@
     shakeMag = 0;
     maintainNpcs();
     for (let i=0; i<Math.floor(CFG.moteCount*0.6); i++) spawnMote();
+    placeStarterFood();
     moteSpawnTimer = rand(0.5,1.5);
     survivalTime = 0;
     lastMoltIdx = -1;
@@ -702,6 +722,7 @@
     document.getElementById('moltBarWrap').setAttribute('aria-valuenow',String(Math.round(pct*100)));
     document.getElementById('stageName').textContent=MoltPresentation.forms[Math.min(11,lastMoltIdx+1)].name;
     document.getElementById('growthLabel').textContent=nextIdx<thresholds.length?Math.round(player.mass)+' / '+thresholds[nextIdx]+' mass to molt':'All eleven growth milestones reached';
+    document.getElementById('objectiveCue').textContent=state==='molting'?'A fresh colour. A new mutation.':art.wasDanger?'Coral hunter nearby · swim into open space':lastMoltIdx<0?'Follow the bright seeds · each gives +6 mass':nextIdx<thresholds.length?'Mint creatures are edible · larger snacks give more mass':'Eleven milestones reached · keep your lineage alive';
   }
 
   function renderTraitRow(){
