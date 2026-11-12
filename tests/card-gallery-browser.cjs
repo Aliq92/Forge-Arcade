@@ -27,8 +27,8 @@ const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript'
     // Registration scripts render between parser-blocking loads; network idle alone
     // can occur before the parser has reached the last registration.
     await page.goto(base,{waitUntil:'load'});
-    const games=await page.evaluate(()=>GAMES.map(({id,category,featured})=>({id,category,featured})));
-    assert.equal(games.length,37);
+    const games=await page.evaluate(()=>GAMES.filter(game=>!game.hidden).map(({id,category,featured})=>({id,category,featured})));
+    assert.equal(games.length,36);
     const loadArt=async()=>{
       await page.locator('.game-thumbnail').evaluateAll(imgs=>Promise.all(imgs.map(img=>{img.loading='eager';return img.decode();})));
       assert.equal(await page.locator('#grid .game-thumbnail').count(),await page.locator('#grid .card').count());
@@ -118,7 +118,7 @@ const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript'
         await game.getByRole('link',{name:'Back to Forge Arcade',exact:true}).click();
         await game.waitForFunction(()=>typeof GAMES!=='undefined'&&GAMES.length===37);
         await game.waitForSelector('#grid .game-thumbnail');
-        assert.equal(await game.locator('#grid .card').count(),37);
+        assert.equal(await game.locator('#grid .card').count(),36);
       }
       await context.close();
     }

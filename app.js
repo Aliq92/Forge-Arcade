@@ -266,7 +266,7 @@ function featuredCardHTML(game) {
     </a>`;
 }
 function renderFeaturedCollection() {
-  featuredGrid.innerHTML = GAMES.filter((g) => g.featured && g.id !== SPOTLIGHT_ID).map(featuredCardHTML).join('');
+  featuredGrid.innerHTML = GAMES.filter((g) => !g.hidden && g.featured && g.id !== SPOTLIGHT_ID).map(featuredCardHTML).join('');
 }
 function cardHTML(game) {
   return `
@@ -276,7 +276,7 @@ function cardHTML(game) {
     </a>`;
 }
 function render(filter) {
-  const list = GAMES.filter((g) => filter === 'All' ? true : filter === 'Featured' ? !!g.featured : g.category === filter);
+  const list = GAMES.filter((g) => !g.hidden && (filter === 'All' ? true : filter === 'Featured' ? !!g.featured : g.category === filter));
   grid.innerHTML = list.map(cardHTML).join('');
   countLabel.textContent = `${list.length} ${list.length === 1 ? 'experience' : 'experiences'}`;
   document.dispatchEvent(new Event('arcade:cards-rendered'));
