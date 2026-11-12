@@ -5,6 +5,8 @@ const base=new URL('games/echo-tide/index.html?test',process.env.FORGE_URL||'htt
   const c=await browser.newContext({viewport:{width,height},hasTouch:mobile,isMobile:mobile,deviceScaleFactor:2,reducedMotion:width===320?'reduce':'no-preference'}),p=await c.newPage(),errors=[];
   p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error')errors.push(m.text());});await p.goto(base);await p.waitForFunction(()=>window.EchoTideTest);
   assert.equal(await p.evaluate(()=>EchoTideTest.game.audio.ctx),null);await p.screenshot({path:`test-results/echo-tide/surge-menu-${width}.png`});await p.locator('#start').click();
+  // Observe actual frame speeds during the short burst; screenshot encoding may finish after it ends.
+  await p.evaluate(()=>{window.surgePeak=0;window.observeSurge=true;function sample(){if(!window.observeSurge)return;const s=EchoTideTest.game.sim;window.surgePeak=Math.max(window.surgePeak,Math.hypot(s.player.vx,s.player.vy));requestAnimationFrame(sample);}requestAnimationFrame(sample);});
   if(mobile){
    const cd=await c.newCDPSession(p),j=await p.locator('#joystick').boundingBox(),sonar=await p.locator('#sonar-button').boundingBox(),burst=await p.locator('#burst-button').boundingBox();
    assert.ok(burst.width>=44&&burst.height>=44);assert.ok(j.x+j.width<=burst.x);assert.ok(burst.x+burst.width<=sonar.x);
@@ -13,7 +15,7 @@ const base=new URL('games/echo-tide/index.html?test',process.env.FORGE_URL||'htt
    touch.push({id:3,x:burst.x+burst.width/2,y:burst.y+burst.height/2});await cd.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:touch});await p.waitForTimeout(140);
    assert.equal(await p.evaluate(()=>EchoTideTest.game.sim.pulseCount),1);assert.equal(await p.evaluate(()=>EchoTideTest.game.sim.burstCount),1);assert.ok(await p.evaluate(()=>EchoTideTest.game.input.joy.x)>.5);await cd.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});assert.equal(await p.evaluate(()=>EchoTideTest.game.input.joy.x),0);
   }else{await p.keyboard.down('d');await p.waitForTimeout(200);await p.keyboard.press('Space');await p.keyboard.press('Shift');await p.waitForTimeout(140);await p.keyboard.up('d');assert.equal(await p.evaluate(()=>EchoTideTest.game.sim.pulseCount),1);assert.equal(await p.evaluate(()=>EchoTideTest.game.sim.burstCount),1);}
-  await p.screenshot({path:`test-results/echo-tide/surge-burst-${width}.png`});assert.ok(await p.evaluate(()=>Math.hypot(EchoTideTest.game.sim.player.vx,EchoTideTest.game.sim.player.vy))>84);
+  await p.screenshot({path:`test-results/echo-tide/surge-burst-${width}.png`});const burstEvidence=await p.evaluate(()=>{window.observeSurge=false;return{peak:window.surgePeak,speedAfterScreenshot:Math.hypot(EchoTideTest.game.sim.player.vx,EchoTideTest.game.sim.player.vy),remaining:EchoTideTest.game.sim.burstRemaining};});assert.ok(burstEvidence.peak>84);
   await p.locator('#pause').click();const paused=await p.evaluate(()=>JSON.stringify({time:EchoTideTest.game.sim.time,p:EchoTideTest.game.sim.player,cool:EchoTideTest.game.sim.burstCooldown,remaining:EchoTideTest.game.sim.burstRemaining}));await p.waitForTimeout(200);assert.equal(await p.evaluate(()=>JSON.stringify({time:EchoTideTest.game.sim.time,p:EchoTideTest.game.sim.player,cool:EchoTideTest.game.sim.burstCooldown,remaining:EchoTideTest.game.sim.burstRemaining})),paused);
   const reduced=await p.evaluate(()=>EchoTideTest.game.renderer.reduced);await p.locator('#motion').click();assert.equal(await p.evaluate(()=>EchoTideTest.game.renderer.reduced),!reduced);await p.locator('#resume').click();await p.locator('#chart-button').click();await p.locator('#close-chart').click();
   // Targeted environmental fixtures render real challenge systems, not whole-voyage claims.
@@ -36,7 +38,7 @@ const base=new URL('games/echo-tide/index.html?test',process.env.FORGE_URL||'htt
   }
   await p.keyboard.press('r');assert.equal(await p.evaluate(()=>EchoTideTest.game.sim.burstCount),0);assert.equal(await p.evaluate(()=>EchoTideTest.game.sim.burstCooldown),0);
   assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.ok(await p.evaluate(()=>EchoTideTest.game.renderer.dpr)<=1.5);assert.deepEqual(errors,[]);
-  report.push({width,height,mobile,burst:true,sonar:true,pause:true,recharge:true,environmentFixtures:true,restart:true,errors});await c.close();
+  report.push({width,height,mobile,burst:true,burstEvidence,sonar:true,pause:true,recharge:true,environmentFixtures:true,restart:true,errors});await c.close();
  }
  await fs.writeFile(`test-results/echo-tide/surge-browser-report${process.env.FORGE_URL?'-public':''}.json`,JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
  }finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
