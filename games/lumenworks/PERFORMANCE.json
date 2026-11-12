@@ -1,0 +1,234 @@
+{
+  "generatedAt": "2026-11-12T20:10:20.652Z",
+  "url": "http://127.0.0.1:8428",
+  "browser": "157.0.8103.51",
+  "viewport": {
+    "width": 1440,
+    "height": 900,
+    "dpr": 1.5
+  },
+  "samplesPerCase": 180,
+  "note": "Integrated requestAnimationFrame measurements in desktop headless Chrome. Draw timings measure CPU canvas submission; frame intervals include the integrated UI. Forced-GC heap samples indicate retained memory, not physical mobile performance. Automatic root favicon warnings are recorded separately from game resources.",
+  "cases": [
+    {
+      "fixture": "level8",
+      "quality": "high",
+      "reduced": false,
+      "drawMs": {
+        "median": 1.8999999985098839,
+        "p95": 2.800000000745058,
+        "min": 0.30000000074505806,
+        "max": 3.699999999254942
+      },
+      "frameIntervalMs": {
+        "median": 9.099999999627471,
+        "p95": 14,
+        "min": 5.699999999254942,
+        "max": 19.09999999962747
+      },
+      "approximateFps": 109.89010989460849,
+      "allocationMs": {
+        "median": 0.09999999962747097,
+        "p95": 0.30000000074505806,
+        "min": 0,
+        "max": 1.299999998882413
+      },
+      "maxPulses": 15,
+      "cacheBuilds": 1,
+      "cityCacheBuilds": 1,
+      "actualDpr": 1.5,
+      "nodes": 14,
+      "edges": 13,
+      "powered": 7,
+      "heapBytes": {
+        "before": 2468140,
+        "after": 2797568,
+        "delta": 329428
+      },
+      "domNodes": {
+        "before": 408,
+        "after": 415
+      }
+    },
+    {
+      "fixture": "level8",
+      "quality": "low",
+      "reduced": true,
+      "drawMs": {
+        "median": 1.3999999985098839,
+        "p95": 2,
+        "min": 0.40000000037252903,
+        "max": 2.5
+      },
+      "frameIntervalMs": {
+        "median": 9.899999998509884,
+        "p95": 12.400000000372529,
+        "min": 5.199999999254942,
+        "max": 14.400000000372529
+      },
+      "approximateFps": 101.01010102530472,
+      "allocationMs": {
+        "median": 0.19999999925494194,
+        "p95": 0.5,
+        "min": 0,
+        "max": 1.1000000014901161
+      },
+      "maxPulses": 0,
+      "cacheBuilds": 0,
+      "cityCacheBuilds": 1,
+      "actualDpr": 1.5,
+      "nodes": 14,
+      "edges": 13,
+      "powered": 7,
+      "heapBytes": {
+        "before": 2828800,
+        "after": 2907712,
+        "delta": 78912
+      },
+      "domNodes": {
+        "before": 437,
+        "after": 415
+      }
+    },
+    {
+      "fixture": "sandbox48",
+      "quality": "high",
+      "reduced": false,
+      "drawMs": {
+        "median": 2.900000000372529,
+        "p95": 4.099999999627471,
+        "min": 1.300000000745058,
+        "max": 5.200000001117587
+      },
+      "frameIntervalMs": {
+        "median": 16.90000000037253,
+        "p95": 20.09999999962747,
+        "min": 10.400000000372529,
+        "max": 23.59999999962747
+      },
+      "approximateFps": 59.171597631831766,
+      "allocationMs": {
+        "median": 0.5,
+        "p95": 1.3999999985098839,
+        "min": 0.2999999988824129,
+        "max": 1.699999999254942
+      },
+      "maxPulses": 122,
+      "cacheBuilds": 1,
+      "cityCacheBuilds": 1,
+      "actualDpr": 1.5,
+      "nodes": 48,
+      "edges": 47,
+      "powered": 47,
+      "heapBytes": {
+        "before": 2934300,
+        "after": 3183444,
+        "delta": 249144
+      },
+      "domNodes": {
+        "before": 415,
+        "after": 425
+      }
+    },
+    {
+      "fixture": "sandbox48",
+      "quality": "low",
+      "reduced": true,
+      "drawMs": {
+        "median": 2.200000001117587,
+        "p95": 3.400000000372529,
+        "min": 0.8000000007450581,
+        "max": 4.200000001117587
+      },
+      "frameIntervalMs": {
+        "median": 11.900000000372529,
+        "p95": 15.599999999627471,
+        "min": 7.100000001490116,
+        "max": 18.399999998509884
+      },
+      "approximateFps": 84.03361344274748,
+      "allocationMs": {
+        "median": 0.599999999627471,
+        "p95": 1.599999999627471,
+        "min": 0.40000000037252903,
+        "max": 2.599999999627471
+      },
+      "maxPulses": 0,
+      "cacheBuilds": 0,
+      "cityCacheBuilds": 1,
+      "actualDpr": 1.5,
+      "nodes": 48,
+      "edges": 47,
+      "powered": 47,
+      "heapBytes": {
+        "before": 3016764,
+        "after": 2831648,
+        "delta": -185116
+      },
+      "domNodes": {
+        "before": 408,
+        "after": 408
+      }
+    }
+  ],
+  "errors": [],
+  "failures": [],
+  "resourceWarnings": [],
+  "httpErrors": [],
+  "resources": {
+    "entries": [
+      {
+        "name": "http://127.0.0.1:8428/games/lumenworks/style.css",
+        "durationMs": 6.900000000372529,
+        "transferBytes": 6283
+      },
+      {
+        "name": "http://127.0.0.1:8428/games/lumenworks/main.js",
+        "durationMs": 7.200000001117587,
+        "transferBytes": 16209
+      },
+      {
+        "name": "http://127.0.0.1:8428/games/lumenworks/game.js",
+        "durationMs": 3.299999998882413,
+        "transferBytes": 7724
+      },
+      {
+        "name": "http://127.0.0.1:8428/games/lumenworks/levels.js",
+        "durationMs": 7.599999999627471,
+        "transferBytes": 19221
+      },
+      {
+        "name": "http://127.0.0.1:8428/games/lumenworks/input.js",
+        "durationMs": 7.699999999254942,
+        "transferBytes": 8421
+      },
+      {
+        "name": "http://127.0.0.1:8428/games/lumenworks/audio.js",
+        "durationMs": 7.699999999254942,
+        "transferBytes": 6938
+      },
+      {
+        "name": "http://127.0.0.1:8428/games/lumenworks/storage.js",
+        "durationMs": 7.599999999627471,
+        "transferBytes": 3132
+      },
+      {
+        "name": "http://127.0.0.1:8428/games/lumenworks/renderer.js",
+        "durationMs": 7.699999999254942,
+        "transferBytes": 26153
+      },
+      {
+        "name": "http://127.0.0.1:8428/games/lumenworks/network.js",
+        "durationMs": 5.099999999627471,
+        "transferBytes": 16524
+      },
+      {
+        "name": "http://127.0.0.1:8428/games/lumenworks/assets/card-art.svg",
+        "durationMs": 3.700000001117587,
+        "transferBytes": 6909
+      }
+    ],
+    "canvasCount": 1,
+    "usedHeapBytes": 3111165
+  }
+}

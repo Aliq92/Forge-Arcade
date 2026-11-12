@@ -1,0 +1,3 @@
+/* Prepared root stylesheet. Not loaded by the current Arcade. */
+.art-custom-lumenworks{background:#07121f url('games/lumenworks/assets/card-art.svg') center/cover no-repeat}
+.art-custom-lumenworks::before,.art-custom-lumenworks::after,.art-custom-lumenworks .art-code{display:none}

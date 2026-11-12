@@ -1,6 +1,8 @@
 /* Card Gallery V3: art only. V2 accents, buttons and layout remain in place. */
 .card-art:has(.game-thumbnail),
-.f-card-art:has(.game-thumbnail) { aspect-ratio: 16 / 9; height: auto; }
+.f-card-art:has(.game-thumbnail) { aspect-ratio: 16 / 9; height: auto; flex-shrink: 0; }
+/* Fill each stretched grid card so same-row Play links share a baseline. */
+.card-body, .f-card-body { flex: 1; }
 .card-art:has(.game-thumbnail)::before,
 .card-art:has(.game-thumbnail)::after,
 .f-card-art:has(.game-thumbnail)::before,

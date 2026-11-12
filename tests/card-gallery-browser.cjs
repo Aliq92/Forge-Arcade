@@ -28,7 +28,7 @@ const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript'
     // can occur before the parser has reached the last registration.
     await page.goto(base,{waitUntil:'load'});
     const games=await page.evaluate(()=>GAMES.filter(game=>!game.hidden).map(({id,category,featured})=>({id,category,featured})));
-    assert.equal(games.length,36);
+    assert.equal(games.length,37);
     const loadArt=async()=>{
       await page.locator('.game-thumbnail').evaluateAll(imgs=>Promise.all(imgs.map(img=>{img.loading='eager';return img.decode();})));
       assert.equal(await page.locator('#grid .game-thumbnail').count(),await page.locator('#grid .card').count());
@@ -94,7 +94,7 @@ const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript'
       await game.locator('#resume').click();
       await game.screenshot({path:path.join(root,`test-results/echo-tide-${mobile?'mobile':'desktop'}.png`)});
       await game.locator('#forge-back-link').click();
-      await game.waitForFunction(()=>typeof GAMES!=='undefined'&&GAMES.length===37);
+      await game.waitForFunction(()=>typeof GAMES!=='undefined'&&GAMES.length===38);
       await game.waitForSelector('#grid .game-thumbnail');
       for(const origin of ['#grid .card','#featured-grid .f-card']){
         console.log(`Checking Lighthouse ${mobile?'mobile':'desktop'} ${origin}`);
@@ -116,9 +116,9 @@ const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript'
         await game.locator('#resume-button').click();
         await game.waitForFunction(()=>document.body.dataset.state==='PLAYING');
         await game.getByRole('link',{name:'Back to Forge Arcade',exact:true}).click();
-        await game.waitForFunction(()=>typeof GAMES!=='undefined'&&GAMES.length===37);
+        await game.waitForFunction(()=>typeof GAMES!=='undefined'&&GAMES.length===38);
         await game.waitForSelector('#grid .game-thumbnail');
-        assert.equal(await game.locator('#grid .card').count(),36);
+        assert.equal(await game.locator('#grid .card').count(),37);
       }
       await context.close();
     }

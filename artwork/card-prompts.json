@@ -185,5 +185,10 @@
     "prompt": "Original prepared Elemental molecular and periodic-table SVG, rendered locally as a lossless WebP. Bent water model with cyan table motifs on deep charcoal.",
     "source": "games/elemental/card-art.svg",
     "method": "Local SVG rasterization; existing prepared artwork, not a generated pixel illustration."
+  },
+  {
+    "id": "lumenworks",
+    "title": "Lumenworks",
+    "prompt": "Detailed pixel-art cover for a cozy isometric miniature electrical-network city puzzle at night. Amber apartment windows, market, houses, civic clock hall and tiny teal tram; cyan generators, substations and reserve battery connected by luminous cyan cable routes. Crisp hand-placed pixel clusters, navy/teal/amber palette, layered architectural silhouettes, warm welcoming mood, full-bleed 16:9 landscape with crop-safe focal content. No text, lettering, UI, borders or watermarks."
   }
 ]

@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc"><title id="title">Lumenworks</title><desc id="desc">A miniature city wakes as cyan power cables connect its generators, hubs and warm illuminated buildings.</desc><g transform="translate(0 -20) scale(0.666666667)">
+  <defs>
+    <radialGradient id="night"><stop stop-color="#17394a"/><stop offset="1" stop-color="#07121f"/></radialGradient>
+    <radialGradient id="warm"><stop stop-color="#ffbe65" stop-opacity=".28"/><stop offset="1" stop-color="#ffbe65" stop-opacity="0"/></radialGradient>
+    <radialGradient id="power"><stop stop-color="#5df4dc" stop-opacity=".32"/><stop offset="1" stop-color="#5df4dc" stop-opacity="0"/></radialGradient>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="4"/></filter>
+    <g id="house">
+      <ellipse cy="4" rx="47" ry="17" fill="#07121f" opacity=".5"/>
+      <path d="M-35-45 0-62 36-44 0-25Z" fill="#8b8494"/>
+      <path d="M-35-45 0-27V13L-35-5Z" fill="#5e647e"/>
+      <path d="M0-27 36-45V-5L0 13Z" fill="#35465e"/>
+      <path d="M-40-44-6-77 0-60 40-43 0-23Z" fill="#53677f"/>
+      <path d="M-6-77 40-43 0-61Z" fill="#71889a"/>
+      <path d="M-28-32-20-28V-17L-28-21ZM-13-24-6-20V-9L-13-13ZM8-20 16-24V-12L8-8ZM24-28 31-32V-20L24-16Z" fill="#ffdb96"/>
+      <path d="M9-2 18-7V4L9 9Z" fill="#f7b66c"/>
+      <path d="M-25-67-18-64V-82L-25-85Z" fill="#8c8e9b"/>
+    </g>
+    <g id="apartment">
+      <ellipse cy="6" rx="49" ry="19" fill="#07121f" opacity=".5"/>
+      <path d="M-35-105 0-122 36-104 0-87Z" fill="#7b96a2"/>
+      <path d="M-35-105 0-87V19L-35 1Z" fill="#4f7286"/>
+      <path d="M0-87 36-105V1L0 19Z" fill="#2c4c66"/>
+      <g fill="#ffdb96"><path id="windowrow" d="M-28-93-21-89V-80L-28-84ZM-13-85-6-81V-72L-13-76ZM8-81 16-85V-76L8-72ZM24-89 31-93V-84L24-80Z"/><use href="#windowrow" y="20"/><use href="#windowrow" y="40"/><use href="#windowrow" y="60"/><use href="#windowrow" y="80"/></g>
+      <path d="M-23-112-2-122 17-112-3-102Z" fill="#adc1c1"/><path d="M-23-112V-120L-2-130 17-120V-112L-3-102V-110Z" fill="#627f8c"/>
+    </g>
+    <g id="station">
+      <path d="M-59-14 0-44 60-14 0 16Z" fill="#3b787b"/>
+      <path d="M-43-54-1-75 43-53 0-32Z" fill="#80d9c1"/>
+      <path d="M-43-54 0-32V4L-43-17Z" fill="#3fa093"/>
+      <path d="M0-32 43-53V-17L0 4Z" fill="#27656c"/>
+      <g stroke="#164e59" stroke-width="4"><path d="M-33-43V-22M-23-38V-17M-13-33V-12"/></g>
+      <g fill="#c4ecda"><ellipse cx="-21" cy="-79" rx="15" ry="7"/><ellipse cx="-21" cy="-84" rx="15" ry="7"/></g>
+      <path d="M-21-84V-96M15-47V-86M34-56V-95" stroke="#b4d8cd" stroke-width="3"/>
+      <g fill="#72d8c6"><ellipse cx="15" cy="-75" rx="6" ry="3"/><ellipse cx="15" cy="-82" rx="6" ry="3"/><ellipse cx="34" cy="-84" rx="6" ry="3"/><ellipse cx="34" cy="-91" rx="6" ry="3"/></g>
+      <path d="M15-89 34-98" stroke="#84f7e0" stroke-width="2"/>
+    </g>
+    <g id="market">
+      <path d="M-54-59-9-81 51-51 6-29Z" fill="#9a8894"/><path d="M-54-59 6-29V13L-54-17Z" fill="#79647a"/><path d="M6-29 51-51V-9L6 13Z" fill="#3e4d66"/>
+      <path d="M-57-40 5-9 13-23-49-54Z" fill="#efd4a1"/><path d="M-47-49-37-44-44-30-54-35ZM-26-39-16-34-23-20-33-25ZM-5-28 5-23-2-9-12-14Z" fill="#d59179"/>
+      <path d="M16-23 27-29V-12L16-6ZM34-32 45-38V-21L34-15Z" fill="#ffda8c"/>
+      <path d="M-45-20 0 3V15L-45-8Z" fill="#c2a177"/><path d="M-45-20 0 3 9-2-36-25Z" fill="#ecb77c"/>
+      <g fill="#edac74"><circle cx="-31" cy="-18" r="4"/><circle cx="-23" cy="-14" r="4"/><circle cx="-15" cy="-10" r="4"/></g>
+    </g>
+    <g id="tree"><path d="M0 0V-20" stroke="#62877d" stroke-width="3"/><ellipse cy="-27" rx="13" ry="18" fill="#376f61"/><ellipse cx="-4" cy="-33" rx="8" ry="12" fill="#548b70"/></g>
+    <g id="lamp"><path d="M0 0V-43L9-47" stroke="#91aba7" stroke-width="2"/><ellipse cx="9" cy="-47" rx="5" ry="3" fill="#ffda8b"/><circle cx="9" cy="-46" r="24" fill="url(#warm)"/><ellipse cx="9" cy="-1" rx="18" ry="6" fill="#ffc877" opacity=".12"/></g>
+  </defs>
+  <path fill="url(#night)" d="M0 0h960v600H0z"/>
+  <g fill="#cee5e5" opacity=".25"><circle cx="104" cy="70" r="1"/><circle cx="255" cy="38" r="1"/><circle cx="658" cy="65" r="1.5"/><circle cx="843" cy="119" r="1"/><circle cx="751" cy="39" r="1"/><circle cx="72" cy="192" r="1"/><circle cx="878" cy="270" r="1"/></g>
+  <ellipse cx="480" cy="461" rx="380" ry="91" fill="#030c18" opacity=".6"/>
+  <path d="M79 333 475 136 884 341 488 539 79 344Z" fill="#102733" stroke="#325360"/>
+  <path d="M79 333 475 136 884 341 488 528Z" fill="#23404a" stroke="#4c6e72"/>
+  <g stroke="#122936" stroke-width="18"><path d="M178 284 586 490M279 233 688 440M379 183 787 390M178 382 575 186M280 433 678 237M384 483 782 289"/></g>
+  <g stroke="#6f9396" stroke-width="1" opacity=".3" stroke-dasharray="5 13"><path d="M178 284 586 490M379 183 787 390M280 433 678 237"/></g>
+  <use href="#tree" x="482" y="202"/><use href="#tree" x="531" y="221"/><use href="#tree" x="245" y="310"/><use href="#tree" x="741" y="363"/><use href="#tree" x="461" y="469"/><use href="#tree" x="560" y="469"/>
+  <g fill="url(#warm)"><ellipse cx="377" cy="291" rx="99" ry="70"/><ellipse cx="582" cy="287" rx="99" ry="70"/><ellipse cx="579" cy="393" rx="99" ry="70"/></g>
+  <circle cx="286" cy="366" r="116" fill="url(#power)"/>
+  <g stroke="#77edee" stroke-width="5" fill="none" opacity=".6" filter="url(#glow)"><path d="M287 374 384 326 485 375 580 326 681 376M384 326 384 278M485 375 582 424"/></g>
+  <g stroke="#8af0ed" stroke-width="2" fill="none"><path d="M287 374 384 326 485 375 580 326 681 376M384 326 384 278M485 375 582 424"/></g>
+  <use href="#apartment" x="480" y="266"/>
+  <use href="#house" x="382" y="282"/>
+  <use href="#house" x="579" y="286"/>
+  <use href="#apartment" x="681" y="333"/>
+  <use href="#station" x="286" y="370"/>
+  <use href="#market" x="482" y="368"/>
+  <use href="#house" x="580" y="423"/>
+  <use href="#house" x="383" y="430"/>
+  <use href="#lamp" x="346" y="327"/><use href="#lamp" x="552" y="335"/><use href="#lamp" x="651" y="419"/><use href="#lamp" x="452" y="456"/>
+  <g fill="#dcffef" stroke="#4bbdaa" stroke-width="2"><circle cx="287" cy="374" r="5"/><circle cx="384" cy="326" r="4"/><circle cx="485" cy="375" r="4"/><circle cx="580" cy="326" r="4"/><circle cx="582" cy="424" r="4"/></g>
+  <path d="M57 50h4v26h-4z" fill="#7de1cb"/>
+  <text x="77" y="73" fill="#eef7e9" font-family="system-ui,sans-serif" font-size="30" font-weight="650" letter-spacing="5">LUMENWORKS</text>
+  <text x="79" y="100" fill="#a2c5c9" font-family="system-ui,sans-serif" font-size="13" letter-spacing="3">THE CITY THAT WAKES</text>
+  <text x="900" y="555" text-anchor="end" fill="#b3d4cd" font-family="system-ui,sans-serif" font-size="11" letter-spacing="2">ONE CONNECTION. A THOUSAND LIGHTS.</text>
+</g></svg>
