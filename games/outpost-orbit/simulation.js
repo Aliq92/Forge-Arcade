@@ -1,4 +1,5 @@
 // Simulation owns serializable state. Rendering never advances the world.
+import {initFrontier,tickFrontier,onDelivery,onDiscover,missionBias,eventFactor} from './frontier.js';
 export const TYPES = {
   habitat: {
     name: 'Habitat pod',
@@ -254,6 +255,7 @@ export function create(seed = Date.now() >>> 0) {
     'ARRIVAL',
     'Five travelers landed on a quiet moon. A little world begins.',
   );
+  initFrontier(s);
   return s;
 }
 export function record(s, kind, message) {
@@ -400,7 +402,7 @@ function choose(s, a) {
       options.push({
         kind,
         target: { x: target.x, y: target.y, id: target.id, name: target.name },
-        score: base - dist(a, target) * 0.018 + random(s) * 12,
+        score: base + missionBias(s,kind) - dist(a, target) * 0.018 + random(s) * 12,
         duration,
       });
   };
@@ -550,14 +552,15 @@ function choose(s, a) {
 }
 function reveal(s, a) {
   if (!s.revealed.some((p) => dist(a, p) < 60)) {
-    s.revealed.push({ x: a.x, y: a.y, r: 125 });
+    s.revealed.push({ x: a.x, y: a.y, r: 125+(s.frontier?.upgrades.scanner||0)*30 });
     if (s.revealed.length > 220) s.revealed.splice(1, 1);
   }
   for (const d of s.discoveries) {
-    if (!d.found && dist(a, d) < 80) {
+    if (!d.found && dist(a, d) < 80+(s.frontier?.upgrades.scanner||0)*25) {
       d.found = true;
       s.resources.knowledge += 8;
       s.metrics.discoveries++;
+      onDiscover(s,d);
       record(
         s,
         'DISCOVERY',
@@ -611,20 +614,21 @@ function finish(s, a) {
     d = s.discoveries.find((v) => v.id === t.target.id);
   switch (t.kind) {
     case 'forage':
-      a.carrying = { kind: 'food', amount: 8 };
+      a.carrying = { kind: 'food', amount: 8+(s.frontier?.upgrades.cargo||0)*4 };
       break;
     case 'farm':
-      a.carrying = { kind: 'food', amount: 17 };
+      a.carrying = { kind: 'food', amount: 17+(s.frontier?.upgrades.cargo||0)*4 };
       break;
     case 'gather':
       a.carrying = {
         kind: 'material',
-        amount: active(s, 'workshop').length ? 12 : 8,
+        amount: (active(s, 'workshop').length ? 12 : 8)+(s.frontier?.upgrades.cargo||0)*4,
       };
       break;
     case 'deliver':
       if (a.carrying) {
         s.resources[a.carrying.kind] += a.carrying.amount;
+        onDelivery(s,a.carrying.kind,a.carrying.amount,b||s.buildings[0]);
         a.carrying = null;
       }
       break;
@@ -668,9 +672,10 @@ function finish(s, a) {
   s.metrics.completed++;
 }
 export function step(s, dt = 0.1) {
+  if(!Number.isFinite(dt)||dt<=0||dt>1)return;
   s.time += dt;
   s.metrics.steps++;
-  for (const b of active(s, 'energy')) s.resources.energy += dt * 0.12;
+  for (const b of active(s, 'energy')) s.resources.energy += dt * 0.12*eventFactor(s);
   for (const a of s.aliens) {
     a.px = a.x;
     a.py = a.y;
@@ -689,7 +694,7 @@ export function step(s, dt = 0.1) {
       let dx = target.x - a.x,
         dy = target.y - a.y,
         d = Math.hypot(dx, dy),
-        travel = Math.min(d, dt * (a.age < 180 ? 19 : 27));
+        travel = Math.min(d, dt * (a.age < 180 ? 19 : 27)*(1+(s.frontier?.upgrades.engine||0)*.2));
       if (d > 3) {
         a.x += (dx / d) * travel;
         a.y += (dy / d) * travel;
@@ -849,11 +854,12 @@ export function step(s, dt = 0.1) {
         );
     }
   }
+  tickFrontier(s,dt);
   const cap = 300 + active(s, 'storage').length * 200;
   for (const k in s.resources)
     s.resources[k] = Math.max(
       0,
-      Math.min(k === 'knowledge' ? 2000 : cap, s.resources[k]),
+      Math.min(k === 'knowledge' ? 2000 : k==='energy'?cap+(s.frontier?.upgrades.energy||0)*80:cap, s.resources[k]),
     );
 }
 export function mood(a) {

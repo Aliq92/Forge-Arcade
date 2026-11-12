@@ -6,23 +6,25 @@ import {
   mood,
   taskLabel,
   dist,
-} from './simulation.js';
-import { Renderer } from './renderer.js';
+} from './simulation.js?v=15';
+import { Renderer } from './renderer.js?v=15';
+import {STAGES,UPGRADES,mission,claimMission,buyUpgrade,canUpgrade,upgradeCost,relief,repair,navigation} from './frontier.js?v=15';
+import {loadState} from './persistence.js?v=15';
 const $ = (q) => document.querySelector(q),
   key = 'outpost-orbit-v1';
-let state;
+let state,hadSave=false,recoveryMessage='';
 try {
-  const saved = JSON.parse(localStorage.getItem(key));
-  state =
-    saved?.saveVersion === 1 &&
-    Array.isArray(saved.aliens) &&
-    saved.aliens.length
-      ? saved
-      : create();
+  const raw=localStorage.getItem(key),saved=loadState(raw);
+  hadSave=!!saved;state=saved||create();
+  if(raw&&!saved){try{localStorage.setItem(key+'-recovery',raw);}catch{}recoveryMessage='Saved colony could not be read. A fresh outpost is ready.';}
 } catch {
   state = create();
 }
 const renderer = new Renderer($('#world'));
+if(!hadSave)state.frontier.calm=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let audioUnlocked=false,menuSpeed=state.speed||1;
+const unlockAudio=()=>{audioUnlocked=true;};
+document.addEventListener('pointerdown',unlockAudio,{once:true});document.addEventListener('keydown',unlockAudio,{once:true});
 let selected = null,
   building = null,
   ghost = null,
@@ -57,7 +59,7 @@ function save() {
   }
 }
 function tone() {
-  if (state.muted) return;
+  if (state.muted||!audioUnlocked||!state.speed||document.hidden) return;
   try {
     audio ||= new (window.AudioContext || window.webkitAudioContext)();
     audio.resume();
@@ -74,10 +76,12 @@ function tone() {
       g.gain.exponentialRampToValueAtTime(0.001, t + 0.65);
       o.start(t);
       o.stop(t + 0.7);
+      o.onended=()=>{o.disconnect();g.disconnect();};
     });
   } catch {}
 }
 function setSpeed(v) {
+  if(![0,1,2,4,8].includes(v))return;
   state.speed = v;
   accumulator = 0;
   document
@@ -85,7 +89,9 @@ function setSpeed(v) {
     .forEach((b) =>
       b.classList.toggle('active', Number(b.dataset.speed) === v),
     );
-  if (v === 0) save();
+  if (v === 0&&hadSave) save();
+  if(!v&&audio)audio.suspend();
+  else if(v&&audio&&audioUnlocked&&!state.muted)audio.resume();
 }
 function close() {
   document.body.classList.remove('panel-open');
@@ -105,6 +111,7 @@ function show(type) {
   $('#hint').hidden = true;
   $('#panel').hidden = false;
   renderPanel();
+  $('#panel').scrollTop=0;
   document
     .querySelectorAll('[data-panel]')
     .forEach((b) => b.classList.toggle('active', b.dataset.panel === type));
@@ -115,6 +122,21 @@ function head(label, title, intro = '') {
 function renderPanel() {
   const p = $('#panel');
   if (!panelType) return;
+  if(panelType==='frontier'){
+    const f=state.frontier,m=mission(state),nav=navigation(state,renderer.camera),labels={material:'material',energy:'energy',knowledge:'data',food:'food'};
+    const price=cost=>Object.entries(cost).map(([k,v])=>`${v} ${labels[k]}`).join(' · ');
+    p.innerHTML=head(`STAGE ${f.stage}/3 · ${STAGES[f.stage-1]}`,'Every orbit matters.')+
+      `<article class="mission-detail"><small>${m.category} · ${Math.min(f.mission+1,9)}/9</small><h3>${m.title}</h3><p>${m.objective}</p><progress value="${m.progress}" max="${m.total}"></progress><p>${m.progress}/${m.total} · ${f.completed?'Campaign complete':f.mission===8?'Cost: 16 material · 12 energy · 12 data':'Reward: '+price(m.reward)}</p><button id="claim-mission" ${m.ready?'':'disabled'}>${f.mission===8?'Commission station':'Complete mission'}</button></article>`+
+      `<button id="focus-mission">⌖ ${safe(nav.label)} · ${nav.distance} map units</button><p class="intro">Camera focus only. The crew choose their own routes. Explore priority encourages surveys; needs still come first.</p>`+
+      `<h3>Station modules</h3>${Object.entries(UPGRADES).map(([id,u])=>`<article class="upgrade"><b>${u.name} · ${f.upgrades[id]}/2</b><p>${u.benefit}</p><button data-upgrade="${id}" ${canUpgrade(state,id)?'':'disabled'}>${f.upgrades[id]===2?'Maximum level':f.stage<(u.stage||1)?'Unlocks in Orbital Expansion':price(upgradeCost(state,id))}</button></article>`).join('')}<h3>Operations</h3>`+
+      `<p id="space-event">${f.event?safe(f.event.kind)+' · '+Math.ceil((f.elapsed<f.event.start?f.event.start:f.event.end)-f.elapsed)+'s until '+(f.elapsed<f.event.start?'arrival':'clear'):'Clear skies · events warn before arrival.'}</p>`+
+      `<button id="repair-relay" ${f.event?.kind==='malfunction'&&state.resources.material>=4?'':'disabled'}>Repair relay · 4 material</button><button id="relief" ${f.elapsed>=f.reliefAt?'':'disabled'}>Relief supplies${f.elapsed<f.reliefAt?' · '+Math.ceil(f.reliefAt-f.elapsed)+'s':''}</button><p class="intro">Free relief every 60 active seconds. Food and softstone always replenish; known landmarks yield data on repeat visits. Backup energy recovers even without a crystal.</p>`;
+    $('#claim-mission').onclick=()=>{if(claimMission(state)){save();tone();updateUI(performance.now());renderPanel();}};
+    p.querySelectorAll('[data-upgrade]').forEach(b=>b.onclick=()=>{if(buyUpgrade(state,b.dataset.upgrade)){save();tone();updateUI(performance.now());renderPanel();}});
+    $('#focus-mission').onclick=()=>{const n=navigation(state);renderer.camera.x=n.x;renderer.camera.y=n.y;close();};
+    $('#relief').onclick=()=>{relief(state);save();renderPanel();updateUI(performance.now());};
+    $('#repair-relay').onclick=()=>{repair(state);save();renderPanel();};
+  }
   if (panelType === 'build')
     p.innerHTML =
       head(
@@ -185,7 +207,7 @@ function renderPanel() {
       state.log
         .map(
           (e) =>
-            `<div class="log-entry"><small>DAY ${e.day} · ${e.kind}</small>${safe(e.message)}</div>`,
+            `<div class="log-entry"><small>DAY ${e.day} · ${safe(e.kind)}</small>${safe(e.message)}</div>`,
         )
         .join('');
     $('#log-dot').hidden = true;
@@ -197,7 +219,7 @@ function renderPanel() {
         'Take your time.',
         'Your colony saves automatically. It rests while this tab is hidden.',
       ) +
-      `<button id="sound" style="width:100%">Sound: ${state.muted ? 'off' : 'on'}</button><p class="intro" id="save-status">Saved locally in this browser.</p><button id="save" style="width:100%">Save colony</button><div class="priority"><button id="new-colony">New colony</button> <button id="reset-colony">Reset colony</button></div><p class="intro">Space · pause<br>1 / 2 / 3 / 4 · speed<br>C · cinematic<br>Drag · pan &nbsp; Scroll / pinch · zoom<br>Escape · close / pause</p>`;
+      `<button id="sound" style="width:100%">Sound: ${state.muted ? 'off' : 'on'}</button><button id="calm">Reduced motion: ${state.frontier.calm?'on':'off'}</button><p class="intro" id="save-status">Saved locally in this browser.</p><button id="save" style="width:100%">Save colony</button><button id="return-menu">Return to menu</button><div class="priority"><button id="new-colony">New colony</button> <button id="reset-colony">Reset colony</button></div><p class="intro">Space · pause<br>1 / 2 / 3 / 4 · speed<br>C · cinematic<br>Drag / arrows · pan &nbsp; Scroll / pinch · zoom<br>Escape · close / pause</p>`;
   if (panelType === 'object') {
     const b = state.buildings.find((b) => b.id === selected);
     p.innerHTML =
@@ -235,11 +257,14 @@ function renderPanel() {
   if ($('#sound'))
     $('#sound').onclick = () => {
       state.muted = !state.muted;
+      if(state.muted&&audio)audio.suspend();
       tone();
       save();
       renderPanel();
     };
   if ($('#save')) $('#save').onclick = save;
+  if($('#calm'))$('#calm').onclick=()=>{state.frontier.calm=!state.frontier.calm;save();renderPanel();};
+  if($('#return-menu'))$('#return-menu').onclick=()=>{menuSpeed=state.speed||1;setSpeed(0);save();close();$('#continue-colony').hidden=false;$('#frontier-menu').showModal();};
   for (const id of ['new-colony', 'reset-colony'])
     if ($('#' + id)) $('#' + id).onclick = () => $('#confirm').showModal();
 }
@@ -266,10 +291,19 @@ function cinema() {
   focusAt = 0;
 }
 function updateUI(now) {
+  const f=state.frontier,m=mission(state);
+  $('#station-stage').textContent=`${STAGES[f.stage-1]} · ${f.mission}/9`;
+  $('#mission-title').textContent=m.title;
+  $('#mission-progress').textContent=f.completed?'Station operational · continue exploring':`${m.progress}/${m.total}${m.ready?' · Ready to complete':' · Missions / upgrades ↗'}`;
+  $('#mission-chip').classList.toggle('ready',m.ready);
+  if(f.completed&&!f.acknowledged&&!$('#frontier-complete').open&&!$('#frontier-menu').open){
+    setSpeed(0);$('#completion-summary').textContent=`${state.aliens.length} travelers · ${state.discoveries.filter(d=>d.found).length}/9 landmarks · ${Math.floor(f.elapsed/60)} active minutes · ${Object.values(f.upgrades).reduce((a,b)=>a+b,0)} module levels. All nine missions complete. The monolith and your colony's stories continue.`;
+    $('#frontier-complete').showModal();save();
+  }
   $('#resources').innerHTML = Object.entries(state.resources)
     .map(
       ([k, v], i) =>
-        `<div class="resource"><span class="symbol">${['♧', 'ϟ', '◇', '✧'][i]}</span><small>${k.toUpperCase()}</small><b>${Math.floor(v)}</b></div>`,
+        `<div class="resource"><span class="symbol">${['♧', 'ϟ', '◇', '✧'][i]}</span><small>${k==='knowledge'?'DATA':k.toUpperCase()}</small><b>${Math.floor(v)}</b></div>`,
     )
     .join('');
   $('#population').textContent =
@@ -291,8 +325,8 @@ function updateUI(now) {
   if (state.latestEvent && state.latestEvent.time > seenEvent) {
     seenEvent = state.latestEvent.time;
     $('#toast').innerHTML =
-      `<div class="event"><small>${state.latestEvent.kind}</small>${safe(state.latestEvent.message)}</div>`;
-    toastUntil = now + 7500;
+      `<div class="event"><small>${safe(state.latestEvent.kind)}</small>${safe(state.latestEvent.message)}</div>`;
+    toastUntil = now + 4000;
     $('#log-dot').hidden = false;
     tone();
     if (state.latestEvent.kind === 'BUILT') save();
@@ -304,6 +338,12 @@ function updateUI(now) {
     panelType === 'object'
   )
     renderPanel();
+  if(panelType==='frontier'){
+    const scroll=$('#panel').scrollTop,focused=document.activeElement,focusId=focused?.id,upgradeId=focused?.dataset.upgrade;
+    renderPanel();$('#panel').scrollTop=scroll;
+    const replacement=upgradeId?$('#panel').querySelector(`[data-upgrade="${upgradeId}"]`):focusId?document.getElementById(focusId):null;
+    if(replacement&&!replacement.disabled)replacement.focus({preventScroll:true});
+  }
 }
 const pointers = new Map();
 let gesture = null;
@@ -427,9 +467,12 @@ $('#home').onclick = () =>
     y: 20,
     zoom: innerWidth < 760 ? 0.85 : 1.12,
   });
-$('#keep').onclick = () => $('#confirm').close();
-$('#restart').onclick = () => {
+let menuReset=false;
+$('#keep').onclick = () => {$('#confirm').close();if(menuReset){menuReset=false;$('#frontier-menu').showModal();}};
+function startNew(){
+  const muted=state.muted,calm=state.frontier.calm;
   state = create();
+  state.muted=muted;state.frontier.calm=calm;hadSave=true;
   save();
   selected = null;
   cancelBuild();
@@ -439,9 +482,23 @@ $('#restart').onclick = () => {
   seenEvent = 0;
   $('#home').click();
   setSpeed(1);
-};
+  menuReset=false;save();updateUI(performance.now());
+}
+$('#restart').onclick=startNew;
+$('#start-colony').onclick=()=>{if(hadSave){menuReset=true;$('#frontier-menu').close();$('#confirm').showModal();}else{$('#frontier-menu').close();startNew();}};
+$('#continue-colony').onclick=()=>{$('#frontier-menu').close();setSpeed(menuSpeed);};
+$('#keep-exploring').onclick=()=>{state.frontier.acknowledged=true;$('#frontier-complete').close();close();setSpeed(1);save();};
+$('#complete-menu').onclick=()=>{state.frontier.acknowledged=true;$('#frontier-complete').close();save();$('#continue-colony').hidden=false;$('#frontier-menu').showModal();};
+for(const id of ['frontier-menu','frontier-complete'])$('#'+id).addEventListener('cancel',e=>e.preventDefault());
+$('#confirm').addEventListener('cancel',()=>{if(menuReset){menuReset=false;setTimeout(()=>$('#frontier-menu').showModal(),0);}});
 document.addEventListener('keydown', (e) => {
-  if ($('#confirm').open) return;
+  if ($('#confirm').open||$('#frontier-menu').open||$('#frontier-complete').open) return;
+  if(e.key!=='Escape'&&e.target.closest('button,input,select,textarea,a'))return;
+  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){
+    e.preventDefault();const amount=24/renderer.camera.zoom;
+    renderer.camera.x=Math.max(-800,Math.min(800,renderer.camera.x+(e.key==='ArrowLeft'?-amount:e.key==='ArrowRight'?amount:0)));
+    renderer.camera.y=Math.max(-550,Math.min(550,renderer.camera.y+(e.key==='ArrowUp'?-amount:e.key==='ArrowDown'?amount:0)));
+  }
   if (e.code === 'Space') {
     e.preventDefault();
     setSpeed(state.speed ? 0 : 1);
@@ -464,7 +521,10 @@ document.addEventListener('visibilitychange', () => {
 });
 window.addEventListener('pagehide', save);
 if (innerWidth < 760) renderer.camera.zoom = 0.85;
-setSpeed(state.speed);
+setSpeed(0);
+$('#continue-colony').hidden=!hadSave;
+if(recoveryMessage)$('#frontier-menu .menu-copy').textContent=recoveryMessage;
+$('#frontier-menu').showModal();
 updateUI(performance.now());
 function frame(now) {
   let dt = Math.min(0.1, (now - last) / 1000);
@@ -477,7 +537,7 @@ function frame(now) {
       accumulator -= 0.1;
     }
     if (!state.speed) accumulator = 0;
-    if (cinematic) {
+    if (cinematic&&state.speed&&!state.frontier.calm) {
       if (now > focusAt) {
         focus = state.aliens[Math.floor(now / 26000) % state.aliens.length].id;
         focusAt = now + 26000;
@@ -499,7 +559,7 @@ function frame(now) {
       updateUI(now);
       lastUI = now;
     }
-    if (now - lastSave > 30000) {
+    if (hadSave&&now - lastSave > 30000) {
       save();
       lastSave = now;
     }
@@ -517,4 +577,5 @@ window.outpost = {
   },
   screen: (x, y) => renderer.screen(x, y),
   save,
+  get audioState(){return audio?.state||null;},
 };

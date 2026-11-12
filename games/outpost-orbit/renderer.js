@@ -1,4 +1,5 @@
-import { TYPES, explored, validPlacement, mood } from './simulation.js';
+import { TYPES, explored, validPlacement, mood } from './simulation.js?v=15';
+import {makeSky,drawFrontier,drawNavigation} from './frontier-art.js?v=15';
 const TAU = Math.PI * 2;
 export class Renderer {
   constructor(canvas) {
@@ -34,10 +35,11 @@ export class Renderer {
   resize() {
     this.w = innerWidth;
     this.h = innerHeight;
-    const d = Math.min(devicePixelRatio || 1, 2);
+    const d = Math.min(devicePixelRatio || 1, 1.5);
     this.canvas.width = this.w * d;
     this.canvas.height = this.h * d;
     this.ctx.setTransform(d, 0, 0, d, 0, 0);
+    this.sky=makeSky(this.w,this.h);
   }
   screen(x, y) {
     return {
@@ -705,7 +707,7 @@ export class Renderer {
     const c = this.ctx,
       w = this.w,
       h = this.h,
-      t = now / 1000;
+      t = s.frontier?.calm?0:s.frontier?.elapsed??s.time;
     const night = Math.max(
       0,
       Math.sin(((s.time % 180) / 180) * TAU - Math.PI * 0.9),
@@ -715,14 +717,7 @@ export class Renderer {
     sky.addColorStop(1, '#313442');
     c.fillStyle = sky;
     c.fillRect(0, 0, w, h);
-    for (const star of this.stars)
-      this.ellipse(
-        star.x * w,
-        star.y * h,
-        star.r,
-        star.r,
-        `rgba(212,226,217,${0.25 + night * 0.45})`,
-      );
+    c.drawImage(this.sky,0,0);
     this.glow(w * 0.78, h * 0.23, 140, '#a4b8aa08');
     this.ellipse(w * 0.8, h * 0.18, 62, 62, '#657b7830');
     this.ellipse(w * 0.8 - 13, h * 0.18 - 7, 47, 51, '#94a99616');
@@ -773,6 +768,7 @@ export class Renderer {
       this.ellipse(x * 18, y * 18, 11, 6, `rgba(182,164,133,${val * 0.22})`);
     }
     for (const d of this.decor) {
+      const screen=this.screen(d.x,d.y);if(screen.x<-100||screen.x>w+100||screen.y<-100||screen.y>h+100)continue;
       if (
         Math.hypot(d.x / 1.5, d.y) > 540 ||
         s.buildings.some(
@@ -823,19 +819,23 @@ export class Renderer {
     }
     const items = [
       ...s.discoveries.map((d) => ({
+        x: d.x,
         y: d.y,
         draw: () => this.discovery(d, s, t),
       })),
       ...s.buildings.map((b) => ({
+        x: b.x,
         y: b.y,
         draw: () => this.building(b, s, t),
       })),
       ...s.aliens.map((a) => ({
+        x: a.x,
         y: a.y,
         draw: () => this.alien(a, t, a.id === selection, alpha),
       })),
-    ].sort((a, b) => a.y - b.y);
+    ].filter(i=>{const p=this.screen(i.x,i.y);return p.x>-150&&p.x<w+150&&p.y>-150&&p.y<h+150;}).sort((a, b) => a.y - b.y);
     items.forEach((i) => i.draw());
+    drawFrontier(this,s,t);
     for (let i = 0; i < 10 + (s.eggStage === 3 ? 1 : 0); i++) {
       const x = Math.sin(t * 0.065 + i * 4) * 390,
         y = Math.cos(t * 0.045 + i * 7) * 270;
@@ -911,12 +911,12 @@ export class Renderer {
     // A distant ringed world peeks through the atmospheric edge of the moon.
     const planetX = w * 0.85,
       planetY = h * 0.19;
-    this.glow(planetX, planetY, 90, '#bdc7b709');
-    this.ellipse(planetX, planetY, 37, 37, '#9cafaf16');
+    this.glow(planetX, planetY, 90, '#bdc7b71a');
+    this.ellipse(planetX, planetY, 37, 37, '#8aa6b34a');
     c.save();
     c.translate(planetX, planetY);
     c.rotate(-0.35);
-    c.strokeStyle = '#bec6ac19';
+    c.strokeStyle = '#c6d3c855';
     c.lineWidth = 3;
     c.beginPath();
     c.ellipse(0, 0, 65, 14, 0, 0, TAU);
@@ -934,5 +934,6 @@ export class Renderer {
     vignette.addColorStop(1, '#08162466');
     c.fillStyle = vignette;
     c.fillRect(0, 0, w, h);
+    drawNavigation(this,s);
   }
 }

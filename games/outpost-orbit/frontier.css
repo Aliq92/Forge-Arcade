@@ -1,0 +1,47 @@
+/* Frontier UI stays inside this native game document. */
+.world-title,.day-panel,#hint{display:none}
+.brand p{letter-spacing:.7px;font-size:9px}
+#mission-chip{position:absolute;top:112px;left:34px;max-width:min(330px,calc(100% - 100px));padding:12px 16px;text-align:left;background:#172733ed;border-color:#9cc8c73d;box-shadow:0 10px 35px #0002;display:grid;gap:5px}
+#mission-chip small,dialog>small{font:9px/1.3 system-ui;letter-spacing:1px;color:#a4d3c3;text-transform:uppercase}
+#mission-chip b{font-size:14px;font-weight:600}#mission-chip>span{font-size:10px;color:#b1c1c4}
+#mission-chip.ready{border-color:#e6c27c}#mission-chip.ready small{color:#e6c27c}
+dialog{width:min(470px,calc(100% - 28px));max-width:470px;max-height:calc(100dvh - 28px);overflow:auto;padding:24px;background:linear-gradient(155deg,#233c47,#15212f);box-shadow:0 25px 100px #0007}
+dialog::backdrop{background:#06101bd6;backdrop-filter:blur(6px)}
+#frontier-menu img{display:block;width:calc(100% + 48px);height:auto;max-height:220px;object-fit:cover;margin:-24px -24px 22px;border-bottom:1px solid #9cc8c73d}
+#frontier-menu h2{font:600 27px/1.1 system-ui;letter-spacing:3px;margin:10px 0}
+dialog .menu-copy{font-size:12px;line-height:1.65;color:#bacbcc}
+dialog>button{display:block;width:100%;min-height:44px;margin:10px 0}#start-colony,#keep-exploring{background:#bce9c9;color:#183329}
+dialog a{color:#bce9c9;display:inline-flex;align-items:center;min-height:44px;font-size:12px}
+#frontier-complete h2{font:30px/1.2 Georgia,serif}
+.mission-detail,.upgrade{padding:14px 0;border-bottom:1px solid #a4d3c32b}
+.mission-detail h3{margin:7px 0}.mission-detail small{font-size:9px;letter-spacing:.7px;color:#e4c283}
+.mission-detail p,.upgrade p,#space-event{font-size:12px;line-height:1.5;color:#c0d0ce;margin:10px 0}
+.mission-detail progress{width:100%;height:5px;accent-color:#bce9c9}
+.mission-detail button,.upgrade button,#focus-mission,#relief,#repair-relay,#calm,#return-menu{display:block;width:100%;min-height:44px;margin:8px 0;padding:9px;font-size:12px;white-space:normal}
+.upgrade b{font-size:13px}.upgrade p{font-size:11px}#panel h3{font-weight:550}
+.cinematic #mission-chip{display:none!important}
+#toast{pointer-events:none;max-width:260px}.event{font-size:12px}
+button,.time-controls button,.map-tools button,.icon,.panel-top button{min-height:44px}
+#placement button{min-height:44px}
+.map-tools button,.icon,.panel-top button{min-width:44px}
+#panel{overscroll-behavior:contain;scrollbar-width:thin}
+.panel-top{position:sticky;top:-16px;z-index:2;background:#182a35;padding:6px 0}
+@media(max-width:760px){
+ .hud{gap:8px}.brand{gap:8px}.brand p{font-size:8px}.brand h1{font-size:14px;letter-spacing:2px}.orbit-mark{font-size:30px}
+ .resources{padding:8px 0}.resource{padding:0 6px;grid-template-columns:15px auto;gap:2px 4px}.resource small{font-size:7px;letter-spacing:.5px}.resource .symbol{font-size:15px}.resource b{font-size:15px}
+ #mission-chip{top:130px;left:16px;padding:9px 12px;max-width:calc(100% - 32px)}#mission-chip b{font-size:12px}#mission-chip small{font-size:8px}
+ #panel{top:225px;bottom:183px;max-height:none;padding:15px}#panel h2{font-size:23px}
+ .panel-open #mission-chip{max-width:calc(100% - 32px)}
+ nav button{padding:0 8px;font-size:10px}nav button span{font-size:16px;margin-right:3px}
+ footer{gap:6px}dialog{padding:20px}#frontier-menu img{width:calc(100% + 40px);margin:-20px -20px 16px;max-height:180px}
+ .time-controls button{width:44px}#cinematic{width:44px;padding:0}#cinematic span{display:none}
+ #toast{bottom:190px;right:16px;width:200px}
+}
+@media(max-height:520px){
+ .hud{left:12px;right:12px;top:8px;gap:8px}.brand h1{font-size:13px}.brand p{display:none}.resources{order:0;width:auto;padding:6px}.resource{padding:0 8px}.resource b{font-size:14px}.orbit-mark{font-size:29px}
+ #mission-chip{top:75px;left:12px;max-width:240px;padding:8px 12px}#mission-chip small{font-size:8px}#mission-chip b{font-size:12px}
+ #panel{left:auto;right:12px;top:70px;bottom:124px;width:340px;max-height:none}
+ footer{gap:7px}.time-controls button{width:30px}nav button{padding:0 7px}
+ #toast{bottom:132px;right:20px;width:200px}dialog{max-width:520px}#frontier-menu img{float:right;width:42%;max-height:150px;margin:0 0 10px 15px;border:0;border-radius:12px}#frontier-menu h2{font-size:24px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}

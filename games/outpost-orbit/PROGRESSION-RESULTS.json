@@ -1,0 +1,11 @@
+{
+  "seeds": 100,
+  "completed": 100,
+  "noResourceInjection": true,
+  "activeSeconds": {
+    "min": 179,
+    "median": 233,
+    "p95": 277,
+    "max": 317
+  }
+}

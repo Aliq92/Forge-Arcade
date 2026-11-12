@@ -1,0 +1,25 @@
+{
+  "measurements": [
+    {
+      "name": "original",
+      "scene": "completed colony, 1440x900, DPR1, 120 paced draws",
+      "mean": 3.475833332911134,
+      "median": 2.899999998509884,
+      "p95": 6.300000004470348,
+      "frameIntervalP95": 48,
+      "pixelRatio": 1,
+      "cacheCanvases": 0
+    },
+    {
+      "name": "frontier",
+      "scene": "completed colony, 1440x900, DPR1, 120 paced draws",
+      "mean": 3.7191666667039196,
+      "median": 3.1999999955296516,
+      "p95": 6.100000001490116,
+      "frameIntervalP95": 47.399999999999636,
+      "pixelRatio": 1,
+      "cacheCanvases": 1
+    }
+  ],
+  "limitations": "Paced desktop Canvas CPU submission; not GPU time or physical Android FPS. Frame scheduling was variable."
+}

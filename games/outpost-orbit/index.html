@@ -8,8 +8,10 @@
     />
     <meta name="theme-color" content="#171c28" />
     <title>Outpost Orbit · Forge Arcade</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=15" />
     <link rel="stylesheet" href="arcade.css" />
+    <link rel="stylesheet" href="frontier.css?v=15" />
+    <link rel="icon" href="card-art.svg" type="image/svg+xml" />
   </head>
   <body>
     <canvas
@@ -21,7 +23,7 @@
         <span class="orbit-mark">◌</span>
         <div>
           <h1>OUTPOST <b>ORBIT</b></h1>
-          <p>A LITTLE WORLD FAR FROM HOME</p>
+          <p>Build humanity's next frontier.</p>
         </div>
       </div>
       <div id="resources" class="resources"></div>
@@ -39,6 +41,7 @@
       <div id="day-track"><i></i></div>
     </div>
     <div id="toast" aria-live="polite"></div>
+    <button id="mission-chip" data-panel="frontier" aria-label="Open missions and upgrades"><small id="station-stage"></small><b id="mission-title"></b><span id="mission-progress"></span></button>
     <aside id="panel" hidden></aside>
     <div id="hint">
       <span>YOUR FIRST LITTLE STEP</span><strong>Build a habitat</strong>
@@ -70,7 +73,7 @@
         ><button data-speed="2">2×</button><button data-speed="4">4×</button
         ><button data-speed="8">8×</button>
       </div>
-      <button id="cinematic">▭ <span>Cinematic</span></button>
+      <button id="cinematic" aria-label="Toggle cinematic mode">▭ <span>Cinematic</span></button>
     </footer>
     <div class="map-caption">
       DRAG TO EXPLORE <span>·</span> SCROLL TO ZOOM <span>·</span> LET LIFE
@@ -90,7 +93,16 @@
         ><button id="restart">Start anew</button>
       </div>
     </dialog>
+    <dialog id="frontier-menu" aria-labelledby="menu-title">
+      <img src="card-art.svg" width="640" height="360" alt="An expanded frontier outpost beneath an orbital planet" />
+      <small>THE FRONTIER STATION UPDATE</small><h2 id="menu-title">OUTPOST ORBIT</h2><p>Build humanity's next frontier.</p>
+      <p class="menu-copy">Guide five autonomous travelers. Build, gather, survey and grow a home on Kepler's Rest. Complete nine missions, then keep exploring.</p>
+      <button id="continue-colony">Continue colony</button><button id="start-colony">New colony</button>
+      <p class="menu-copy">Drag or arrows · pan &nbsp; Scroll / pinch · zoom<br>Space · pause &nbsp; 1–4 · speed &nbsp; C · cinematic</p>
+      <a href="../../index.html">← Forge Arcade</a>
+    </dialog>
+    <dialog id="frontier-complete" aria-labelledby="complete-title"><small>FRONTIER STATION · ONLINE</small><h2 id="complete-title">A beacon for tomorrow.</h2><p id="completion-summary"></p><button id="keep-exploring">Continue exploring</button><button id="complete-menu">Return to menu</button></dialog>
     <a href="../../index.html" id="forge-back-link" aria-label="Return to Forge Arcade">← Arcade</a>
-    <script type="module" src="script.js"></script>
+    <script type="module" src="script.js?v=15"></script>
   </body>
 </html>

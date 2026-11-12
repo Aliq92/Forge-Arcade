@@ -3,7 +3,7 @@
 GAMES.push({
   id: 'outpost-orbit',
   title: 'Outpost Orbit',
-  description: 'Guide a tiny autonomous alien colony as villagers build, explore, form relationships, adapt, and uncover the mysteries of their strange moon.',
+  description: 'Build a frontier station with an autonomous alien crew. Complete nine missions, survey the moon and install useful upgrades as your outpost grows.',
   category: 'Simulations',
   featured: true,
   tags: ['Alien village', 'Living simulation', 'Colony', 'Autonomous AI'],
