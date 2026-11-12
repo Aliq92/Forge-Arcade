@@ -38,7 +38,8 @@ const CARD_THUMBNAILS = new Set([
   "night-freight",
   "echo-tide",
   "the-last-lighthouse",
-  "lumenworks"
+  "lumenworks",
+  "neon-forge"
 ]);
 // Pixel availability is explicit: future SVG-only entries stay on their SVG.
 const PIXEL_CARD_IDS = new Set([
@@ -79,7 +80,8 @@ const PIXEL_CARD_IDS = new Set([
   "night-freight",
   "echo-tide",
   "the-last-lighthouse",
-  "lumenworks"
+  "lumenworks",
+  "neon-forge"
 ]);
 function cardArtworkHTML(game) {
   if (!CARD_THUMBNAILS.has(game.id)) return '<span class="art-code">' + game.title.charAt(0) + '</span>';

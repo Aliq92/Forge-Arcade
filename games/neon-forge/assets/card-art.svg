@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+  <title>Neon Forge — one arena, endless combos</title>
+  <desc>Original local thumbnail. Cyan emitter robot in a dark mechanical arena, surrounded by four distinct geometric threats.</desc>
+  <defs>
+    <radialGradient id="floor"><stop stop-color="#1b3449"/><stop offset="1" stop-color="#070b17"/></radialGradient>
+    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#1a2b3c" stroke-width="1"/></pattern>
+  </defs>
+  <rect width="960" height="540" fill="#070b17"/>
+  <rect x="420" width="540" height="540" fill="url(#grid)"/>
+  <circle cx="687" cy="270" r="245" fill="url(#floor)" stroke="#315067" stroke-width="3"/>
+  <g fill="none" stroke="#29485f" stroke-width="2">
+    <circle cx="687" cy="270" r="224"/><circle cx="687" cy="270" r="188"/>
+    <path d="m687 38 201 116v232L687 502 486 386V154Z" stroke="#4d4166"/>
+    <circle cx="687" cy="270" r="103" stroke="#5a8493" stroke-dasharray="3 10"/>
+    <path d="M687 26v46m0 396v46M443 270h46m396 0h46M515 98l32 32m280 280 32 32m0-344-32 32M547 410l-32 32"/>
+  </g>
+  <g fill="#102435" stroke="#3b6f83" stroke-width="3">
+    <path d="M663 31h48v20h-48zm0 458h48v20h-48zM448 248h20v44h-20zm458 0h20v44h-20z"/>
+  </g>
+  <path d="M687 270 823 193A156 156 0 0 1 831 330Z" fill="#22d3ee" fill-opacity=".13" stroke="#58e7ff" stroke-width="2"/>
+  <g stroke="#7cedff" stroke-width="3" fill="#091421">
+    <rect x="667" y="246" width="29" height="48"/><circle cx="687" cy="270" r="20"/>
+    <path d="M703 261h25v18h-25z" fill="#284d65"/>
+  </g>
+  <circle cx="687" cy="270" r="8" fill="#a0f5ff"/><path d="M728 261v18" stroke="#cefcff" stroke-width="6"/>
+  <g fill="#070b17" stroke-width="4">
+    <path d="m830 218-32-16 2 36Z" stroke="#51deee"/>
+    <path d="m573 159 23 23-23 23-23-23Z" stroke="#b393ff"/>
+    <path d="m767 378 23 13v26l-23 13-23-13v-26Z" stroke="#ffad66"/>
+    <path d="M514 318h35v35h-35Z" stroke="#ff7ebc"/>
+  </g>
+  <path d="m755 383 13 13-7 10 16 14" fill="none" stroke="#ffe9c5" stroke-width="3"/>
+  <path d="m529 324v23m-11-12h23" stroke="#ff7ebc" stroke-width="3"/>
+  <g fill="#90f5ff"><rect x="836" y="249" width="5" height="5"/><rect x="850" y="265" width="3" height="3"/><rect x="820" y="274" width="4" height="4"/></g>
+  <path d="M45 143h75v6H45z" fill="#51deee"/>
+  <text x="42" y="211" fill="#f1f8ff" font-family="monospace" font-size="70" font-weight="900" letter-spacing="-4">NEON</text>
+  <text x="42" y="284" fill="#7cedff" font-family="monospace" font-size="70" font-weight="900" letter-spacing="-4">FORGE</text>
+  <text x="47" y="325" fill="#99acbf" font-family="monospace" font-size="14" letter-spacing="2">ONE ARENA.</text>
+  <text x="47" y="348" fill="#99acbf" font-family="monospace" font-size="14" letter-spacing="2">ENDLESS COMBOS.</text>
+  <path d="M47 388h250" stroke="#32495e"/>
+  <text x="47" y="418" fill="#ffad66" font-family="monospace" font-size="12" letter-spacing="3">AIM / STRIKE / ASCEND</text>
+</svg>

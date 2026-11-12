@@ -190,5 +190,10 @@
     "id": "lumenworks",
     "title": "Lumenworks",
     "prompt": "Detailed pixel-art cover for a cozy isometric miniature electrical-network city puzzle at night. Amber apartment windows, market, houses, civic clock hall and tiny teal tram; cyan generators, substations and reserve battery connected by luminous cyan cable routes. Crisp hand-placed pixel clusters, navy/teal/amber palette, layered architectural silhouettes, warm welcoming mood, full-bleed 16:9 landscape with crop-safe focal content. No text, lettering, UI, borders or watermarks."
+  },
+  {
+    "id": "neon-forge",
+    "title": "Neon Forge",
+    "prompt": "Detailed crisp pixel-art cover for a precision arcade game: a cyan-core robot at the center of a circular dark neon arena strikes an orange cracked hexagon with a short directional energy wedge. Incoming cyan triangles, violet diamonds and splitting pink squares; geometric mechanical Forge Heart at the perimeter. Concentric machinery, multicolour energy trails, navy/cyan/violet/pink/orange palette, readable crop-safe silhouettes. Landscape16:9, no text, UI, logos, borders or watermark. Hand-placed480x270 pixel clusters scaled nearest-neighbour to960x540."
   }
 ]

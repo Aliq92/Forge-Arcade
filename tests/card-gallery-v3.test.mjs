@@ -15,7 +15,7 @@ test('every active experience has a distinct local thumbnail in archive and feat
   const context = registry();
   if (fs.existsSync(new URL('../card-thumbnails.js',import.meta.url))) vm.runInContext(read('card-thumbnails.js'),context);
   const cards = vm.runInContext('GAMES.map(game=>({id:game.id,archive:cardHTML(game),featured:featuredCardHTML(game)}))',context);
-  assert.equal(cards.length,38);
+  assert.equal(cards.length,39);
   const paths = new Set();
   for (const card of cards) {
     for (const markup of [card.archive,card.featured]) {

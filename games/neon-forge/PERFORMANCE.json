@@ -1,0 +1,317 @@
+{
+  "browser": "157.0.8103.51",
+  "environment": "Headless installed Windows Chrome; real main requestAnimationFrame, simulation, input and draw; desktop viewport with requested device scale2 capped1.5",
+  "limitations": [
+    "Synthetic maximum-load fixtures; no campaign completion or genuine Endless unlock claim.",
+    "Presentation particles recycled and replenished through bounded feedback every draw to sustain exact caps; these synthetic effect timings are not a normal playthrough.",
+    "Real core advances during samples; this is not a renderer-purity assertion.",
+    "120 measured frames after30 warmup frames per setting; intervals include scheduling and automation overhead.",
+    "Draw timing measures JavaScript submission, not complete GPU presentation latency.",
+    "Input is browser keydown-to-next completed draw, excluding physical device/display latency; one sample per scenario.",
+    "Three forced-GC short samples per setting; stable retained heap/DOM over this short interval is not a long-duration leak proof.",
+    "Desktop headless measurements do not establish physical Android FPS or real-device performance."
+  ],
+  "scenarios": [
+    {
+      "fixture": "boss level10 phase3 synthetic maximum load",
+      "setting": "high",
+      "viewport": "1440x900 CSS px",
+      "sampleFrames": 120,
+      "dpr": 1.5,
+      "stage": 5,
+      "activeTargets": 8,
+      "particles": 320,
+      "maxShockwaves": 8,
+      "drawMs": {
+        "median": 1.699999999254942,
+        "p95": 3.300000000745058,
+        "max": 5.300000000745058
+      },
+      "frameIntervalMs": {
+        "median": 12.5,
+        "p95": 17.300000000745058,
+        "max": 36.5
+      },
+      "input": {
+        "keydownToDrawMs": 5.5,
+        "accepted": true,
+        "attackVisible": true
+      },
+      "arenaCacheBuildsDuringWarmupAndSample": 1,
+      "arenaCacheBuildsDuringSteadySample": 0,
+      "memory": [
+        {
+          "heapBytes": 2525288,
+          "documents": 1,
+          "nodes": 273,
+          "jsEventListeners": 78
+        },
+        {
+          "heapBytes": 2534452,
+          "documents": 1,
+          "nodes": 273,
+          "jsEventListeners": 78
+        },
+        {
+          "heapBytes": 2544888,
+          "documents": 1,
+          "nodes": 273,
+          "jsEventListeners": 78
+        }
+      ],
+      "heapDeltaBytes": 19600,
+      "domNodeDelta": 0
+    },
+    {
+      "fixture": "boss level10 phase3 synthetic maximum load",
+      "setting": "low",
+      "viewport": "1440x900 CSS px",
+      "sampleFrames": 120,
+      "dpr": 1.5,
+      "stage": 5,
+      "activeTargets": 8,
+      "particles": 80,
+      "maxShockwaves": 3,
+      "drawMs": {
+        "median": 1.1000000014901161,
+        "p95": 2.599999997764826,
+        "max": 3.2999999970197678
+      },
+      "frameIntervalMs": {
+        "median": 11.5,
+        "p95": 17.5,
+        "max": 21.900000002235174
+      },
+      "input": {
+        "keydownToDrawMs": 6.900000002235174,
+        "accepted": true,
+        "attackVisible": true
+      },
+      "arenaCacheBuildsDuringWarmupAndSample": 0,
+      "arenaCacheBuildsDuringSteadySample": 0,
+      "memory": [
+        {
+          "heapBytes": 2542812,
+          "documents": 1,
+          "nodes": 273,
+          "jsEventListeners": 78
+        },
+        {
+          "heapBytes": 2528932,
+          "documents": 1,
+          "nodes": 273,
+          "jsEventListeners": 78
+        },
+        {
+          "heapBytes": 2559672,
+          "documents": 1,
+          "nodes": 273,
+          "jsEventListeners": 78
+        }
+      ],
+      "heapDeltaBytes": 16860,
+      "domNodeDelta": 0
+    },
+    {
+      "fixture": "boss level10 phase3 synthetic maximum load",
+      "setting": "reduced",
+      "viewport": "1440x900 CSS px",
+      "sampleFrames": 120,
+      "dpr": 1.5,
+      "stage": 5,
+      "activeTargets": 8,
+      "particles": 0,
+      "maxShockwaves": 0,
+      "drawMs": {
+        "median": 1.1000000014901161,
+        "p95": 1.5999999977648258,
+        "max": 2.199999999254942
+      },
+      "frameIntervalMs": {
+        "median": 10.199999999254942,
+        "p95": 17.199999999254942,
+        "max": 66.5
+      },
+      "input": {
+        "keydownToDrawMs": 6.300000000745058,
+        "accepted": true,
+        "attackVisible": true
+      },
+      "arenaCacheBuildsDuringWarmupAndSample": 0,
+      "arenaCacheBuildsDuringSteadySample": 0,
+      "memory": [
+        {
+          "heapBytes": 2488124,
+          "documents": 1,
+          "nodes": 284,
+          "jsEventListeners": 78
+        },
+        {
+          "heapBytes": 2476316,
+          "documents": 1,
+          "nodes": 273,
+          "jsEventListeners": 78
+        },
+        {
+          "heapBytes": 2500460,
+          "documents": 1,
+          "nodes": 273,
+          "jsEventListeners": 78
+        }
+      ],
+      "heapDeltaBytes": 12336,
+      "domNodeDelta": -11
+    },
+    {
+      "fixture": "Endless level25 synthetic maximum load",
+      "setting": "high",
+      "viewport": "1440x900 CSS px",
+      "sampleFrames": 120,
+      "dpr": 1.5,
+      "stage": 5,
+      "activeTargets": 16,
+      "particles": 320,
+      "maxShockwaves": 8,
+      "drawMs": {
+        "median": 1.699999999254942,
+        "p95": 3.399999998509884,
+        "max": 4.299999997019768
+      },
+      "frameIntervalMs": {
+        "median": 12.700000002980232,
+        "p95": 18.600000001490116,
+        "max": 24.899999998509884
+      },
+      "input": {
+        "keydownToDrawMs": 6,
+        "accepted": true,
+        "attackVisible": true
+      },
+      "arenaCacheBuildsDuringWarmupAndSample": 0,
+      "arenaCacheBuildsDuringSteadySample": 0,
+      "memory": [
+        {
+          "heapBytes": 2513244,
+          "documents": 1,
+          "nodes": 272,
+          "jsEventListeners": 78
+        },
+        {
+          "heapBytes": 2594784,
+          "documents": 1,
+          "nodes": 282,
+          "jsEventListeners": 78
+        },
+        {
+          "heapBytes": 2546248,
+          "documents": 1,
+          "nodes": 282,
+          "jsEventListeners": 78
+        }
+      ],
+      "heapDeltaBytes": 33004,
+      "domNodeDelta": 10
+    },
+    {
+      "fixture": "Endless level25 synthetic maximum load",
+      "setting": "low",
+      "viewport": "1440x900 CSS px",
+      "sampleFrames": 120,
+      "dpr": 1.5,
+      "stage": 5,
+      "activeTargets": 16,
+      "particles": 80,
+      "maxShockwaves": 3,
+      "drawMs": {
+        "median": 1.3999999985098839,
+        "p95": 7.899999998509884,
+        "max": 12.5
+      },
+      "frameIntervalMs": {
+        "median": 13.399999998509884,
+        "p95": 22.300000000745058,
+        "max": 29.600000001490116
+      },
+      "input": {
+        "keydownToDrawMs": 15.800000000745058,
+        "accepted": true,
+        "attackVisible": true
+      },
+      "arenaCacheBuildsDuringWarmupAndSample": 1,
+      "arenaCacheBuildsDuringSteadySample": 0,
+      "memory": [
+        {
+          "heapBytes": 2530128,
+          "documents": 1,
+          "nodes": 282,
+          "jsEventListeners": 78
+        },
+        {
+          "heapBytes": 2527336,
+          "documents": 1,
+          "nodes": 282,
+          "jsEventListeners": 78
+        },
+        {
+          "heapBytes": 2521412,
+          "documents": 1,
+          "nodes": 362,
+          "jsEventListeners": 78
+        }
+      ],
+      "heapDeltaBytes": -8716,
+      "domNodeDelta": 80
+    },
+    {
+      "fixture": "Endless level25 synthetic maximum load",
+      "setting": "reduced",
+      "viewport": "1440x900 CSS px",
+      "sampleFrames": 120,
+      "dpr": 1.5,
+      "stage": 5,
+      "activeTargets": 16,
+      "particles": 0,
+      "maxShockwaves": 0,
+      "drawMs": {
+        "median": 0.8999999985098839,
+        "p95": 1.300000000745058,
+        "max": 1.699999999254942
+      },
+      "frameIntervalMs": {
+        "median": 7.400000002235174,
+        "p95": 9.5,
+        "max": 12
+      },
+      "input": {
+        "keydownToDrawMs": 5,
+        "accepted": true,
+        "attackVisible": true
+      },
+      "arenaCacheBuildsDuringWarmupAndSample": 0,
+      "arenaCacheBuildsDuringSteadySample": 0,
+      "memory": [
+        {
+          "heapBytes": 2476056,
+          "documents": 1,
+          "nodes": 272,
+          "jsEventListeners": 78
+        },
+        {
+          "heapBytes": 2469240,
+          "documents": 1,
+          "nodes": 272,
+          "jsEventListeners": 78
+        },
+        {
+          "heapBytes": 2509300,
+          "documents": 1,
+          "nodes": 272,
+          "jsEventListeners": 78
+        }
+      ],
+      "heapDeltaBytes": 33244,
+      "domNodeDelta": 0
+    }
+  ],
+  "errors": []
+}
