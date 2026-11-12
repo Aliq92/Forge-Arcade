@@ -71,7 +71,7 @@ const out = process.env.ECHO_ARTIFACTS || '/tmp/echo-tide-integration';
     await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
     assert.equal(await phone.evaluate(()=>EchoTideTest.game.input.joy.x),0);
     assert.equal(await phone.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
-    assert.equal(await phone.evaluate(()=>EchoTideTest.game.renderer.dpr),1.75);
+    assert.equal(await phone.evaluate(()=>EchoTideTest.game.renderer.dpr),1.5);
     await phone.screenshot({path:out+'/portrait.png'});
     await phone.setViewportSize({width:844,height:390});await phone.waitForTimeout(200);
     const overlap=await phone.evaluate(()=>{const a=document.getElementById('forge-back-link').getBoundingClientRect(),b=document.getElementById('hud').getBoundingClientRect();return a.bottom>b.top;});

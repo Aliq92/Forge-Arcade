@@ -1,0 +1,16 @@
+{
+  "voyages": 42,
+  "completed": 42,
+  "seeds": 21,
+  "terrainConnectivitySeeds": 100,
+  "allChallengesEnabled": true,
+  "positionOrHullInjection": false,
+  "noBurst": {
+    "min": 205.69,
+    "max": 206.82
+  },
+  "burst": {
+    "min": 171.53,
+    "max": 174.58
+  }
+}

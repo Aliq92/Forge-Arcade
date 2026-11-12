@@ -23,7 +23,7 @@ test('Echo Tide registers in Games and Featured without changing existing regist
 
 test('launcher loads Echo Tide once after app initialization and before summary initialization', () => {
   const html = read('index.html');
-  assert.equal((html.match(/src="echo-tide-register\.js\?v=1"/g) || []).length, 1);
+  assert.equal((html.match(/src="echo-tide-register\.js\?v=16"/g) || []).length, 1);
   assert.equal((html.match(/href="echo-tide-card\.css\?v=1"/g) || []).length, 1);
   assert.ok(html.indexOf('echo-tide-register.js') > html.indexOf('src="app.js?'));
   assert.ok(html.indexOf('echo-tide-register.js') < html.indexOf('src="game-summaries.js'));
@@ -39,8 +39,8 @@ test('Echo Tide ships all local assets and a native project-relative return link
   assert.match(html, /href="\.\.\/\.\.\/index.html"/);
   assert.match(html, /aria-label="Back to Forge Arcade"/);
   assert.doesNotMatch(html, /<iframe|localhost|\/workspace|https?:\/\/(?!www\.w3\.org)/);
-  const dependencies = [...html.matchAll(/(?:src|href)="([^"?#]+\.(?:js|css))"/g)].map(m => m[1]);
-  assert.deepEqual(dependencies.sort(), ['arcade.css', 'game.js', 'style.css']);
+  const dependencies = [...html.matchAll(/(?:src|href)="([^"?#]+\.(?:js|css))(?:\?[^" ]*)?"/g)].map(m => m[1]);
+  assert.deepEqual(dependencies.sort(), ['arcade.css', 'game.js', 'style.css', 'surge.css']);
   for (const path of dependencies) assert.ok(read('games/echo-tide/' + path).length);
   const runtime = read('games/echo-tide/game.js');
   assert.doesNotMatch(runtime, /localStorage\.clear|fetch\(|https?:\/\//);

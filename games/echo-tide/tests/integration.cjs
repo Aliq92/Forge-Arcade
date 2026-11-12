@@ -1,0 +1,16 @@
+const {chromium}=require(process.env.FORGE_PLAYWRIGHT||'C:/Users/User/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'),assert=require('node:assert/strict'),fs=require('node:fs/promises');
+const base=process.env.FORGE_URL||'http://127.0.0.1:8428/';
+(async()=>{const b=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true}),report={base,layouts:[],errors:[]};try{
+ for(const mobile of [false,true]){
+  const c=await b.newContext({viewport:mobile?{width:390,height:844}:{width:1440,height:900},hasTouch:mobile,isMobile:mobile}),p=await c.newPage();p.on('pageerror',e=>report.errors.push(e.message));await p.route('https://hits.sh/**',r=>r.abort());await p.goto(base);await p.waitForFunction(()=>typeof GAMES!=='undefined'&&GAMES.length===37);
+  for(const filter of ['All','Games','Featured']){await p.getByRole('tab',{name:filter,exact:true}).click();assert.equal(await p.locator('#grid [data-game="echo-tide"]').count(),1);}
+  for(const selector of ['#grid [data-game="echo-tide"]','#featured-grid [data-game="echo-tide"]']){
+   const card=p.locator(selector);await card.scrollIntoViewIfNeeded();assert.match(await card.textContent(),/burst past danger/);const img=card.locator('img');await img.evaluate(async i=>{i.loading='eager';await i.decode();});assert.match(await img.evaluate(i=>i.currentSrc),/pixel\/echo-tide.webp/);await card.click();await p.waitForFunction(()=>!document.getElementById('start').disabled);assert.equal(await p.evaluate(()=>typeof window.EchoTideTest),'undefined');await p.click('#start');
+   if(mobile){await p.tap('#burst-button');await p.tap('#sonar-button');}else{await p.keyboard.press('Shift');await p.keyboard.press('Space');}
+   await p.waitForFunction(()=>/ACTIVE|RECHARGING/.test(document.getElementById('burst-status').textContent));await p.waitForFunction(()=>Number(document.getElementById('disturbance-value').textContent)>0);await p.click('#pause');assert.equal(await p.locator('#pause-panel').isVisible(),true);await p.click('#resume');await p.click('#pause');await p.locator('#pause-panel .restart').click();assert.equal(await p.locator('#overlay').isVisible(),false);
+   await p.screenshot({path:`test-results/echo-tide/integration-${process.env.FORGE_URL?'public':'local'}-${mobile?'mobile':'desktop'}.png`});await p.click('#forge-back-link');await p.waitForFunction(()=>typeof GAMES!=='undefined'&&GAMES.length===37);assert.equal(await p.locator('#grid .card').count(),36);assert.equal(await p.locator('[data-game="elemental"]').count(),0);assert.equal(await p.getByRole('link',{name:'Open chemistry lab',exact:true}).count(),1);
+  }
+  assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);report.layouts.push({mobile,archive:true,featured:true,pixelArt:true,sonar:true,burst:true,pauseRestart:true,return:true,elementalHidden:true});await c.close();
+ }
+ assert.deepEqual(report.errors,[]);await fs.writeFile(`test-results/echo-tide/integration-${process.env.FORGE_URL?'public':'local'}.json`,JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
+}finally{await b.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

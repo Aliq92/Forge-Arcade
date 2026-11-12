@@ -1,0 +1,34 @@
+/* Deepwater Surge remains scoped to Echo Tide's native document. */
+.ability-controls{display:flex;align-items:center;gap:10px;pointer-events:none}
+#burst-button{width:80px;height:80px;border-radius:50%;border:1px solid #9bdedb70;background:#10313bcf;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;pointer-events:auto;color:#c4eee4;position:relative}
+#burst-button>span{font-size:28px;line-height:1}#burst-button b{font-size:9px;letter-spacing:1.5px;font-weight:500}#burst-button small{margin:0;font-size:9px;letter-spacing:.5px;color:#91c9c8}
+#burst-button[aria-disabled="true"]{border-color:#6b939853;color:#8babad;background:#0c222edb}
+#burst-button.ready{box-shadow:0 0 16px #86e9db20}
+#chart{z-index:5}
+#surge-status{position:absolute;left:34px;top:245px;max-width:245px;pointer-events:none;font-size:9px;letter-spacing:1px;color:#a9dbd5}
+#burst-meter{display:block;width:132px;height:3px;margin-top:8px;border:0;accent-color:#8cddd5;background:#294551}
+#burst-meter::-webkit-progress-bar{background:#294551}#burst-meter::-webkit-progress-value{background:#8cddd5}
+#hazard-status{display:block;max-width:240px;margin-top:12px;font-size:10px;line-height:1.7;letter-spacing:.5px;color:#c1cec1}
+#hazard-status[data-kind="threat"],#hazard-status[data-kind="silt-warning"]{color:#e3c995}
+#telemetry,.voyage{padding:8px 10px;background:#061723b5;border-radius:8px;backdrop-filter:blur(4px)}
+#surge-status{padding:9px 10px;background:#061723b5;border-radius:8px}
+.header-actions .icon-button,#chart .icon-button{min-width:44px;min-height:44px}
+#pause:before,#pause:after{top:14px;bottom:14px;left:16px}#pause:after{left:auto;right:16px}
+.text-button{min-height:44px}#motion{display:block;margin-top:6px;font-size:10px}
+#desktop-help{gap:24px}.menu-controls{letter-spacing:.6px}
+.calm-motion *,.calm-motion *::before,.calm-motion *::after{transition:none!important;animation:none!important}
+@media(max-width:600px){
+ #hud{left:16px;right:16px;gap:6px}.brand h1{font-size:11px;letter-spacing:1.4px}.voyage{padding:7px 5px}#progress{font-size:7px;letter-spacing:.3px}#progress b{font-size:12px}.header-actions{gap:4px}
+ #telemetry{left:16px;top:130px;width:132px}#surge-status{left:16px;top:222px;max-width:230px}
+ #touch-controls{left:16px;right:16px}.ability-controls{gap:8px}#sonar-button{width:76px;height:76px}#burst-button{width:72px;height:72px}
+ #joystick{width:104px;height:104px}#stick{left:31px;top:31px}
+ #overlay{padding-left:24px;padding-right:24px}.panel{max-width:100%}.primary{min-width:0;width:100%}.menu-controls{font-size:8px}p.tagline{font-size:16px;line-height:1.5}
+ #toast{top:37%;font-size:10px}#desktop-help{gap:9px;flex-wrap:wrap}#pulse-ready{margin-left:0}
+}
+@media(max-height:560px){
+ #surge-status{left:34px;top:214px;max-width:230px;padding:6px 9px}#burst-meter{margin-top:5px}#hazard-status{margin-top:7px;font-size:9px;line-height:1.5}
+ #telemetry{padding:6px 9px}#touch-controls{left:24px;right:24px;bottom:16px}.ability-controls{gap:10px}#sonar-button,#burst-button{width:72px;height:72px}
+ #navigation{left:145px!important;bottom:23px!important}#navigation .eyebrow{display:none}#navigation>div{font-size:10px}#distance{font-size:9px}
+ #toast{top:38%;left:56%;max-width:42%;font-size:10px}.fine{font-size:9px!important}#overlay{padding-bottom:20px}
+}
+@media(max-width:360px){#hud{gap:4px}.header-actions{gap:2px}.brand{display:none}.voyage{padding:6px 3px}.beacon-pips{gap:5px}}

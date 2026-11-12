@@ -3,7 +3,7 @@
 GAMES.push({
   id: 'echo-tide',
   title: 'Echo Tide',
-  description: 'Navigate a hidden ocean with sonar, awaken three ancient beacons, and reach sanctuary without stirring the deep.',
+  description: 'Reveal a hidden ocean with sonar, burst past danger, awaken three ancient beacons and reach sanctuary. Every noisy escape stirs the deep.',
   category: 'Games',
   featured: true,
   tags: ['Sonar exploration', 'Keyboard + touch'],

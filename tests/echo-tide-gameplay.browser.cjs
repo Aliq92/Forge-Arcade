@@ -46,7 +46,7 @@ const fs=require('node:fs');
    {const s=new Simulation(),r=s.world.rocks[0];s.player.x=r.x-r.r-5;s.player.y=r.y;s.player.vx=80;s.update(1/60,{x:1,y:0},noop);ok(Math.hypot(s.player.x-r.x,s.player.y-r.y)>=r.r+CONFIG.vesselRadius-.1,'rock separation');ok(s.player.integrity===3,'rock contact is forgiving');}
    // Shadows arm from a safe distance and have a full warning before harm.
    {const s=new Simulation(),h=s.world.shadows[0];s.disturbance=100;s.player.x=h.x;s.player.y=h.y;s.update(1/60,{x:0,y:0},noop);ok(!h.armed&&s.player.integrity===3,'no hazard activates on vessel');
-    s.player.x=h.cx+1500;s.player.y=h.cy;s.update(1/60,{x:0,y:0},noop);ok(h.armed&&h.warn>2.9,'shadow warning before danger');
+    s.player.x=h.x-350;s.player.y=h.y;s.update(1/60,{x:0,y:0},noop);ok(h.armed&&h.warn>2.9,'nearby shadow warning before danger');
     s.player.x=h.x;s.player.y=h.y;s.update(1/60,{x:0,y:0},noop);ok(s.player.integrity===3,'warning is harmless');
     h.warn=0;s.player.x=h.x;s.player.y=h.y;s.update(1/60,{x:0,y:0},noop);ok(s.player.integrity===2,'shadow collision damage');
     const hurtUntil=s.player.invulnerable;s.player.x=h.x;s.player.y=h.y;s.update(1/60,{x:0,y:0},noop);ok(s.player.integrity===2&&hurtUntil>2.9,'damage invulnerability');
