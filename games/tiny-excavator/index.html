@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tiny Excavator • Forge Arcade</title><meta name="theme-color" content="#090a0d">
 <style>
   :root{
@@ -150,10 +150,11 @@
 @media(max-height:550px){.title-art{display:none}#titleScreen .panel{max-width:720px}#titleScreen h1{font-size:34px}#titleScreen h1 br{display:none}#titleScreen .controls-list{display:none}#statusLine{bottom:12px}#interactPrompt{bottom:52px}.panel{max-height:94dvh}#titleScreen .eyebrow.small{margin-top:15px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
+<link rel="stylesheet" href="treasure.css?v=14"><link rel="icon" href="card-art.svg" type="image/svg+xml">
 </head>
 <body>
 <div id="app">
-  <canvas id="game"></canvas>
+  <canvas id="game" tabindex="0" aria-label="Excavator world. WASD or arrows move and dig; F places a support, E opens the depot, Escape pauses."></canvas>
 
   <div id="hud" style="display:none;">
     <div class="hud-col" id="hudLeft">
@@ -164,6 +165,7 @@
         <div class="stat-pill">◆ <b id="creditsVal">0</b></div>
         <div class="stat-pill">▼ <b id="depthVal">0</b>m</div>
       </div>
+      <div id="upgradeRead" class="upgrade-read">Rig · Dig 0 · Fuel 0 · Bay 0 · Hull 0</div>
     </div>
     <div class="hud-col" id="hudRight">
       <div style="display:flex;gap:6px;">
@@ -174,7 +176,7 @@
     </div>
   </div>
 
-  <div id="statusLine"></div><div id="toast" role="status" aria-live="polite"></div>
+  <button id="journalBtn" hidden aria-label="Open mineral journal">Finds <b id="findCount">0</b> ◇</button><div id="statusLine"></div><div id="toast" role="status" aria-live="polite"></div>
   <div id="interactPrompt"></div>
 
   <!-- TITLE -->
@@ -184,7 +186,7 @@
       <div class="title-art" aria-hidden="true"><canvas id="titleArt" width="840" height="340"></canvas><span>92 METRES BELOW / SOMETHING WAITS</span></div>
       <div class="eyebrow small">EXPLORATION · EXTRACTION · DISCOVERY</div>
       <h1>TINY<br><span>EXCAVATOR.</span></h1>
-      <div class="sub">Small machine. Deep secrets.</div>
+      <div class="sub">Dig deeper. Discover more.</div>
       <p>Descend into the abandoned quarry. Dig for ore, uncover ancient relics, and find your way back before fuel or hull run out.</p>
       <button class="btn primary" id="btnNewGame">New Expedition</button>
       <button class="btn" id="btnContinue" disabled>Continue Saved Game</button>
@@ -245,8 +247,11 @@
       <h2>Paused</h2>
       <button class="btn primary" id="btnResume">Resume</button>
       <button class="btn" id="btnHowTo">How To Play</button>
+      <button class="btn" id="pauseJournal">Mineral journal</button>
       <button class="btn" id="btnSoundToggle">Sound: On</button>
+      <label class="calm-setting"><input id="calmMotion" type="checkbox"> Reduced decorative motion</label>
       <button class="btn danger" id="btnRestart">Restart Expedition…</button>
+      <a class="arcade-link" href="../../">← Forge Arcade</a>
       <div class="controls-list" style="margin-top:14px;">
         <div><span>Move</span><span><span class="kbd">A</span><span class="kbd">D</span></span></div>
         <div><span>Winch / Dig up</span><span><span class="kbd">W</span></span></div>
@@ -334,6 +339,8 @@
   </div>
 </div>
 
+<div id="journalScreen" class="screen hidden"><div class="panel"><button id="journalClose" class="close-x" aria-label="Close mineral journal">×</button><div class="eyebrow small">THE TREASURE BENEATH</div><h2>Mineral journal</h2><p id="journalSummary"></p><div id="journalEntries"></div><p class="journal-note">Values are fictional in-game credits. Finds enter cargo; sell them at the depot to earn credits. Counts track this expedition. Existing saved worlds keep their terrain; new expeditions get the expanded deposits.</p></div></div>
+<script src="treasure.js?v=14"></script>
 <script>
 (function(){
 "use strict";
@@ -374,6 +381,8 @@ META[FRAG3]      = {solid:true, hard:1.75, color:'#b28df0', dark:'#8c68c4', name
 META[TRINKET_A]  = {solid:true, hard:1.35, color:'#d97ad9', dark:'#ad5fad', name:'Old Trinket', sell:55, cargo:true};
 META[TRINKET_B]  = {solid:true, hard:1.35, color:'#e0713f', dark:'#b25a30', name:'Rusty Trinket', sell:70, cargo:true};
 META[RUBBLE]     = {solid:true, hard:0.35, color:'#4a463e', dark:'#3a372f', name:'Rubble'};
+Treasure.install(META);
+var art=new Treasure.Art();
 
 /* ============================================================
    UTILS
@@ -411,8 +420,8 @@ var Audio = {
   ctx:null, muted: (Storage.get(MUTE_KEY)==='1'),
   ensure:function(){
     if(!this.ctx){
-      try{ this.ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ this.ctx=null; }
-    } else if(this.ctx.state==='suspended'){ this.ctx.resume(); }
+      try{ this.ctx = new (window.AudioContext||window.webkitAudioContext)();this.master=this.ctx.createGain();this.master.gain.value=this.muted?0:1;this.master.connect(this.ctx.destination); }catch(e){ this.ctx=null; }
+    } else if(this.ctx.state==='suspended'){ this.ctx.resume().catch(function(){}); }
   },
   tone:function(freq,dur,type,vol,delay,slideTo){
     if(this.muted || !this.ctx) return;
@@ -425,8 +434,8 @@ var Audio = {
     gain.gain.setValueAtTime(0, t0);
     gain.gain.linearRampToValueAtTime(vol||0.18, t0+0.01);
     gain.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
-    osc.connect(gain); gain.connect(this.ctx.destination);
-    osc.start(t0); osc.stop(t0+dur+0.02);
+    osc.connect(gain); gain.connect(this.master||this.ctx.destination);
+    osc.start(t0); osc.stop(t0+dur+0.02);osc.onended=function(){osc.disconnect();gain.disconnect();};
   },
   noise:function(dur,vol){
     if(this.muted || !this.ctx) return;
@@ -436,10 +445,10 @@ var Audio = {
     for(var i=0;i<bufSize;i++) data[i] = (Math.random()*2-1) * (1-i/bufSize);
     var src = this.ctx.createBufferSource(); src.buffer = buf;
     var gain = this.ctx.createGain(); gain.gain.value = vol||0.25;
-    src.connect(gain); gain.connect(this.ctx.destination);
-    src.start();
+    src.connect(gain); gain.connect(this.master||this.ctx.destination);
+    src.start();src.onended=function(){src.disconnect();gain.disconnect();};
   },
-  dig:function(hardness){ this.tone(140+hardness*30, 0.06, 'square', 0.08); },
+  dig:function(hardness){if(this.lastDig!==undefined&&Game.time-this.lastDig<.12)return;this.lastDig=Game.time;this.tone(140+hardness*30,0.07,'triangle',0.045);},
   collect:function(){ this.tone(520,0.09,'triangle',0.16); this.tone(760,0.11,'triangle',0.14,0.07); },
   fragment:function(){ this.tone(440,0.15,'sine',0.2); this.tone(660,0.15,'sine',0.2,0.12); this.tone(880,0.25,'sine',0.22,0.24); },
   crack:function(){ this.tone(220,0.12,'sawtooth',0.1); },
@@ -449,7 +458,7 @@ var Audio = {
   support:function(){ this.tone(200,0.1,'square',0.12); },
   warn:function(){ this.tone(300,0.08,'square',0.12); },
   victory:function(){ this.tone(523,0.2,'sine',0.22); this.tone(659,0.2,'sine',0.22,0.18); this.tone(784,0.2,'sine',0.22,0.36); this.tone(1046,0.4,'sine',0.24,0.54); },
-  toggleMute:function(){ this.muted = !this.muted; Storage.set(MUTE_KEY, this.muted?'1':'0'); }
+  toggleMute:function(){ this.muted = !this.muted;if(this.master)this.master.gain.value=this.muted?0:1; Storage.set(MUTE_KEY, this.muted?'1':'0'); }
 };
 
 /* ============================================================
@@ -500,6 +509,7 @@ var World = {
     this.placeFragment(FRAG1, GROUND_ROW+22, rng, CENTER_C-9);
     this.placeFragment(FRAG2, GROUND_ROW+50, rng, CENTER_C+7);
     this.placeFragment(FRAG3, GROUND_ROW+ Math.min(80, DEPTH_ROWS-4), rng, CENTER_C-4);
+    this.grid=Treasure.enrich(this.grid,this.cols,this.rows,GROUND_ROW,seed);
   },
 
   placeFragment:function(id, row, rng, colHint){
@@ -604,7 +614,7 @@ var World = {
 var Save = {
   build:function(){
     return {
-      v:1, seed:World.seed, grid:World.grid, supports:World.supports, cracking:World.cracking,
+      v:1, seed:World.seed, grid:World.grid, supports:World.supports, cracking:World.cracking, finds:Object.assign({},Game.finds),
       player:{
         x:Player.x, y:Player.y, fuel:Player.fuel, maxFuel:Player.maxFuel,
         hull:Player.hull, maxHull:Player.maxHull, cargo:Player.cargo,
@@ -632,6 +642,12 @@ var Save = {
       if(!p || !p.fragments || !p.upgrades || !Array.isArray(p.cargo) || !['x','y','fuel','maxFuel','hull','maxHull','cargoCap','credits','supportsCarried'].every(function(k){return Number.isFinite(p[k]);})) return null;
       if(p.maxFuel<=0 || p.maxHull<=0 || p.cargoCap<1 || p.credits<0 || !['dig','fuel','cargo','hull'].every(function(k){return Number.isInteger(p.upgrades[k])&&p.upgrades[k]>=0&&p.upgrades[k]<=5;}))return null;
       if(p.cargo.some(function(i){return !i||typeof i.name!=='string'||!Number.isFinite(i.sell)||i.sell<0||!/^#[0-9a-f]{3,8}$/i.test(i.color);}))return null;
+      if(data.supports===undefined)data.supports=[];if(data.cracking===undefined)data.cracking={};
+      if(!Array.isArray(data.supports)||data.supports.length>WORLD_W*TOTAL_ROWS||data.supports.some(function(q){return !q||!Number.isInteger(q.c)||!Number.isInteger(q.r)||q.c<0||q.c>=WORLD_W||q.r<0||q.r>=TOTAL_ROWS;}))return null;
+      if(!data.cracking||typeof data.cracking!=='object'||Array.isArray(data.cracking))return null;
+      if(Object.keys(data.cracking).some(function(k){var q=data.cracking[k],a=k.split(',').map(Number);return !/^\d+,\d+$/.test(k)||a[0]>=WORLD_W||a[1]>=TOTAL_ROWS||!q||!Number.isFinite(q.t)||q.t<0||!Number.isFinite(q.dur)||q.dur<=0||q.dur>100;}))return null;
+      if(p.x<0||p.x>WORLD_W*TILE||p.y<0||p.y>TOTAL_ROWS*TILE||p.maxFuel>1000||p.maxHull>1000||p.fuel<0||p.fuel>p.maxFuel||p.hull<0||p.hull>p.maxHull||!Number.isInteger(p.cargoCap)||p.cargoCap>1000||p.cargo.length>1000||!Number.isInteger(p.supportsCarried)||p.supportsCarried<0||p.supportsCarried>6)return null;
+      data.finds=Treasure.restoreFinds(data.finds,p.cargo);
       return data;
     }catch(e){
       console.warn('Save corrupted', e);
@@ -706,6 +722,7 @@ var Player = {
         return false; // block completion, keep tile
       }
       this.cargo.push({name:m.name, sell:m.sell, color:m.color});
+      Game.recordFind(t,tileC,tileR);
       delete World.cracking[World.key(tileC,tileR)];
     World.set(tileC,tileR,AIR);
       Audio.collect();
@@ -727,10 +744,12 @@ var Input = {
   init:function(){
     var self=this;
     window.addEventListener('keydown', function(e){
+      if(e.code==='Escape'){e.preventDefault();if(!e.repeat){if(Game.state==='journal')Game.closeJournal();else Game.togglePause();}return;}
+      if(['INPUT','SELECT','TEXTAREA'].indexOf(e.target&&e.target.tagName)>-1)return;
+      if(Game.state!=='playing')return;
       if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].indexOf(e.code)>-1) e.preventDefault();
       Audio.ensure();
       self.keys[e.code]=true;
-      if(!e.repeat && e.code==='Escape') Game.togglePause();
       if(!e.repeat && e.code==='KeyE') Game.tryInteract();
       if(!e.repeat && e.code==='KeyF') Game.placeSupport();
     }, {passive:false});
@@ -769,25 +788,14 @@ var Input = {
 /* ============================================================
    PARTICLES
 ============================================================ */
-var Particles = { list:[] };
-Particles.spawn = function(x,y,vx,vy,life,color,size){
-  if(this.list.length>180) this.list.shift();
-  this.list.push({x:x,y:y,vx:vx,vy:vy,life:life,maxLife:life,color:color,size:size||3});
-};
-Particles.update = function(dt){
-  for(var i=this.list.length-1;i>=0;i--){
-    var p=this.list[i];
-    p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy += 220*dt;
-    p.life -= dt;
-    if(p.life<=0) this.list.splice(i,1);
-  }
-};
+var Particles = new Treasure.Pool(180);
 
 /* ============================================================
    GAME (state machine, camera, top-level orchestration)
 ============================================================ */
 var canvas, ctx;
 var Game = {
+  finds:{},journalReturn:'playing',
   state:'title', // title, tutorial, playing, paused, depot, recap, victory, stranded
   cam:{x:0,y:0}, shakeT:0, shakeMag:0, time:0, autosaveT:0,
   pendingRescueReason:'', lastRecap:null, tutStep:0, wasHiddenPause:false,
@@ -800,7 +808,7 @@ var Game = {
     Input.init();
     window.addEventListener('blur',function(){Input.keys={};Object.keys(Input.touch).forEach(function(k){Input.touch[k]=false;});if(Game.state==='playing'){Game.setState('paused');Game.refreshPauseUI();Save.save();}});
     window.addEventListener('pagehide',function(){if(Game.state!=='title')Save.save();});
-    this.bindUI();
+    this.bindUI();syncScreens();
     document.querySelectorAll('.tab').forEach(function(t){t.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();t.click();}});});
     document.getElementById('btnContinue').disabled = !Save.has();
     document.addEventListener('visibilitychange', function(){
@@ -814,7 +822,7 @@ var Game = {
   },
 
   resize:function(){
-    var dpr = Math.min(window.devicePixelRatio||1, 2);
+    var dpr = Math.min(window.devicePixelRatio||1, 1.5);this.dpr=dpr;
     canvas.width = Math.floor(window.innerWidth*dpr);
     canvas.height = Math.floor(window.innerHeight*dpr);
     canvas.style.width = window.innerWidth+'px';
@@ -834,10 +842,15 @@ var Game = {
     this.state = s;
     var hud = document.getElementById('hud');
     hud.style.display = (s==='playing'||s==='paused') ? 'flex' : 'none';
-    ['titleScreen','tutorialScreen','pauseScreen','depotScreen','recapScreen','strandedScreen','victoryScreen','restartConfirm','saveConfirm']
+    ['titleScreen','tutorialScreen','pauseScreen','depotScreen','recapScreen','strandedScreen','victoryScreen','restartConfirm','saveConfirm','journalScreen']
       .forEach(function(id){ document.getElementById(id).classList.add('hidden'); });
-    var map = {title:'titleScreen', tutorial:'tutorialScreen', paused:'pauseScreen', depot:'depotScreen', recap:'recapScreen', stranded:'strandedScreen', victory:'victoryScreen'};
+    var map = {title:'titleScreen', tutorial:'tutorialScreen', paused:'pauseScreen', depot:'depotScreen', recap:'recapScreen', stranded:'strandedScreen', victory:'victoryScreen',journal:'journalScreen'};
     if(map[s]) document.getElementById(map[s]).classList.remove('hidden');
+    document.getElementById('journalBtn').hidden=s!=='playing';
+    if(Audio.master)Audio.master.gain.value=Audio.muted||s==='paused'||s==='journal'?0:1;
+    syncScreens();
+    var focus=map[s]?document.getElementById(map[s]).querySelector('button,[tabindex]'):canvas;
+    if(focus)focus.focus({preventScroll:true});
   },
 
   toast:function(msg){
@@ -924,8 +937,8 @@ var Game = {
   startNewGame:function(){
     var seed = Math.floor(Math.random()*4294967295);
     World.generate(seed);
-    Player.reset();
-    this.cam.x=clamp(Player.x-this.viewW/2,0,Math.max(0,World.cols*TILE-this.viewW));this.cam.y=-60;Particles.list=[];
+    Player.reset();this.finds={};art.clear();
+    this.cam.x=clamp(Player.x-this.viewW/2,0,Math.max(0,World.cols*TILE-this.viewW));this.cam.y=-60;Particles.clear();
     Save.save();
     if(!Storage.get(TUT_KEY)){
       this.tutStep = 0; this._fromPause=false;
@@ -940,7 +953,7 @@ var Game = {
     var data = Save.load();
     if(!data){ this.toast('No valid save found'); return; }
     World.seed = data.seed; World.grid = data.grid; World.supports = data.supports||[]; World.cracking=data.cracking||{};
-    Player.loadFrom(data.player);
+    Player.loadFrom(data.player);this.finds=Treasure.restoreFinds(data.finds,Player.cargo);art.clear();Particles.clear();
     this.setState('playing');
   },
 
@@ -1024,7 +1037,7 @@ var Game = {
     Object.keys(groups).forEach(function(name){
       var g = groups[name];
       total += g.count*g.sell;
-      sellHtml += '<div class="row-item"><div><div class="ri-name" style="color:'+g.color+'">'+name+' ×'+g.count+'</div>' +
+      sellHtml += '<div class="row-item"><div><div class="ri-name" style="color:'+g.color+'">'+escapeText(name)+' ×'+g.count+'</div>' +
         '<div class="ri-sub">'+g.sell+' cr each</div></div><div class="ri-name">'+ (g.count*g.sell) +' cr</div></div>';
     });
     if(!Object.keys(groups).length) sellHtml = '<p>No cargo to sell. Go dig something up!</p>';
@@ -1139,7 +1152,7 @@ var Game = {
     if(groups){
       Object.keys(groups).forEach(function(name){
         var g = groups[name];
-        body += '<div class="recap-item"><span>'+name+' ×'+g.count+'</span><b>'+(g.count*g.sell)+' cr</b></div>';
+        body += '<div class="recap-item"><span>'+escapeText(name)+' ×'+g.count+'</span><b>'+(g.count*g.sell)+' cr</b></div>';
       });
     }
     document.getElementById('recapBody').innerHTML = body || '<p>No cargo recovered this run.</p>';
@@ -1185,7 +1198,7 @@ var Game = {
   loop:function(ts){
     var dt = this._last ? Math.min((ts-this._last)/1000, 0.05) : 0;
     this._last = ts;
-    this.time += dt;
+    if(this.state==='playing'){this.time += dt;art.advance(dt,Player);}
     try{
       if(this.state==='playing'){
         this.update(dt);
@@ -1301,6 +1314,8 @@ var Game = {
     document.getElementById('cargoFill').style.width = (100*p.cargoCount()/p.cargoCap)+'%';
     document.getElementById('creditsVal').textContent = fmt(p.credits);
     document.getElementById('depthVal').textContent = Math.max(0,Math.floor(p.y/TILE-GROUND_ROW));
+    document.getElementById('findCount').textContent=Object.values(this.finds).reduce(function(a,b){return a+b;},0);
+    document.getElementById('upgradeRead').textContent='Rig · Dig '+p.upgrades.dig+' · Fuel '+p.upgrades.fuel+' · Bay '+p.upgrades.cargo+' · Hull '+p.upgrades.hull;
     document.getElementById('statusLine').textContent=(p.fuel/p.maxFuel<.25?'LOW FUEL · RETURN TO DEPOT':p.digging?'EXTRACTING '+META[World.get(p.digging.c,p.digging.r)].name.toUpperCase():p.winching?'WINCH ACTIVE': 'RECOVER 3 FRAGMENTS · RETURN TO DEPOT');
     document.getElementById('supportCount').textContent=p.supportsCarried;
     ['fuel','hull','cargo'].forEach(function(k){var value=k==='cargo'?p.cargoCount()+'/'+p.cargoCap:Math.ceil(p[k])+'/'+p[k==='fuel'?'maxFuel':'maxHull'];document.getElementById(k+'Read').textContent=value;});
@@ -1316,7 +1331,7 @@ var Game = {
     ctx.clearRect(0,0,w,h);
     // sky/underground background gradient by depth
     var depthFrac = clamp((Player.y/TILE - GROUND_ROW)/DEPTH_ROWS, 0, 1);
-    var skyTop = lerp(40, 8, depthFrac), skyBot = lerp(58, 4, depthFrac);
+    var skyTop = lerp(65, 20, depthFrac), skyBot = lerp(88, 12, depthFrac);
     var grad = ctx.createLinearGradient(0,0,0,h);
     grad.addColorStop(0, 'rgb('+[skyTop+18,skyTop+16,skyTop+22].join(',')+')');
     grad.addColorStop(1, 'rgb('+[skyBot,skyBot+2,skyBot+6].join(',')+')');
@@ -1325,7 +1340,7 @@ var Game = {
 
     ctx.save();
     var sx = 0, sy = 0;
-    if(this.shakeMag>0){ sx = (Math.random()-0.5)*this.shakeMag; sy=(Math.random()-0.5)*this.shakeMag; }
+    if(this.shakeMag>0&&!art.reduced){ sx = Math.sin(this.time*47)*this.shakeMag*.4; sy=Math.cos(this.time*39)*this.shakeMag*.4; }
     ctx.translate(Math.round(-this.cam.x+sx), Math.round(-this.cam.y+sy));
 
     // Distant quarry ridges and moonlight.
@@ -1340,7 +1355,7 @@ var Game = {
     this.drawWorld();
     this.drawDepotDecor();
     this.drawSupports();
-    this.drawParticles();
+    this.drawParticles();art.effects(ctx);
     // Warm worklight against cool underground rock.
     var lamp=ctx.createRadialGradient(Player.x+11,Player.y+5,8,Player.x+11,Player.y+5,150);
     lamp.addColorStop(0,'#ffc85720');lamp.addColorStop(1,'#ffc85700');ctx.fillStyle=lamp;ctx.fillRect(Player.x-150,Player.y-150,300,300);
@@ -1348,7 +1363,8 @@ var Game = {
     if(Player.winching){ctx.strokeStyle='#c6ccd277';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(Player.x+11,Player.y-9);ctx.lineTo(Player.x+11,Math.max(GROUND_ROW*TILE-100,Player.y-180));ctx.stroke();}
     ctx.restore();
     var vignette=ctx.createRadialGradient(w/2,h*.45,Math.min(w,h)*.15,w/2,h*.45,Math.max(w,h)*.7);
-    vignette.addColorStop(0,'#06080c00');vignette.addColorStop(1,'#06080c99');ctx.fillStyle=vignette;ctx.fillRect(0,0,w,h);
+    vignette.addColorStop(0,'#06080c00');vignette.addColorStop(1,'#06080c66');ctx.fillStyle=vignette;ctx.fillRect(0,0,w,h);
+    if(!art.reduced&&art.find&&art.find.id===21){ctx.globalAlpha=Math.min(.045,art.find.life*.02);ctx.fillStyle='#ffe4a3';ctx.fillRect(0,0,w,h);ctx.globalAlpha=1;}
   },
 
   drawWorld:function(){
@@ -1362,10 +1378,10 @@ var Game = {
         if(t===AIR) continue;
         var m = META[t];
         var x=c*TILE, y=r*TILE;
-        var tileArt=TileArt.get(t,(c*7+r*13)%4);
+        var tileArt=TileArt.get(t,(c*7+r*13)%4,r-GROUND_ROW);
         ctx.drawImage(tileArt,x,y);
         if(m.fragment){
-          var pulse=.5+.5*Math.sin(this.time*2+c+r);
+          var pulse=art.reduced?.5:.5+.5*Math.sin(this.time*2+c+r);
           ctx.save();ctx.shadowColor='#b28df0';ctx.shadowBlur=8+pulse*8;ctx.strokeStyle='#e3d1ff';ctx.lineWidth=2;
           ctx.beginPath();ctx.moveTo(x+16,y+6);ctx.lineTo(x+25,y+16);ctx.lineTo(x+16,y+26);ctx.lineTo(x+7,y+16);ctx.closePath();ctx.stroke();ctx.restore();
         }
@@ -1418,7 +1434,7 @@ var Game = {
     ctx.lineTo(baseX-0.5*TILE, baseY-3.6*TILE);
     ctx.closePath(); ctx.fill();
     // light (flicker)
-    var flick = 0.6+0.4*Math.sin(this.time*6);
+    var flick = art.reduced?.8:0.6+0.4*Math.sin(this.time*6);
     ctx.fillStyle = 'rgba(232,163,61,'+flick+')';
     ctx.beginPath(); ctx.arc(baseX-2.1*TILE, baseY-2.9*TILE, 5,0,Math.PI*2); ctx.fill();
     ctx.shadowColor='#e8a33d'; ctx.shadowBlur=14;
@@ -1440,73 +1456,13 @@ var Game = {
     Particles.list.forEach(function(p){
       ctx.globalAlpha = clamp(p.life/p.maxLife,0,1);
       ctx.fillStyle = p.color;
-      ctx.fillRect(p.x-p.size/2, p.y-p.size/2, p.size, p.size);
+      ctx.fillRect((art.reduced?p.originX:p.x)-p.size/2, (art.reduced?p.originY:p.y)-p.size/2, p.size, p.size);
     });
     ctx.globalAlpha = 1;
   },
 
-  drawPlayer:function(){
-    var p = Player;
-    ctx.save();
-    ctx.translate(p.x+p.w/2, p.y+p.h/2);
-    var face = p.facing;
-    ctx.scale(face,1);
+  drawPlayer:function(){Treasure.machine(ctx,Player,this.time,art.reduced,art.armTarget);}
 
-    var bob = p.onGround ? Math.sin(p.animT*10)*1.2*(Math.abs(p.vx)>1?1:0) : 0;
-    ctx.translate(0,bob);
-
-    ctx.fillStyle='#0006';ctx.beginPath();ctx.ellipse(0,17,22,4,0,0,Math.PI*2);ctx.fill();
-    // tracks
-    ctx.fillStyle = '#26241f';
-    ctx.fillRect(-15,8,30,9);
-    ctx.fillStyle = '#3a362d';
-    var trackOffset = (p.animT*60)%6;
-    for(var i=-14;i<16;i+=6){
-      ctx.fillRect(i+trackOffset,10,3,5);
-    }
-    // body/cabin
-    ctx.fillStyle = '#e8b923';
-    ctx.fillRect(-13,-9,22,18);
-    ctx.fillStyle = '#c9971a';
-    ctx.fillRect(-13,6,22,4);
-    // window
-    ctx.fillStyle = '#2a4550';
-    ctx.fillRect(-8,-5,12,9);
-    ctx.fillStyle = 'rgba(255,255,255,0.25)';
-    ctx.fillRect(-7,-4,5,3);
-
-    ctx.fillStyle='#f8d986';ctx.fillRect(-14,-12,25,3);
-    ctx.fillStyle='#182028';ctx.fillRect(-15,-6,3,12);
-    ctx.fillStyle='#fff3bc';ctx.shadowColor='#ffc857';ctx.shadowBlur=10;ctx.fillRect(6,-7,4,3);ctx.shadowBlur=0;
-    ctx.fillStyle='#ff7849';ctx.fillRect(-2,-16,4,4);
-    // boom + arm + bucket
-    var digging = p.digging;
-    var boomAngle, armAngle;
-    var t = clamp(digging ? digging.progress/digging.total : (0.15+0.1*Math.sin(p.animT*3)), 0, 1);
-    if(digging && digging.dir==='down'){ boomAngle = 1.15; armAngle = lerp(0.3,1.6,Math.sin(t*Math.PI*4)*0.5+0.5); }
-    else if(digging && digging.dir==='up'){ boomAngle = -1.3; armAngle = lerp(-0.2,-1.4,Math.sin(t*Math.PI*4)*0.5+0.5); }
-    else if(digging){ boomAngle = 0.15; armAngle = lerp(0.2,1.3,Math.sin(t*Math.PI*4)*0.5+0.5); }
-    else { boomAngle = 0.1+0.05*Math.sin(p.animT*1.5); armAngle = 0.5+0.08*Math.sin(p.animT*1.5); }
-
-    ctx.save();
-    ctx.translate(9,-6);
-    ctx.rotate(boomAngle);
-    ctx.fillStyle = '#d99a1a';
-    ctx.fillRect(0,-3,20,6);
-    ctx.translate(20,0);
-    ctx.rotate(armAngle);
-    ctx.fillStyle = '#c9971a';
-    ctx.fillRect(0,-2.5,16,5);
-    ctx.translate(16,0);
-    ctx.rotate(0.6);
-    ctx.fillStyle = '#8a6a1a';
-    ctx.beginPath();
-    ctx.moveTo(0,-5); ctx.lineTo(9,-2); ctx.lineTo(9,6); ctx.lineTo(0,7); ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-
-    ctx.restore();
-  }
 };
 
 // draw dig progress bar in world space (overlay, separate pass for clarity)
@@ -1527,37 +1483,49 @@ Game.render = function(){
 
 
 // Cached procedural terrain: irregular strata, mineral inclusions, no network assets.
-var TileArt={cache:{},get:function(t,v){
- var key=t+','+v;if(this.cache[key])return this.cache[key];
- var cv=document.createElement('canvas');cv.width=cv.height=TILE;var g=cv.getContext('2d'),m=META[t],rng=mulberry32(t*817+v*93);
- var base=m.cargo||m.fragment?'#343b44':m.color;
- g.fillStyle=base;g.fillRect(0,0,32,32);
- g.fillStyle='#090d1338';g.fillRect(0,25+v,32,7-v);
- for(var i=0;i<16;i++){var x=rng()*32,y=rng()*32;g.fillStyle=i%2?'#ffffff0b':'#0000001f';g.fillRect(x,y,2+rng()*9,1+rng()*3);}
- g.strokeStyle='#00000038';g.lineWidth=1;g.beginPath();g.moveTo(0,8+v*3);g.lineTo(13,12+v);g.lineTo(32,5+v*4);g.stroke();
- if(m.cargo){for(var i=0;i<5;i++){var x=5+rng()*21,y=5+rng()*22,r=2+rng()*4;g.fillStyle=m.dark;g.beginPath();g.moveTo(x-r,y);g.lineTo(x,y-r);g.lineTo(x+r,y);g.lineTo(x+1,y+r);g.closePath();g.fill();g.fillStyle=m.color;g.fillRect(x-r/2,y-r/2,r,r);g.fillStyle='#ffffff80';g.fillRect(x-1,y-r/2,2,1);}}
- g.fillStyle='#ffffff0c';g.fillRect(0,0,32,1);g.fillStyle='#00000024';g.fillRect(31,0,1,32);
- this.cache[key]=cv;return cv;
-}};
+var TileArt={cache:art.cache,get:function(t,v,depth){return art.tile(META,t,v,depth||0,document);}};
 function drawTitleArt(){
- var c=document.getElementById('titleArt'),g=c.getContext('2d');
- var bg=g.createLinearGradient(0,0,840,340);bg.addColorStop(0,'#111a23');bg.addColorStop(1,'#211915');g.fillStyle=bg;g.fillRect(0,0,840,340);
- g.strokeStyle='#ffffff08';for(var x=0;x<840;x+=40){g.beginPath();g.moveTo(x,0);g.lineTo(x,340);g.stroke();}for(var y=0;y<340;y+=40){g.beginPath();g.moveTo(0,y);g.lineTo(840,y);g.stroke();}
- for(var r=0;r<3;r++)for(var col=0;col<27;col++)g.drawImage(TileArt.get(r===0?DIRT:STONE,col%4),col*32,260+r*32);
- g.save();g.translate(360,185);g.scale(2.5,2.5);
- g.fillStyle='#080c11';g.beginPath();g.roundRect(-42,8,78,22,10);g.fill();
- for(var i=-32;i<35;i+=13){g.fillStyle='#424850';g.beginPath();g.arc(i,19,6,0,Math.PI*2);g.fill();g.fillStyle='#1b2229';g.beginPath();g.arc(i,19,3,0,Math.PI*2);g.fill();}
- g.fillStyle='#d99e3e';g.fillRect(-36,-13,68,25);g.fillStyle='#ffc857';g.fillRect(-20,-48,35,39);g.fillStyle='#111f2a';g.fillRect(-14,-41,23,24);g.fillStyle='#395467';g.beginPath();g.moveTo(-12,-39);g.lineTo(7,-39);g.lineTo(-12,-20);g.fill();g.fillStyle='#ffe1a1';g.fillRect(-23,-51,41,4);
- g.strokeStyle='#e7a63e';g.lineWidth=10;g.lineJoin='round';g.beginPath();g.moveTo(26,-9);g.lineTo(57,-63);g.lineTo(99,-30);g.stroke();g.strokeStyle='#f8d681';g.lineWidth=3;g.beginPath();g.moveTo(25,-9);g.lineTo(54,-52);g.stroke();g.fillStyle='#ad7131';g.beginPath();g.moveTo(96,-35);g.lineTo(113,-23);g.lineTo(102,-5);g.lineTo(82,-7);g.closePath();g.fill();
- g.fillStyle='#ff7849';g.fillRect(-6,-58,8,7);g.restore();
- g.fillStyle='#ffcb7230';g.beginPath();g.moveTo(435,178);g.lineTo(705,130);g.lineTo(705,265);g.closePath();g.fill();
+ var c=document.getElementById('titleArt'),g=c.getContext('2d');g.clearRect(0,0,840,340);
+ var bg=g.createLinearGradient(0,0,0,340);bg.addColorStop(0,'#193c51');bg.addColorStop(.66,'#345264');bg.addColorStop(1,'#5b4c4a');g.fillStyle=bg;g.fillRect(0,0,840,340);
+ for(var layer=0;layer<3;layer++){g.fillStyle=['#233d4e','#304957','#3b5057'][layer];g.beginPath();g.moveTo(0,270);for(var x=0;x<870;x+=30)g.lineTo(x,150+layer*30+Math.sin(x*.012+layer)*25);g.lineTo(840,340);g.lineTo(0,340);g.fill();}
+ for(var r=0;r<3;r++)for(var col=0;col<27;col++)g.drawImage(TileArt.get(r===0?DIRT:STONE,col%4,r*18),col*32,263+r*32);
+ g.save();g.translate(260,125);g.scale(5.4,5.4);Treasure.machine(g,{x:0,y:0,w:22,h:22,facing:1,vx:0,digging:null},0,true);g.restore();
+ Treasure.minerals.forEach(function(m,i){Treasure.mineral(g,m,70+i*86,300,11);});
 }
+function escapeText(value){return String(value).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function syncScreens(){
+ var visible=Array.prototype.filter.call(document.querySelectorAll('.screen'),function(el){return !el.classList.contains('hidden');}),top=visible[visible.length-1];
+ document.querySelectorAll('.screen').forEach(function(el){el.inert=!!top&&el!==top;});
+ var hud=document.getElementById('hud');hud.inert=!!top;
+ if(canvas)canvas.inert=!!top;
+ document.getElementById('journalBtn').inert=!!top;document.getElementById('touchControls').inert=!!top;
+}
+Game.recordFind=function(id,c,r){
+ var m=Treasure.byId[id];if(!m)return;this.finds[id]=(this.finds[id]||0)+1;art.discover(id,c*TILE+16,r*TILE+16);
+ this.toast(m.name+' · '+m.rarity+' · '+m.sell+' cargo value');
+ if(m.rarity==='Legendary')Audio.victory();else if(m.rarity==='Epic'){Audio.tone(880,.13,'sine',.1);Audio.tone(1320,.18,'sine',.09,.09);}
+};
+Game.openJournal=function(){if(!['playing','paused','depot'].includes(this.state))return;this.journalReturn=this.state;this.renderJournal();this.setState('journal');};
+Game.closeJournal=function(){var back=this.journalReturn||'playing';this.setState(back);if(back==='depot')this.renderDepot();};
+Game.renderJournal=function(){
+ var self=this,total=0,best=null;document.getElementById('journalEntries').innerHTML=Treasure.minerals.map(function(m){var count=self.finds[m.id]||0;total+=count;if(count&&(!best||m.sell>best.sell))best=m;return '<div class="journal-entry '+(count?'known':'unknown')+'"><canvas width="40" height="40" data-mineral="'+m.id+'" aria-hidden="true"></canvas><div><b>'+m.name+'</b><small>'+m.rarity+' · '+(m.kind==='ore'?'Ore deposit':'Embedded gemstone')+' · '+m.sell+' cr</small></div><strong>'+count+'</strong></div>';}).join('');
+ document.querySelectorAll('[data-mineral]').forEach(function(c){Treasure.mineral(c.getContext('2d'),Treasure.byId[Number(c.dataset.mineral)],20,20,13);});document.getElementById('journalSummary').textContent=total+' minerals collected · Best find: '+(best?best.name:'awaiting discovery');
+};
+document.getElementById('journalBtn').addEventListener('click',function(){Game.openJournal();});
+document.getElementById('pauseJournal').addEventListener('click',function(){Game.openJournal();});
+document.getElementById('journalClose').addEventListener('click',function(){Game.closeJournal();});
+var reducedSaved=Storage.get('tinyExcavatorCalmMotion');art.reduced=reducedSaved===null?window.matchMedia('(prefers-reduced-motion: reduce)').matches:reducedSaved==='1';
+document.getElementById('calmMotion').checked=art.reduced;
+document.getElementById('calmMotion').addEventListener('change',function(e){art.reduced=e.target.checked;Storage.set('tinyExcavatorCalmMotion',art.reduced?'1':'0');});
+document.addEventListener('keydown',function(e){if(e.key!=='Tab')return;var screens=Array.from(document.querySelectorAll('.screen')).filter(function(el){return !el.classList.contains('hidden');}),top=screens[screens.length-1];if(!top)return;var items=Array.from(top.querySelectorAll('button:not(:disabled),[tabindex="0"],input,a[href]')).filter(function(el){return el.offsetParent!==null;});if(!items.length)return;var i=items.indexOf(document.activeElement);if(e.shiftKey&&i<=0){e.preventDefault();items[items.length-1].focus();}else if(!e.shiftKey&&(i<0||i===items.length-1)){e.preventDefault();items[0].focus();}});
+new MutationObserver(syncScreens).observe(document.getElementById('app'),{subtree:true,attributes:true,attributeFilter:['class']});
 
 /* ============================================================
    BOOT
 ============================================================ */
 window.addEventListener('load', function(){
   Game.init();
+  if(new URLSearchParams(location.search).has('debug'))window.TinyDebug={Game,Player,World,META,Save,Input,Particles,Audio,art,Treasure,inspect:function(){return {state:Game.state,time:Game.time,credits:Player.credits,cargo:Player.cargo.length,finds:Game.finds,particles:Particles.list.length,effects:art.pool.list.length,cache:art.cache.size,dpr:Game.dpr};}};
   drawTitleArt();
   Game.refreshHudSound();
 });

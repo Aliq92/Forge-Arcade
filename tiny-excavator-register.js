@@ -3,7 +3,7 @@
 GAMES.push({
   id: 'tiny-excavator',
   title: 'Tiny Excavator',
-  description: 'Dig through a deep quarry, haul valuable ore, upgrade your excavator, and recover three ancient fragments. Keep enough fuel for the climb home.',
+  description: 'Dig deeper. Discover more. Uncover nine minerals and gemstones, record your finds, upgrade your tiny excavator, and recover three ancient fragments.',
   category: 'Games',
   featured: true,
   tags: ['Mining adventure', 'Keyboard + touch'],

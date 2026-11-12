@@ -1,0 +1,56 @@
+{
+  "Copper Ore": {
+    "rarity": "Common",
+    "value": 12,
+    "min": 57,
+    "max": 102
+  },
+  "Iron Ore": {
+    "rarity": "Common",
+    "value": 15,
+    "min": 32,
+    "max": 32
+  },
+  "Silver Ore": {
+    "rarity": "Uncommon",
+    "value": 30,
+    "min": 32,
+    "max": 32
+  },
+  "Gold Ore": {
+    "rarity": "Rare",
+    "value": 80,
+    "min": 12,
+    "max": 12
+  },
+  "Platinum Ore": {
+    "rarity": "Rare",
+    "value": 120,
+    "min": 10,
+    "max": 10
+  },
+  "Gem Cluster": {
+    "rarity": "Epic",
+    "value": 200,
+    "min": 6,
+    "max": 6
+  },
+  "Emerald": {
+    "rarity": "Epic",
+    "value": 180,
+    "min": 7,
+    "max": 7
+  },
+  "Ruby": {
+    "rarity": "Epic",
+    "value": 220,
+    "min": 6,
+    "max": 6
+  },
+  "Diamond": {
+    "rarity": "Legendary",
+    "value": 400,
+    "min": 2,
+    "max": 2
+  }
+}
