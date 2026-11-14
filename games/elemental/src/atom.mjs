@@ -1,6 +1,6 @@
 import {$,esc,option} from './ui.mjs';import {atomCounts,ionConfiguration,orbitalBoxes,supportedIons} from './chemistry/atomic.mjs';
 export class AtomExplorer{
- constructor(elements,isotopes,onChange){this.elements=elements;this.isotopes=isotopes;this.onChange=onChange;this.z=6;this.a=12;this.q=0;this.view='shell';this.render();}
+ constructor(elements,isotopes,onChange,onInspect){this.elements=elements;this.isotopes=isotopes;this.onChange=onChange;this.onInspect=onInspect;this.z=6;this.a=12;this.q=0;this.view='shell';this.render();}
  select(z){this.z=z;this.a=this.isotopes.find(i=>i.z===z)?.a||z;this.q=0;this.render();}
  state(){return {z:this.z,a:this.a,q:this.q};}
  render(){
@@ -17,5 +17,6 @@ export class AtomExplorer{
   $('#mass-number').onchange=event=>{const a=+event.target.value;if(Number.isInteger(a)&&a>=this.z&&a<=400)this.a=a;this.render();};
   $('#ion-charge').onchange=event=>{const q=+event.target.value;if(this.z-q>=0)this.q=q;this.render();};
   $('#atom-view').onchange=event=>{this.view=event.target.value;this.render();};
+  this.onInspect?.(this.state());
  }
 }

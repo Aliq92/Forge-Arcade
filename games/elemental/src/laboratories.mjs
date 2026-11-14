@@ -1,0 +1,47 @@
+import {$,esc,option,toast} from './ui.mjs';
+import {createCatalog} from './discovery/catalog.mjs';
+import {DiscoveryStore} from './discovery/store.mjs';
+
+export function mountLaboratories({elements,isotopes,refs,storage,progress,onInspectReference,onModeChange}){
+ const catalog=createCatalog(elements,isotopes,refs),library=new DiscoveryStore(catalog,storage);
+ library.migrateLegacy(progress);
+ const atomic=document.querySelector('.lab');atomic.id='atomic-lab';
+ const bar=document.createElement('nav');bar.className='mode-bar';bar.setAttribute('aria-label','Laboratory entrances');bar.innerHTML='<button id="lab-home">← Laboratory entrances</button><button id="mode-atomic">Atomic Lab</button><button id="mode-reaction">Reaction Lab</button><button id="open-library">◇ Discovery Library <span id="library-count"></span></button>';document.querySelector('.topbar').after(bar);
+ const menu=document.createElement('section');menu.id='lab-menu';menu.className='lab-menu';menu.innerHTML=`<div class="menu-intro"><p class="eyebrow">ELEMENTAL · TWO WAYS TO DISCOVER</p><h1>A little curiosity.<br>An entire universe.</h1><p>Explore what matter is made of. Then discover how it changes.</p></div><div class="entrance-grid"><button id="enter-atomic" class="entrance"><span class="entrance-art atomic-art" aria-hidden="true">◉<i>H</i><i>O</i><i>C</i></span><small>01 / ATOMIC LAB</small><h2>Discover the building<br>blocks of matter.</h2><p>118 elements, atomic structure and nine validated molecular models.</p><b>Enter Atomic Lab →</b></button><button id="enter-reaction" class="entrance"><span class="entrance-art reaction-art" aria-hidden="true"><span>⚗</span><i>·</i><i>·</i><i>·</i></span><small>02 / REACTION LAB</small><h2>Combine substances.<br>Discover chemistry.</h2><p>Independent experiments, conserved materials and a journal of discoveries.</p><b>Enter Reaction Lab →</b></button></div><button id="menu-library" class="library-entrance">◇ Open your Discovery Library <span>Scientific identities connect the laboratories. Active experiments stay separate.</span></button><p class="model-note">Virtual learning only. Curated models explain supported outcomes; they do not predict arbitrary mixtures or provide physical laboratory procedures.</p>`;bar.after(menu);
+ const reactionHost=document.createElement('section');reactionHost.id='reaction-lab';reactionHost.hidden=true;atomic.after(reactionHost);
+ const modal=document.createElement('dialog');modal.id='discovery-library';modal.className='library-dialog';modal.innerHTML=`<div class="dialog-heading"><div><p class="eyebrow">SHARED IDENTITIES · INDEPENDENT EXPERIMENTS</p><h2>Discovery Library</h2></div><button id="close-library" aria-label="Close Discovery Library">✕</button></div><p id="library-purpose" class="micro"></p><div class="library-controls"><label>SEARCH<input type="search" id="library-search" placeholder="Name, formula or identity"></label><label>CATEGORY<select id="library-filter">${[['all','All discoveries'],['element','Element'],['atom','Atom'],['isotope','Isotope'],['ion','Ion'],['molecule','Molecule'],['compound','Compound'],['eligible','Reaction eligible']].map(([v,l])=>option(v,l)).join('')}</select></label><label>SOURCE<select id="library-source">${option('all','Either laboratory')+option('atomic-lab','Atomic Lab')+option('reaction-lab','Reaction Lab')}</select></label></div><p id="library-feedback" role="status" class="feedback"></p><div class="library-body"><div id="library-list"></div><div id="library-inspection" class="surface"><h3>Select a discovery</h3><p>Discoveries store chemical identity, not live atoms or experiment materials.</p></div></div>`;document.body.append(modal);
+ let mode='menu',reaction=null,reactionPromise=null,selectedId=null,context='browse';
+ const controller={catalog,library,get reaction(){return reaction;},get mode(){return mode;},recordElement(symbol){library.discoverElement(symbol);refreshCount();},recordAtom(state){if(mode==='atomic'){library.discoverAtom(state);refreshCount();}},recordMolecule(id){if(id&&mode==='atomic'){library.discoverMolecule(id);refreshCount();}},changeMode,openLibrary};
+ function refreshCount(){$('#library-count').textContent=library.records.length?'('+library.records.length+')':'';if(library.error)$('#library-feedback').textContent=library.error;}
+ async function changeMode(next){
+  mode=next;menu.hidden=next!=='menu';atomic.hidden=next!=='atomic';reactionHost.hidden=next!=='reaction';
+  for(const [id,name]of [['mode-atomic','atomic'],['mode-reaction','reaction']])$('#'+id).setAttribute('aria-pressed',String(next===name));
+  onModeChange(next);reaction?.setActive(next==='reaction');
+  if(next==='reaction'){
+   if(!reactionPromise)reactionPromise=import('./reaction/lab.mjs').then(({ReactionLab})=>{reaction=new ReactionLab(reactionHost,{catalog,library,refs,storage,openLibrary,onDiscovery:refreshCount});return reaction;});
+   try{await reactionPromise;reaction.setActive(mode==='reaction');}catch(error){reactionHost.textContent='Reaction Lab could not load: '+error.message;throw error;}
+  }
+  refreshCount();window.scrollTo({top:0,behavior:'instant'});
+ }
+ function openLibrary(purpose='browse'){
+  context=purpose;$('#library-purpose').textContent=purpose==='import'?'IMPORT FROM ATOMIC LAB · choose an appropriate supported reagent form. Importing unlocks virtual trial stock; it never removes a discovery or changes Atomic Lab.':'Inspect discoveries from either laboratory. Viewing an identity never changes either active experiment.';
+  $('#library-source').value=purpose==='import'?'atomic-lab':'all';$('#library-feedback').textContent=library.error||'';renderLibrary();modal.showModal();
+ }
+ function renderLibrary(){
+  const query=$('#library-search').value.toLowerCase().trim(),filter=$('#library-filter').value,source=$('#library-source').value;
+  const entries=library.available().filter(e=>(!query||(e.name+' '+e.formula+' '+e.id).toLowerCase().includes(query))&&(filter==='all'||filter===e.category||filter==='eligible'&&e.reactionForms.length>0)&&(source==='all'||e.sources?.includes(source)));
+  $('#library-list').innerHTML=entries.map(e=>`<button data-library-id="${esc(e.id)}" class="library-entry" aria-pressed="${selectedId===e.id}"><b>${esc(e.formula||e.name)}</b><span>${esc(e.name)}<small>${esc(e.category)} · ${esc(e.sources?.join(', ')||'discovery')}</small></span></button>`).join('')||'<p class="model-note">No matching discoveries yet. Select elements or validate molecules in Atomic Lab, or observe a supported Reaction Lab process.</p>';
+  for(const b of modal.querySelectorAll('[data-library-id]'))b.onclick=()=>inspect(b.dataset.libraryId);
+  if(selectedId&&entries.some(e=>e.id===selectedId))inspect(selectedId);else $('#library-inspection').innerHTML='<h3>Your scientific catalogue</h3><p class="micro">Select an entry to inspect its composition and supported bulk forms. Starter materials in Reaction Lab are available independently of discoveries.</p>';
+ }
+ function inspect(id){
+  selectedId=id;const e=catalog.get(id),conversion=library.importForm(id);if(!e)return;
+  $('#library-inspection').innerHTML=`<span class="badge">${esc(e.category)} · ${esc(e.representation)}</span><h2>${esc(e.name)} · ${esc(e.formula)}</h2><dl><dt>STABLE ID</dt><dd>${esc(e.id)}</dd><dt>COMPOSITION</dt><dd>${Object.entries(e.elements).map(([s,n])=>esc(s)+' × '+n).join(' · ')}</dd><dt>CHARGE</dt><dd>${e.charge}</dd></dl><p class="model-note">${esc(e.notes||'Scientific identity only. No active experiment state is shared.')}</p><h3>Reaction Lab forms</h3>${conversion.ok?conversion.forms.map(f=>`<button class="wide" data-import-form="${esc(f.id)}">Import ${esc(catalog.get(f.speciesId).name)} (${esc(f.state)}) →</button>`).join(''):`<p class="micro">${esc(conversion.reason)}</p>`}${e.referenceId?'<button id="library-open-reference" class="wide">Open reference in Atomic Lab</button><p class="micro">This explicit action replaces the current molecular construction. Browsing the library does not.</p>':''}`;
+  for(const b of modal.querySelectorAll('[data-import-form]'))b.onclick=async()=>{if(!reaction){if(!reactionPromise)reactionPromise=import('./reaction/lab.mjs').then(({ReactionLab})=>reaction=new ReactionLab(reactionHost,{catalog,library,refs,storage,openLibrary,onDiscovery:refreshCount}));await reactionPromise;}reaction.store.addInventory(b.dataset.importForm);reaction.renderInventory();$('#library-feedback').textContent='Available in Reaction Lab: '+catalog.get(catalog.reagent(b.dataset.importForm).speciesId).name+'. Atomic discovery preserved.';};
+  if($('#library-open-reference'))$('#library-open-reference').onclick=async()=>{modal.close();await changeMode('atomic');await onInspectReference(e.referenceId);};
+ }
+ $('#lab-home').onclick=()=>changeMode('menu');$('#mode-atomic').onclick=$('#enter-atomic').onclick=()=>changeMode('atomic');$('#mode-reaction').onclick=$('#enter-reaction').onclick=()=>changeMode('reaction');$('#open-library').onclick=$('#menu-library').onclick=()=>openLibrary();$('#close-library').onclick=()=>modal.close();
+ $('#library-search').oninput=renderLibrary;$('#library-filter').onchange=$('#library-source').onchange=renderLibrary;
+ modal.addEventListener('click',event=>{if(event.target===modal){const r=modal.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)modal.close();}});
+ changeMode('menu');window.elementalV02=controller;return controller;
+}

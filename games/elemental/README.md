@@ -1,3 +1,11 @@
+# ELEMENTAL v0.2 · Atomic & Reaction Laboratory
+
+See [V02-README.md](V02-README.md) for the current two-laboratory upgrade, controls, shared discoveries, persistence, scientific limits and local preview. [V02-VERIFICATION.md](V02-VERIFICATION.md) records the new validation. Hidden Forge Arcade integration was explicitly approved on 15 November 2026; use the existing footer flask.
+
+---
+
+## Historical v0.1 documentation
+
 # ELEMENTAL v0.1 — Atomic Foundations
 
 Standalone chemistry learning lab for Forge Arcade. Built and checked 8 November 2026. Registered locally under Experiments alongside Beat Foundry, as subsequently requested. Publication was subsequently authorized by the user on 8 November 2026.
@@ -55,5 +63,3 @@ Integration pattern (already applied locally; publication remains unapproved):
 4. Update count-dependent registry/art/browser expectations from the actual current registry (currently 37) and verify the Simulations filter and navigation. Run all tests and `node build.mjs` before publication. Deploy only on explicit authorization, then repeat public browser checks.
 
 Progress is origin-bound and optional. There is no workspace/cloud save or cross-origin migration; deleting atoms or resetting the workspace never clears another game’s storage.
-
-

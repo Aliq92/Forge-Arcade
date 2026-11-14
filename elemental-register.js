@@ -4,11 +4,11 @@
 GAMES.push({
   id: 'elemental',
   title: 'ELEMENTAL',
-  description: 'Explore real atomic structure, build molecules, and discover chemistry through scientifically grounded interactive experiments.',
+  description: 'Explore atoms, build molecules, and investigate virtual chemical reactions in connected scientific laboratories.',
   category: 'Experiments',
   featured: false,
   hidden: true,
-  tags: ['Chemistry sandbox', 'Atomic foundations'],
+  tags: ['Atomic & Reaction Laboratory', 'Shared discoveries'],
   palette: ['#61e5e3', '#ba9df7'],
 });
 

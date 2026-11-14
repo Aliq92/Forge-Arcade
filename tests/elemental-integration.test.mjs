@@ -8,7 +8,7 @@ test('Elemental stays registered but is hidden behind a native chemistry shortcu
  const index=read('index.html');assert.equal([...index.matchAll(/src="elemental-register\.js(?:\?[^" ]*)?"/g)].length,1);
  assert.ok(index.indexOf('elemental-register.js')>index.indexOf('src="app.js'));assert.ok(fs.existsSync(new URL('games/elemental/index.html',root)));
  assert.ok(fs.existsSync(new URL('assets/thumbnails/pixel/elemental.webp',root)));assert.match(read('card-thumbnails.js'),/"elemental"/);
- assert.match(index,/<a[^>]+class="chemistry-shortcut"[^>]+href="games\/elemental\/index.html"[^>]+aria-label="Open chemistry lab"/);
+ assert.match(index,/<a[^>]+class="chemistry-shortcut"[^>]+href="games\/elemental\/index.html(?:\?[^" ]*)?"[^>]+aria-label="Open chemistry lab"/);
  assert.match(index,/<svg[^>]+aria-hidden="true"/);
 });
 test('hidden entries never appear in any archive filter or featured collection',()=>{
