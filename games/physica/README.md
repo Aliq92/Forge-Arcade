@@ -50,4 +50,4 @@ Browser scripts currently locate this workstation's bundled Playwright and insta
 
 ## Integration status
 
-The user approved integration on 15 November 2026 as a hidden laboratory, matching ELEMENTAL. Open the atom symbol beside the chemistry flask in Forge Arcade's footer. PHYSICA is excluded from game cards, featured collections and visible counts. [integration/README.md](integration/README.md) documents the active hidden registration. Original pixel artwork remains available in assets; no visible PHYSICA card is enabled.
+Removed from Forge Arcade's launcher and registry at the user's request on 15 November 2026. The footer atom symbol and active registration were removed; ELEMENTAL's flask is unchanged. Standalone PHYSICA source, artwork and direct game files are retained. [integration/README.md](integration/README.md) records the removal; there is no active Arcade entry.

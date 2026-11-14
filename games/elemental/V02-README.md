@@ -1,6 +1,6 @@
 # ELEMENTAL v0.2 · Atomic & Reaction Laboratory
 
-One game, two independent laboratories, one shared identity catalogue. The user approved Forge Arcade integration on 15 November 2026. Open the existing flask symbol in the footer to enter ELEMENTAL; both laboratories live inside this one hidden game. No visible ELEMENTAL/Reaction Lab card is added, and the physics atom shortcut is preserved.
+One game, two independent laboratories, one shared identity catalogue. The user approved Forge Arcade integration on 15 November 2026. Open the existing flask symbol in the footer to enter ELEMENTAL; both laboratories live inside this one hidden game. No visible ELEMENTAL or Reaction Lab card is added.
 
 ## Play
 

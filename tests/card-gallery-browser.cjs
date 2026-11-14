@@ -94,7 +94,7 @@ const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript'
       await game.locator('#resume').click();
       await game.screenshot({path:path.join(root,`test-results/echo-tide-${mobile?'mobile':'desktop'}.png`)});
       await game.locator('#forge-back-link').click();
-      await game.waitForFunction(()=>typeof GAMES!=='undefined'&&GAMES.length===41);
+      await game.waitForFunction(()=>typeof GAMES!=='undefined'&&GAMES.length===40);
       await game.waitForSelector('#grid .game-thumbnail');
       for(const origin of ['#grid .card','#featured-grid .f-card']){
         console.log(`Checking Lighthouse ${mobile?'mobile':'desktop'} ${origin}`);
@@ -116,7 +116,7 @@ const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript'
         await game.locator('#resume-button').click();
         await game.waitForFunction(()=>document.body.dataset.state==='PLAYING');
         await game.getByRole('link',{name:'Back to Forge Arcade',exact:true}).click();
-        await game.waitForFunction(()=>typeof GAMES!=='undefined'&&GAMES.length===41);
+        await game.waitForFunction(()=>typeof GAMES!=='undefined'&&GAMES.length===40);
         await game.waitForSelector('#grid .game-thumbnail');
         assert.equal(await game.locator('#grid .card').count(),39);
       }
