@@ -1,0 +1,9 @@
+// Reproducible independent wave references; run from the repository root.
+import assert from 'node:assert/strict';
+import {createModel} from '../labs/waves.js';
+const run=(m,t)=>{while(m.time<t)m.step();return m;};
+function ellipticK(k){const n=4096,h=Math.PI/2/n;let sum=0;for(let i=0;i<=n;i++)sum+=(i===0||i===n?1:i%2?4:2)/Math.sqrt(1-k*k*Math.sin(i*h)**2);return h*sum/3;}
+const pendulums=[2,10,45,90,120].map(angle=>{const m=run(createModel('pendulum',{length:1,g:9.81,angle,damping:0}),30),expected=4*Math.sqrt(1/9.81)*ellipticK(Math.sin(angle*Math.PI/360)),q=m.measure();return {angle,expectedPeriod:expected,measuredPeriod:q.period,relativePeriodError:Math.abs(q.period/expected-1),relativeEnergyError:Math.abs(q.totalEnergy/m.initialEnergy-1)};});
+const spring=run(createModel('spring',{mass:1,stiffness:20,damping:0,displacement:.5}),30),damped=run(createModel('spring',{mass:1,stiffness:20,damping:1,displacement:.5}),8),standing=run(createModel('standing',{length:3,waveSpeed:6,modeNumber:3,driveFrequency:3,driveForce:1,damping:.4}),12);
+const q=damped.measure(),s=standing.measure(),report={pendulums,springRelativePeriodError:Math.abs(spring.measure().period/spring.theory.period-1),springRelativeEnergyError:Math.abs(spring.measure().totalEnergy/spring.initialEnergy-1),dampedEnergyBalanceJ:Math.abs(q.totalEnergy+q.dissipatedEnergy-damped.initialEnergy),standingEnergyBalanceJ:Math.abs(s.totalEnergy+s.dissipatedEnergy-standing.initialEnergy-s.driveWork),standingMeasuredFrequencyHz:s.frequency,standingRecentAmplitudeM:s.amplitude};
+assert.ok(pendulums.every(p=>p.relativePeriodError<1e-5&&p.relativeEnergyError<1e-5));assert.ok(report.springRelativePeriodError<1e-5);assert.ok(report.dampedEnergyBalanceJ<1e-4);assert.ok(report.standingEnergyBalanceJ<1e-4);console.log(JSON.stringify(report,null,2));
