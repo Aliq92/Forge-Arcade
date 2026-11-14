@@ -27,9 +27,11 @@ function hsla(h,s,l,a){ return `hsla(${h},${s}%,${l}%,${a})`; }
 const canvas = document.getElementById('reef-canvas');
 const ctx = canvas.getContext('2d');
 let W=0, H=0, DPR=1;
+let ocean=null, oceanRenderer=null;
 
 function resize(){
-  DPR = Math.min(window.devicePixelRatio||1, 2);
+  const oldW=W,oldH=H;
+  DPR = Math.min(window.devicePixelRatio||1, 1.5);
   W = window.innerWidth;
   H = window.innerHeight;
   canvas.width = Math.floor(W*DPR);
@@ -37,6 +39,10 @@ function resize(){
   canvas.style.width = W+'px';
   canvas.style.height = H+'px';
   ctx.setTransform(DPR,0,0,DPR,0,0);
+  if(oceanRenderer){
+    for(const o of state.organisms){o.x=clamp(o.x/Math.max(1,oldW)*W,15,W-15);o.y=clamp(o.y/Math.max(1,oldH)*H,H*.36,H*.88);}
+    oceanRenderer.resize(W,H);initSnow();
+  }
 }
 window.addEventListener('resize', resize);
 resize();
@@ -80,7 +86,15 @@ const SPECIES = {
     hue:174, sat:48, light:60, matureTime:80,
     swayFreq:0.3, swayAmp:0.08,
     icon: iconGeometricAnemone
-  }
+  },
+  seaweed:{id:'seaweed',name:'Seaweed',hue:150,sat:60,light:55,matureTime:50,swayFreq:.55,swayAmp:.09,flora:'seaweed',icon:()=>iconLivingFlora('seaweed')},
+  kelp:{id:'kelp',name:'Kelp',hue:127,sat:60,light:50,matureTime:85,swayFreq:.3,swayAmp:.07,flora:'kelp',icon:()=>iconLivingFlora('kelp')},
+  seagrass:{id:'seagrass',name:'Seagrass',hue:160,sat:55,light:55,matureTime:40,swayFreq:.65,swayAmp:.06,flora:'seagrass',icon:()=>iconLivingFlora('seagrass')},
+  red_algae:{id:'red_algae',name:'Red Algae',hue:343,sat:65,light:55,matureTime:60,swayFreq:.4,swayAmp:.05,flora:'algae',icon:()=>iconLivingFlora('algae')},
+  sea_fan:{id:'sea_fan',name:'Sea Fan',hue:278,sat:55,light:60,matureTime:90,swayFreq:.25,swayAmp:.05,flora:'sea-fan',icon:()=>iconLivingFlora('sea-fan')},
+  soft_coral:{id:'soft_coral',name:'Soft Coral',hue:15,sat:65,light:60,matureTime:75,swayFreq:.35,swayAmp:.06,flora:'soft-coral',icon:()=>iconLivingFlora('soft-coral')},
+  sea_anemone:{id:'sea_anemone',name:'Sea Anemone',hue:345,sat:55,light:65,matureTime:65,swayFreq:.5,swayAmp:.07,flora:'anemone',icon:()=>iconLivingFlora('anemone')},
+  glow_sprout:{id:'glow_sprout',name:'Glow Sprout',hue:180,sat:70,light:70,matureTime:70,swayFreq:.4,swayAmp:.05,flora:'glow',icon:()=>iconLivingFlora('glow')}
 };
 const SPECIES_LIST = Object.values(SPECIES);
 
@@ -126,7 +140,9 @@ const state = {
   lastAutoGrow: 0,
   lastAmbient: 0,
   moodStart: Date.now(),
-  time:0
+  time:0,
+  paused:false,
+  quality:'high'
 };
 
 const MOOD_ORDER = ['CLEAR BLUE','TWILIGHT','DEEP CURRENT','LUMINOUS NIGHT'];
@@ -141,7 +157,7 @@ const MOOD_COLORS = {
 };
 
 function currentMood(){
-  const elapsed = ((Date.now()-state.moodStart)/1000) % (MOOD_DURATION*MOOD_ORDER.length);
+  const elapsed = (((state.paused?pauseWall:Date.now())-state.moodStart)/1000) % (MOOD_DURATION*MOOD_ORDER.length);
   const idx = Math.floor(elapsed/MOOD_DURATION);
   const within = elapsed - idx*MOOD_DURATION;
   const a = MOOD_ORDER[idx];
@@ -180,6 +196,7 @@ function buildBranchNode(rng, depth, maxDepth, len){
 }
 
 function buildGeo(speciesId, rng){
+  if(SPECIES[speciesId]?.flora)return {flora:SPECIES[speciesId].flora,variant:Math.floor(rng()*3),height:.75+rng()*.3};
   switch(speciesId){
     case 'glass_branch':
       return { tree: buildBranchNode(rng,0,4,44+rng()*14) };
@@ -276,7 +293,10 @@ function baseSpeciesForDraw(o){
 ===================================================================== */
 function swayWiggle(o, sp, depth=0){
   const amp = sp.swayAmp * (state.reducedMotion?0.35:1);
-  return Math.sin(state.time*sp.swayFreq + o.phase + depth*0.7) * amp + state.currentAngle*0.4;
+  const p=oceanRenderer?oceanRenderer.world(o.x,o.y):null;
+  const direction=p?ocean.flowAt(p.x,p.y).x/27:0;
+  const reactive=p&&ocean.survey?Math.max(0,1-Math.hypot(p.x-ocean.probe.x,p.y-ocean.probe.y)/110)*(p.x<ocean.probe.x?-.08:.08):0;
+  return Math.sin(state.time*sp.swayFreq + o.phase + depth*0.7) * amp + state.currentAngle*0.4+direction*.025+reactive;
 }
 
 function drawGlassBranch(o, col, growth, glow){
@@ -477,7 +497,16 @@ function drawGeometricAnemone(o, col, growth, glow, darkMode){
   ctx.restore();
 }
 
+function drawLivingFlora(o,col,growth,glow){
+  if(!oceanRenderer)return;
+  const sp=SPECIES[o.species],size=o.scale*o.geo.height*(.06+.7*growth),wig=swayWiggle(o,sp);
+  ctx.save();ctx.translate(o.x,o.y);ctx.rotate(wig);ctx.scale(size,size);
+  if(o.isHybrid||o.rare)ctx.filter=`hue-rotate(${col.hue-sp.hue}deg)`;
+  ctx.drawImage(oceanRenderer.sprite(o.geo.flora,o.geo.variant),-95,-220);ctx.restore();
+}
 const DRAW_FN = {
+  seaweed:drawLivingFlora,kelp:drawLivingFlora,seagrass:drawLivingFlora,red_algae:drawLivingFlora,
+  sea_fan:drawLivingFlora,soft_coral:drawLivingFlora,sea_anemone:drawLivingFlora,glow_sprout:drawLivingFlora,
   glass_branch: drawGlassBranch,
   spiral_tube: drawSpiralTube,
   lumen_fan: drawLumenFan,
@@ -538,6 +567,7 @@ function iconLumenFan(){ return svgWrap(`<path d="M20 36V22M20 22L8 10M20 22l4-1
 function iconPearlBloom(){ return svgWrap(`<circle cx="20" cy="18" r="4"/><ellipse cx="20" cy="9" rx="4" ry="6"/><ellipse cx="29" cy="14" rx="4" ry="6" transform="rotate(45 29 14)"/><ellipse cx="11" cy="14" rx="4" ry="6" transform="rotate(-45 11 14)"/><ellipse cx="29" cy="23" rx="4" ry="6" transform="rotate(135 29 23)"/><ellipse cx="11" cy="23" rx="4" ry="6" transform="rotate(-135 11 23)"/>`); }
 function iconFloatingPolyp(){ return svgWrap(`<path d="M20 36V24"/><circle cx="14" cy="16" r="2.3"/><circle cx="22" cy="10" r="2.3"/><circle cx="27" cy="18" r="2.3"/><path d="M20 24l-6-8M20 24l2-14M20 24l7-6" stroke-width="1"/>`); }
 function iconGeometricAnemone(){ return svgWrap(`<circle cx="20" cy="26" r="4"/><path d="M20 22V8M20 22l-9-11M20 22l9-11M20 22l-13-2M20 22l13-2M20 22l-11 8M20 22l11 8"/>`); }
+function iconLivingFlora(type){const paths={seaweed:'M12 35C3 24 23 16 12 5M21 35C30 24 10 15 23 4M29 35C22 24 36 19 30 10',kelp:'M20 36V4M20 29Q3 31 8 21Q17 17 20 24M20 18Q36 20 33 10Q24 6 20 13',seagrass:'M20 36V14M17 36L6 19M23 36L34 18M12 36L4 28M28 36L37 27',algae:'M20 36V12M20 24L7 15M20 20L32 8M12 19L10 8M28 12L27 4', 'sea-fan':'M20 36V22M20 22L5 7M20 22L13 3M20 22L21 2M20 22L30 3M20 22L37 10','soft-coral':'M20 36V14M20 26L7 16M20 22L32 11M9 18V10M30 14V5',anemone:'M8 31Q20 38 32 31M20 31V9M15 31Q4 20 8 12M25 31Q36 20 32 12M11 30L3 23M29 30L37 23',glow:'M20 36V16M20 28L8 22M20 23L31 14'};return svgWrap(`<path d="${paths[type]}"/>${type==='glow'?'<circle cx="20" cy="11" r="4"/><circle cx="7" cy="20" r="3"/><circle cx="32" cy="11" r="3"/>':''}`);}
 
 /* =====================================================================
    CREATURES
@@ -633,6 +663,7 @@ function spawnSnow(){
   };
 }
 function initSnow(){
+  state.snow=[];
   const count = Math.min(70, Math.floor((W*H)/22000));
   for(let i=0;i<count;i++) state.snow.push(spawnSnow());
 }
@@ -640,7 +671,7 @@ function initSnow(){
 /* =====================================================================
    AMBIENT EVENTS
 ===================================================================== */
-let lightBeam=null, shadowPass=null, currentBend=0, snowBoost=0;
+let lightBeam=null, shadowPass=null, currentBend=0, snowBoost=0,currentBendUntil=0,snowBoostUntil=0;
 function triggerAmbientEvent(){
   const kinds = ['fish_school','shadow','snow_burst','current_bend','light_beam'];
   const kind = pick(Math.random, kinds);
@@ -662,11 +693,11 @@ function triggerAmbientEvent(){
     showBanner('a shadow passes above');
   } else if(kind==='snow_burst'){
     snowBoost = 1;
-    setTimeout(()=>{snowBoost=0;}, 12000);
+    snowBoostUntil=state.time+12;
   } else if(kind==='current_bend'){
     currentBend = (Math.random()<0.5?-1:1)*1.4;
     showBanner('the current bends the reef');
-    setTimeout(()=>{currentBend=0;}, 8000);
+    currentBendUntil=state.time+8;
   } else if(kind==='light_beam'){
     lightBeam = { x: W*0.2+Math.random()*W*0.6, t:0, life:14 };
     showBanner('a beam reaches the seabed');
@@ -683,7 +714,7 @@ function showBanner(text){
 /* =====================================================================
    AUDIO (WebAudio, optional, lazy init)
 ===================================================================== */
-let audioCtx=null, hum=null, humGain=null, noiseGain=null;
+let audioCtx=null, hum=null, humGain=null, noiseGain=null,activeChimes=0;
 function initAudio(){
   if(audioCtx) return;
   try{
@@ -715,9 +746,10 @@ function setAudioOn(on){
   noiseGain.gain.linearRampToValueAtTime(on?0.015:0, audioCtx.currentTime+1.2);
 }
 function playChime(){
-  if(!audioCtx || !state.sound) return;
+  if(!audioCtx || !state.sound ||state.paused||activeChimes>=6) return;
   const o1 = audioCtx.createOscillator();
   const g = audioCtx.createGain();
+  activeChimes++;o1.onended=()=>activeChimes--;
   o1.type='sine'; o1.frequency.value=440+Math.random()*220;
   g.gain.value=0.0001;
   o1.connect(g); g.connect(audioCtx.destination);
@@ -732,6 +764,7 @@ function playChime(){
    PLANTING / TENDING / CROSSBREEDING
 ===================================================================== */
 function plantAt(x,y){
+  if(state.paused||ocean?.survey)return;
   if(state.organisms.length>=70){ showBanner('the reef is full'); return; }
   const o = createOrganism(state.selectedSpecies, x, y);
   state.organisms.push(o);
@@ -747,6 +780,7 @@ function spawnPlacementBurst(x,y){
   for(let i=0;i<10;i++){
     bursts.push({x,y,vx:(Math.random()-0.5)*30,vy:(Math.random()-0.5)*30-10,life:1,r:2+Math.random()*2});
   }
+  if(bursts.length>120)bursts.splice(0,bursts.length-120);
 }
 function updateBursts(dt){
   bursts.forEach(b=>{ b.x+=b.vx*dt; b.y+=b.vy*dt; b.life-=dt*1.4; });
@@ -791,6 +825,7 @@ function selectOrganism(o){
 }
 
 function nurtureSelected(){
+  if(state.paused||ocean?.survey)return;
   const button = document.getElementById('btn-nurture');
   // Restart feedback on every press, including rapid taps and keyboard input.
   button.getAnimations().forEach(animation => animation.cancel());
@@ -813,12 +848,14 @@ function nurtureSelected(){
   showBanner('coral nurtured');
 }
 function removeSelected(){
+  if(state.paused||ocean?.survey)return;
   const o = state.selectedOrganism;
   if(!o) return;
   state.organisms = state.organisms.filter(x=>x!==o);
   selectOrganism(null);
 }
 function clearReef(){
+  if(state.paused||ocean?.survey)return;
   state.organisms = [];
   state.creatures = [];
   selectOrganism(null);
@@ -901,6 +938,8 @@ function updateAutoGrow(dt){
 ===================================================================== */
 let pointerDownInfo=null;
 canvas.addEventListener('pointerdown', (e)=>{
+  if(state.paused)return;
+  if(state.sound)setAudioOn(true);
   pointerDownInfo = {x:e.clientX,y:e.clientY,t:Date.now()};
 });
 canvas.addEventListener('pointerup', (e)=>{
@@ -908,6 +947,8 @@ canvas.addEventListener('pointerup', (e)=>{
   const dx = e.clientX-pointerDownInfo.x, dy = e.clientY-pointerDownInfo.y;
   const moved = Math.sqrt(dx*dx+dy*dy);
   pointerDownInfo=null;
+  if(state.paused)return;
+  if(ocean.survey){ocean.target=oceanRenderer.world(e.clientX,e.clientY);return;}
   if(moved>12) return; // treat as drag/scroll gesture, ignore
   const x = e.clientX, y = e.clientY;
   const hit = findOrganismAt(x,y);
@@ -928,11 +969,16 @@ SPECIES_LIST.forEach(sp=>{
   btn.className = 'species-btn'+(sp.id===state.selectedSpecies?' selected':'');
   btn.innerHTML = sp.icon();
   btn.title = sp.name;
+  btn.setAttribute('aria-label',sp.name);
+  btn.setAttribute('aria-selected',sp.id===state.selectedSpecies);
   btn.setAttribute('role','option');
   btn.addEventListener('click', ()=>{
     state.selectedSpecies = sp.id;
     [...speciesRow.children].forEach(c=>c.classList.remove('selected'));
+    [...speciesRow.children].forEach(c=>c.setAttribute('aria-selected','false'));
     btn.classList.add('selected');
+    btn.setAttribute('aria-selected','true');
+    refreshOceanUI();
   });
   speciesRow.appendChild(btn);
 });
@@ -995,13 +1041,14 @@ function saveState(){
   try{
     const data = {
       v:1,
+      viewport:{width:W,height:H},
       organisms: state.organisms.map(o=>({
         species:o.species, x:o.x, y:o.y, seed:o.seed, growth:o.growth,
         isHybrid:o.isHybrid, hybridHue:o.hybridHue, hybridLabel:o.hybridLabel,
         rare:o.rare, createdAt:o.createdAt
       })),
       prefs:{ sound:state.sound, reducedMotion:state.reducedMotion, autoGrow:state.autoGrow, selectedSpecies:state.selectedSpecies },
-      moodElapsed: (Date.now()-state.moodStart) % (MOOD_DURATION*1000*MOOD_ORDER.length),
+      moodElapsed: ((state.paused?pauseWall:Date.now())-state.moodStart) % (MOOD_DURATION*1000*MOOD_ORDER.length),
       firstPlantDone: state.firstPlantDone
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
@@ -1010,13 +1057,16 @@ function saveState(){
 function loadState(){
   try{
     const raw = localStorage.getItem(SAVE_KEY);
-    if(!raw) return;
+    if(!raw||raw.length>250000) return;
     const data = JSON.parse(raw);
-    if(!data || !data.organisms) return;
-    data.organisms.forEach(so=>{
-      const o = createOrganism(so.species, so.x, so.y, {
-        seed:so.seed, growth:so.growth, isHybrid:so.isHybrid,
-        hybridHue:so.hybridHue, hybridLabel:so.hybridLabel, rare:so.rare, createdAt:so.createdAt
+    if(!data || !Array.isArray(data.organisms)) return;
+    data.organisms.slice(0,70).forEach(so=>{
+      if(!so||!Object.hasOwn(SPECIES,so.species)||!Number.isFinite(so.x)||!Number.isFinite(so.y))return;
+      const sx=Number.isFinite(data.viewport?.width)&&data.viewport.width>0?W/data.viewport.width:1;
+      const sy=Number.isFinite(data.viewport?.height)&&data.viewport.height>0?H/data.viewport.height:1;
+      const o = createOrganism(so.species, clamp(so.x*sx,15,W-15), clamp(so.y*sy,H*.36,H*.88), {
+        seed:Number.isInteger(so.seed)?so.seed:1, growth:Number.isFinite(so.growth)?clamp(so.growth,0,1):.02, isHybrid:!!so.isHybrid,
+        hybridHue:Number.isFinite(so.hybridHue)?so.hybridHue:190, hybridLabel:typeof so.hybridLabel==='string'?so.hybridLabel.slice(0,60):undefined, rare:RARE_FORMS.some(r=>r.name===so.rare)?so.rare:null, createdAt:Number.isFinite(so.createdAt)?so.createdAt:Date.now()
       });
       state.organisms.push(o);
     });
@@ -1024,9 +1074,9 @@ function loadState(){
       state.sound = !!data.prefs.sound;
       state.reducedMotion = !!data.prefs.reducedMotion;
       state.autoGrow = !!data.prefs.autoGrow;
-      if(data.prefs.selectedSpecies && SPECIES[data.prefs.selectedSpecies]) state.selectedSpecies = data.prefs.selectedSpecies;
+      if(Object.hasOwn(SPECIES,data.prefs.selectedSpecies)) state.selectedSpecies = data.prefs.selectedSpecies;
     }
-    if(typeof data.moodElapsed==='number') state.moodStart = Date.now()-data.moodElapsed;
+    if(Number.isFinite(data.moodElapsed)) state.moodStart = Date.now()-clamp(data.moodElapsed,0,MOOD_DURATION*1000*MOOD_ORDER.length);
     if(data.firstPlantDone){ state.firstPlantDone=true; document.getElementById('hint').classList.add('gone'); }
   }catch(e){ /* corrupt save, ignore */ }
 }
@@ -1035,12 +1085,53 @@ loadState();
 btnSound.setAttribute('aria-pressed', state.sound);
 btnMotion.setAttribute('aria-pressed', state.reducedMotion);
 btnAuto.setAttribute('aria-pressed', state.autoGrow);
-[...speciesRow.children].forEach((c,i)=>c.classList.toggle('selected', SPECIES_LIST[i].id===state.selectedSpecies));
-if(state.sound) setAudioOn(true);
+[...speciesRow.children].forEach((c,i)=>{const selected=SPECIES_LIST[i].id===state.selectedSpecies;c.classList.toggle('selected',selected);c.setAttribute('aria-selected',selected);});
+// A loaded sound preference never starts audio before a user gesture.
 
 setInterval(saveState, 6000);
 window.addEventListener('visibilitychange', ()=>{ if(document.hidden) saveState(); });
 window.addEventListener('pagehide', saveState);
+
+/* Optional exploration layers are independent of the planted garden save. */
+const OCEAN_KEY='impossible_reef_ocean_v1';
+let oceanSaved=null;
+try{const raw=localStorage.getItem(OCEAN_KEY);if(raw&&raw.length<64000)oceanSaved=JSON.parse(raw);}catch{}
+ocean=new ReefOcean.Ocean(17017,oceanSaved);
+oceanRenderer=new ReefOceanRenderer(canvas,ocean);
+state.quality=oceanSaved?.quality==='low'?'low':'high';
+const keys=new Set();let pauseWall=0;
+function saveOcean(){try{localStorage.setItem(OCEAN_KEY,JSON.stringify({...ocean.serialize(),quality:state.quality}));document.getElementById('ocean-storage-status').textContent='Garden and discoveries are saved separately on this device.';}catch{document.getElementById('ocean-storage-status').textContent='Storage is unavailable. You can continue playing this session.';}}
+function refreshOceanUI(){
+ const survey=ocean.survey;document.getElementById('btn-survey').textContent=survey?'Garden':'Survey';document.getElementById('btn-survey').setAttribute('aria-pressed',survey);document.body.classList.toggle('surveying',survey);document.getElementById('btn-pause').textContent=state.paused?'Resume':'Pause';document.getElementById('btn-pause').setAttribute('aria-pressed',state.paused);document.getElementById('region-select').value=ocean.region;
+ const count=ocean.treasures.filter(t=>ocean.journal.found.includes(t.id)).length;
+ document.getElementById('survey-status').textContent=state.paused?'PAUSED · Your reef is safe.':survey?`${ReefOcean.REGIONS[ocean.region].name} · ${count}/8 treasures · ${ocean.journal.points} points · Tap to swim`:`Garden · ${SPECIES[state.selectedSpecies].name} selected · Tap to plant`;
+ for(const id of ['btn-nurture','btn-remove','btn-clear','btn-autogrow'])document.getElementById(id).disabled=state.paused||survey;
+ document.getElementById('species-row').inert=state.paused||survey;
+}
+function setPaused(value){if(value===state.paused)return;state.paused=value;ocean.paused=value;keys.clear();if(value){pauseWall=Date.now();audioCtx?.suspend();}else{const elapsed=Date.now()-pauseWall;state.moodStart+=elapsed;for(const [id,t]of state.bredPairs)state.bredPairs.set(id,t+elapsed);if(state.sound&&audioCtx)audioCtx.resume();}refreshOceanUI();}
+function showOceanDialog(id){setPaused(true);document.getElementById(id).showModal();}
+document.getElementById('btn-survey').onclick=()=>{if(state.paused)return;ocean.survey=!ocean.survey;ocean.target=null;keys.clear();selectOrganism(null);document.getElementById('hint').classList.add('gone');refreshOceanUI();canvas.focus({preventScroll:true});};
+document.getElementById('region-select').onchange=e=>{ocean.setRegion(Number(e.target.value));saveOcean();refreshOceanUI();};
+document.getElementById('btn-pause').onclick=()=>setPaused(!state.paused);
+document.getElementById('btn-ocean-menu').onclick=()=>showOceanDialog('ocean-menu');
+document.getElementById('ocean-quality').value=state.quality;
+document.getElementById('ocean-quality').onchange=e=>{state.quality=e.target.value==='low'?'low':'high';saveOcean();};
+document.getElementById('btn-survey-restart').onclick=()=>{ocean.restartSurvey();saveOcean();document.getElementById('ocean-menu').close();setPaused(false);};
+document.querySelectorAll('[data-ocean-close]').forEach(b=>b.onclick=()=>{b.closest('dialog').close();setPaused(false);});
+document.querySelectorAll('dialog').forEach(d=>d.addEventListener('cancel',()=>setPaused(false)));
+document.getElementById('btn-journal').onclick=()=>{
+ const j=ocean.journal;document.getElementById('journal-summary').textContent=`${j.found.length}/32 treasures · ${j.secrets.length}/4 hidden habitats · ${j.points} discovery points · ${j.encounters.length}/4 wildlife groups observed`;
+ document.getElementById('journal-regions').replaceChildren(...ReefOcean.REGIONS.map((r,i)=>{const p=document.createElement('p');const count=j.found.filter(id=>id.startsWith(r.id+'-')).length;p.textContent=`${r.name}: ${count}/8 · ${j.secrets.includes('secret-'+i)?r.secret+' discovered':'Habitat undiscovered'}`;return p;}));
+ const labels={'rare-pearls':'Find three rare pearls','all-secrets':'Discover all four habitats','clean-discovery':'Collect a treasure without brushing the curtain',upstream:'Swim against a current for two seconds'};
+ document.getElementById('journal-challenges').replaceChildren(...Object.entries(labels).map(([id,text])=>{const li=document.createElement('li');li.textContent=`${j.challenges.includes(id)?'✓':'○'} ${text}`;return li;}));const rewards=document.createElement('p');rewards.textContent=`Discovery milestones: ${[5,12,24].map(n=>`${j.milestones.includes(n)?'★':'☆'} ${n} treasures`).join(' · ')}`;document.getElementById('journal-regions').append(rewards);showOceanDialog('ocean-journal');
+};
+document.addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName)||document.querySelector('dialog[open]'))return;if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','w','a','s','d'].includes(e.key)){e.preventDefault();keys.add(e.key.toLowerCase());}if(e.key.toLowerCase()==='p')setPaused(!state.paused);});
+document.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
+window.addEventListener('blur',()=>{keys.clear();setPaused(true);});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){setPaused(true);saveOcean();}});
+window.addEventListener('pagehide',saveOcean);
+refreshOceanUI();
+globalThis.ReefLab={state,ocean,renderer:oceanRenderer,saveState,saveOcean,plantAt,selectOrganism,nurtureSelected,clearReef,spawnHybrid,setPaused,metrics:{frameMs:0,updateMs:0,drawMs:0}};
 
 /* =====================================================================
    BACKGROUND RENDER
@@ -1122,10 +1213,15 @@ let lastT = performance.now();
 initSnow();
 
 function frame(now){
+  const begin=performance.now();
   let dt = (now-lastT)/1000;
   lastT = now;
   dt = Math.min(dt, 0.05);
+  if(state.paused)dt=0;
+  if(!state.paused){
   state.time += dt;
+  if(state.time>=currentBendUntil)currentBend=0;
+  if(state.time>=snowBoostUntil)snowBoost=0;
 
   // current drift
   state.currentTarget += (Math.random()-0.5)*0.02*dt*60;
@@ -1152,8 +1248,8 @@ function frame(now){
   if(state.creatures.filter(c=>!c.temp).length < target && Math.random()<0.02){
     state.creatures.push(spawnCreature());
   }
-  state.creatures.forEach(c=>updateCreature(c,dt));
-  state.creatures = state.creatures.filter(c=> !(c.temp && (c.x<-60||c.x>W+60)) );
+  state.creatures.forEach(c=>{updateCreature(c,dt);c.life=(c.life||0)+dt;});
+  state.creatures = state.creatures.filter(c=> !c.temp||c.life<25).slice(0,32);
 
   // snow
   const snowMul = 1+snowBoost*1.6;
@@ -1171,11 +1267,19 @@ function frame(now){
     state.lastAmbient=0;
     triggerAmbientEvent();
   }
+  ocean.step(dt,{x:(keys.has('d')||keys.has('arrowright')?1:0)-(keys.has('a')||keys.has('arrowleft')?1:0),y:(keys.has('s')||keys.has('arrowdown')?1:0)-(keys.has('w')||keys.has('arrowup')?1:0)});
+  const discoveries=ocean.drainEvents();if(discoveries.length){const priority={complete:5,secret:4,treasure:3,challenge:2,encounter:1};const message=discoveries.reduce((a,b)=>(priority[b.type]||0)>=(priority[a.type]||0)?b:a);showBanner(message.text);playChime();saveOcean();refreshOceanUI();}
+  }
+  ReefLab.metrics.updateMs=performance.now()-begin;
+  const drawStart=performance.now();
 
   // ---- RENDER ----
   const mood = blendMoodColors();
   document.getElementById('mood-label').textContent = mood.label;
   drawBackground(mood);
+  oceanRenderer.backdrop(state.time,state.reducedMotion);
+  const visualOptions={quality:state.quality,reduced:state.reducedMotion};
+  const snowMul=1+snowBoost*1.6;
 
   // marine snow (behind organisms, subtle)
   ctx.save();
@@ -1192,13 +1296,17 @@ function frame(now){
   // organisms sorted by y (depth ordering)
   const sorted = [...state.organisms].sort((a,b)=>a.y-b.y);
   sorted.forEach(o=>drawOrganism(o, mood));
+  if(!ocean.survey){ctx.fillStyle='#f4d8a7';for(const o of sorted){ctx.beginPath();ctx.arc(o.x,o.y+5,2,0,TAU);ctx.fill();}}
 
   drawBursts();
 
   // creatures
   state.creatures.forEach(drawCreature);
+  oceanRenderer.animals(state.time,visualOptions);
+  oceanRenderer.survey(state.time,visualOptions);
 
   drawLightBeam(dt);
+  ReefLab.metrics.drawMs=performance.now()-drawStart;ReefLab.metrics.frameMs=performance.now()-begin;
 
   requestAnimationFrame(frame);
 }

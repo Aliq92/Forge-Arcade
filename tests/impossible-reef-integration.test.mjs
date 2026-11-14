@@ -11,7 +11,7 @@ test('Forge Arcade ships the supplied Impossible Reef build directly', async () 
 
   assert.match(arcade, /impossible-reef-register\.js/);
   assert.doesNotMatch(arcade, /impossible-garden/i);
-  assert.match(game, /<script src="script\.js"><\/script>/);
+  assert.match(game, /<script src="script\.js(?:\?v=17)?"><\/script>/);
   assert.match(game, /<svg viewBox="0 0 24 24">/);
   assert.match(script, /const SPECIES =/);
   await assert.rejects(access(new URL('games/impossible-garden', root)));

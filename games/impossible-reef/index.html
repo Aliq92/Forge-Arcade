@@ -5,24 +5,33 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Impossible Reef</title>
 <meta name="description" content="A peaceful underwater garden of impossible coral. Plant, tend, crossbreed, and watch it breathe.">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=17">
 </head>
 <body>
 
-<canvas id="reef-canvas"></canvas>
+<canvas id="reef-canvas" tabindex="0" aria-label="Reef garden. In Survey mode, use arrow keys or WASD to pilot the probe."></canvas>
 
 <div id="ui-layer">
 
   <div id="topbar">
     <div id="title-block">
       <h1 id="title">IMPOSSIBLE REEF</h1>
-      <p id="subtitle">GROW WHAT SHOULD NOT EXIST</p>
+      <p id="subtitle">Explore the living ocean.</p>
     </div>
     <div id="mood-label" aria-hidden="true"></div>
   </div>
 
+  <nav id="ocean-nav" aria-label="Ocean controls">
+    <button id="btn-survey" aria-pressed="false">Survey</button>
+    <select id="region-select" aria-label="Ocean region"><option value="0">Sunlit Garden</option><option value="1">Kelp Forest</option><option value="2">Crystal Depths</option><option value="3">Twilight Sanctuary</option></select>
+    <button id="btn-journal" aria-label="Open discovery journal">Journal</button>
+    <button id="btn-pause" aria-pressed="false">Pause</button>
+    <button id="btn-ocean-menu" aria-label="Help and settings">•••</button>
+  </nav>
+  <div id="survey-status" role="status" aria-live="polite">Garden · Plant, nurture and crossbreed your coral.</div>
+
   <div id="hint" class="hint">PLANT A SPORE</div>
-  <div id="event-banner" aria-hidden="true"></div>
+  <div id="event-banner" role="status" aria-live="polite"></div>
 
   <div id="inspect-panel" class="hidden">
     <div id="inspect-name">—</div>
@@ -77,6 +86,10 @@
 
 </div>
 
-<script src="script.js"></script>
+<dialog id="ocean-journal"><h2>Discovery journal</h2><p id="journal-summary"></p><div id="journal-regions"></div><h3>Optional challenges</h3><ul id="journal-challenges"></ul><p class="ocean-note">Sea fans, corals and anemones are reef animals. The glowing flora is fictional. Discoveries never block growing or crossbreeding.</p><button data-ocean-close>Back to the reef</button></dialog>
+<dialog id="ocean-menu"><h2>The living ocean</h2><p><strong>Garden:</strong> Tap the water to plant. Tap a coral to select, then nurture or remove it. Two different mature species near each other may crossbreed. Your original six species and garden save remain available.</p><p><strong>Survey:</strong> Pilot the golden research probe with WASD, arrow keys, or tap a destination. Reach glowing treasures and the four hidden habitats. A ring marks a rare pearl. All regions are open from the start.</p><p>Drifting chevrons show the current direction. You can always swim against it. Bubble vents lift for two seconds in every six. The harmless coral curtain opens four seconds in every eight; wait for OPEN or swim around it. Brushing it only affects the optional clean-discovery badge.</p><label>Visual quality<select id="ocean-quality"><option value="high">High</option><option value="low">Low · fewer decorations</option></select></label><p id="ocean-storage-status" role="status"></p><button id="btn-survey-restart">Restart survey · keep discoveries</button><p><a href="../../index.html">← Back to Forge Arcade</a></p><button data-ocean-close>Back to the reef</button></dialog>
+<script src="ocean.js?v=17"></script>
+<script src="ocean-renderer.js?v=17"></script>
+<script src="script.js?v=17"></script>
 </body>
 </html>
