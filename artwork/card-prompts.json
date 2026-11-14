@@ -195,5 +195,12 @@
     "id": "neon-forge",
     "title": "Neon Forge",
     "prompt": "Detailed crisp pixel-art cover for a precision arcade game: a cyan-core robot at the center of a circular dark neon arena strikes an orange cracked hexagon with a short directional energy wedge. Incoming cyan triangles, violet diamonds and splitting pink squares; geometric mechanical Forge Heart at the perimeter. Concentric machinery, multicolour energy trails, navy/cyan/violet/pink/orange palette, readable crop-safe silhouettes. Landscape16:9, no text, UI, logos, borders or watermark. Hand-placed480x270 pixel clusters scaled nearest-neighbour to960x540."
+  },
+  {
+    "id": "domino-disaster",
+    "title": "Domino Disaster",
+    "prompt": "Colourful crisp pixel toy-workshop chain reaction: bright falling dominoes, glossy marble, spring launcher, pivoting seesaw and finish target. Navy, turquoise, coral and gold.",
+    "source": "games/domino-disaster/assets/card.svg",
+    "method": "Original locally authored pixel SVG rasterized to lossless960x540 WebP."
   }
 ]

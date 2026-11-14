@@ -1,0 +1,56 @@
+--- a/index.html
++++ b/index.html
+@@ -136,6 +136,7 @@
+ <script src="elemental-register.js?v=2"></script>
+ <script src="lumenworks-register.js?v=1"></script>
+ <script src="neon-forge-register.js?v=1"></script>
++<script src="domino-disaster-register.js?v=1"></script>
+ <script src="game-summaries.js?v=1"></script>
+ </body>
+ </html>
+--- a/card-thumbnails.js
++++ b/card-thumbnails.js
+@@ -39,7 +39,8 @@
+   "echo-tide",
+   "the-last-lighthouse",
+   "lumenworks",
+-  "neon-forge"
++  "neon-forge",
++  "domino-disaster"
+ ]);
+ // Pixel availability is explicit: future SVG-only entries stay on their SVG.
+ const PIXEL_CARD_IDS = new Set([
+@@ -81,7 +82,8 @@
+   "echo-tide",
+   "the-last-lighthouse",
+   "lumenworks",
+-  "neon-forge"
++  "neon-forge",
++  "domino-disaster"
+ ]);
+ function cardArtworkHTML(game) {
+   if (!CARD_THUMBNAILS.has(game.id)) return '<span class="art-code">' + game.title.charAt(0) + '</span>';
+--- a/artwork/card-prompts.json
++++ b/artwork/card-prompts.json
+@@ -195,5 +195,12 @@
+     "id": "neon-forge",
+     "title": "Neon Forge",
+     "prompt": "Detailed crisp pixel-art cover for a precision arcade game: a cyan-core robot at the center of a circular dark neon arena strikes an orange cracked hexagon with a short directional energy wedge. Incoming cyan triangles, violet diamonds and splitting pink squares; geometric mechanical Forge Heart at the perimeter. Concentric machinery, multicolour energy trails, navy/cyan/violet/pink/orange palette, readable crop-safe silhouettes. Landscape16:9, no text, UI, logos, borders or watermark. Hand-placed480x270 pixel clusters scaled nearest-neighbour to960x540."
++  },
++  {
++    "id": "domino-disaster",
++    "title": "Domino Disaster",
++    "prompt": "Colourful crisp pixel toy-workshop chain reaction: bright falling dominoes, glossy marble, spring launcher, pivoting seesaw and finish target. Navy, turquoise, coral and gold.",
++    "source": "games/domino-disaster/assets/card.svg",
++    "method": "Original locally authored pixel SVG rasterized to lossless960x540 WebP."
+   }
+ ]
+--- /dev/null
++++ b/domino-disaster-register.js
+@@ -0,0 +1,6 @@
++'use strict';
++// Prepared registration only: this file is not loaded by the live Arcade.
++GAMES.push({id:'domino-disaster',title:'Domino Disaster',description:'Build colourful mechanical chain reactions using dominoes, marbles, ramps, gears and springs. One push starts the chaos.',category:'Games',featured:true,tags:['Physics puzzles','Keyboard + touch'],artId:'domino-disaster',palette:['#49dfd0','#ff7d83'],metadata:{category:'Puzzle / Physics',orientation:'any',supportsPause:true,supportsPersistentSave:true}});
++heroStatus.textContent=`${GAMES.filter(game=>!game.hidden).length} playable experiments`;
++footerCount.textContent=String(GAMES.filter(game=>!game.hidden).length);
++renderFeaturedCollection();render('All');

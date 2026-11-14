@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img" aria-labelledby="title desc" shape-rendering="crispEdges">
+<title id="title">Domino Disaster</title><desc id="desc">A colourful pixel toy workshop with a falling domino chain, marble, spring and seesaw.</desc>
+<defs><pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><rect x="4" y="4" width="2" height="2" fill="#30475d"/></pattern></defs>
+<path fill="#122338" d="M0 0h640v400H0z"/><path fill="url(#dots)" d="M0 0h640v400H0z"/>
+<path fill="#1b354b" d="M0 320l640-92v172H0z"/><path fill="#95603d" d="M32 306h576v46H32z"/><path fill="#d6a56c" d="M32 296h576v38H32z"/><path fill="#f2cd91" d="M32 296h576v8H32z"/>
+<g fill="#b68151"><path d="M60 318h104v4H60zm124-10h90v4h-90zm130 10h108v4H314zm146-8h114v4H460z"/></g>
+<path fill="#0d1b2a" d="M68 288h184v8H68zm232 0h88v8h-88zm100-8h166v16H400z"/>
+<g stroke="#102738" stroke-width="5" stroke-linejoin="miter">
+<path fill="#48d8ca" d="M70 206h26v82H70z"/><path fill="#bba2f0" d="M107 213l24-6 21 75-24 6z"/><path fill="#ff7d83" d="M142 229l20-15 47 63-20 15z"/><path fill="#ffd36e" d="M181 260l12-22 63 34-12 22z"/>
+<path fill="#a7e7bd" d="M246 272h69v16h-69z"/>
+</g>
+<g fill="#19374a"><path d="M79 225h6v6h-6zm0 34h6v6h-6zm37-28h6v6h-6zm10 32h6v6h-6zm32-26h6v6h-6zm19 24h6v6h-6zm24-2h6v6h-6zm29 16h6v6h-6z"/></g>
+<g fill="#b0fff0"><path d="M75 211h5v67h-5z"/></g>
+<path fill="#7f5960" d="M338 260l-22 32h44z"/><path fill="#304761" d="M334 270h8v22h-8z"/>
+<path fill="#feab6a" stroke="#172e42" stroke-width="5" d="M287 248l110 26-4 12-110-26z"/><path fill="#ffe2ad" d="M291 251l101 23-1 3-101-23z"/><path fill="#f7e2ad" d="M334 262h8v8h-8z"/>
+<path fill="#f97c83" stroke="#182c42" stroke-width="5" d="M423 266h57v24h-57z"/>
+<path fill="none" stroke="#ffd879" stroke-width="5" d="M428 278l6-8 7 16 7-16 7 16 7-16 7 8"/>
+<path fill="#95aabe" d="M477 255h9v39h-9z"/>
+<path fill="#173347" d="M487 211h28v8h13v27h-10v10h-29v-8h-11v-26h9z"/><path fill="#56dbe0" d="M490 211h22v9h10v24h-11v8h-21v-10h-8v-20h8z"/><path fill="#b8ffff" d="M491 217h12v6h-12z"/><path fill="#2299b9" d="M492 240h20v5h-20z"/>
+<path fill="#ffd976" stroke="#183449" stroke-width="5" d="M548 222h36v68h-36z"/><path fill="#304c5e" d="M555 230h22v47h-22z"/><path fill="#ffe997" d="M564 239h6v8h8v6h-8v11h-6v-11h-8v-6h8z"/>
+<g fill="#ffe08a"><path d="M84 178h6v15h-6zm-18 7h10v6H66zm36-8h6v10h-6zM491 173h6v14h-6zm22 13h12v6h-12z"/></g>
+<g fill="#f87d91"><path d="M305 209h6v8h-6zm216 43h7v7h-7z"/></g>
+<text x="38" y="67" font-family="monospace" font-size="39" font-weight="900" letter-spacing="-2" fill="#f6e4bf">DOMINO</text><text x="38" y="111" font-family="monospace" font-size="39" font-weight="900" letter-spacing="-2" fill="#51e0cd">DISASTER</text>
+<text x="40" y="139" font-family="monospace" font-size="13" font-weight="700" letter-spacing="2" fill="#aebdc7">ONE PUSH. TOTAL CHAOS.</text>
+<path fill="#ff7d83" d="M500 54h88v8h8v44h-8v8h-88v-8h-8V62h8z"/><path fill="#e15c70" d="M500 98h88v8h-88z"/><text x="544" y="89" text-anchor="middle" font-family="monospace" font-size="19" font-weight="900" fill="#192c40">PUSH!</text>
+
+</svg>

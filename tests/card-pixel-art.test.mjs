@@ -43,13 +43,13 @@ function webpMetadata(buffer){
  return lossless;
 }
 
-test('artwork manifest covers exactly the 39 currently playable experiences',()=>{
+test('artwork manifest covers exactly the 40 registered experiences',()=>{
  const ids=manifest.map(item=>item.id),context=registry();
  const registered=Array.from(vm.runInContext('GAMES.map(game=>game.id)',context));
- assert.equal(ids.length,39);assert.equal(new Set(ids).size,39);assert.deepEqual([...ids].sort(),registered.sort());
+ assert.equal(ids.length,40);assert.equal(new Set(ids).size,40);assert.deepEqual([...ids].sort(),registered.sort());
 });
 
-test('all 39 distinct card illustrations exist as lossless 960 by 540 WebP files',()=>{
+test('all 40 distinct card illustrations exist as lossless 960 by 540 WebP files',()=>{
  const missing=manifest.filter(item=>!fs.existsSync(new URL(artworkPath(item.id),root))).map(item=>item.id);
  assert.deepEqual(missing,[],`Missing pixel illustrations: ${missing.join(', ')}`);
  const fingerprints=new Set();
@@ -58,13 +58,13 @@ test('all 39 distinct card illustrations exist as lossless 960 by 540 WebP files
   assert.deepEqual(webpMetadata(buffer),{width:960,height:540},id);
   fingerprints.add(createHash('sha256').update(buffer).digest('hex'));
  }
- assert.equal(fingerprints.size,39,'every experience needs its own illustration');
+ assert.equal(fingerprints.size,40,'every experience needs its own illustration');
 });
 
 test('archive and featured cards select pixel WebP sources while preserving original SVG fallback',()=>{
  const context=registry();
  const cards=vm.runInContext('GAMES.map(game=>({id:game.id,archive:cardHTML(game),featured:featuredCardHTML(game)}))',context);
- assert.equal(cards.length,39);
+ assert.equal(cards.length,40);
  for(const {id,archive,featured}of cards)for(const markup of [archive,featured]){
   assert.match(markup,/<picture(?:\s|>)/,`${id} needs responsive image selection`);
   const sources=[...markup.matchAll(/<source\b([^>]+)>/g)].map(match=>match[1]);
