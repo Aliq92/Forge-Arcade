@@ -128,6 +128,7 @@ export class Game {
 
   // ---------------- main loop ----------------
   update(dt) {
+    const flareDt = Math.max(0, dt);
     dt = Math.min(dt, 0.05);
     this._updateFps(dt);
 
@@ -135,7 +136,7 @@ export class Game {
     const wasPlaying = this.state === 'playing';
     if (this.input.wantsPause()) {
       if (this.state === 'playing' || this.state === 'paused') this.pauseToggle();
-    } else if (wasPlaying) this._updatePlaying(dt);
+    } else if (wasPlaying) this._updatePlaying(dt, flareDt);
     this.input.clearFrame();
 
     if (this.settings.showFPS) {
@@ -148,14 +149,14 @@ export class Game {
     if (this._fpsAccum >= 0.5) { this._fps = this._fpsFrames / this._fpsAccum; this._fpsAccum = 0; this._fpsFrames = 0; }
   }
 
-  _updatePlaying(dt) {
+  _updatePlaying(dt, flareDt = dt) {
     const { player, world, shadows, fireflies, plants, shrines, particles, lighting } = this;
 
     player.update(dt, this.input, world);
 
     const inSafeZone = shrines.safeZones.some(z => dist(player.x, player.y, z.x, z.y) < z.radius);
     player.inSafeZone = inSafeZone;
-    player.lantern.update(dt, { inSafeZone, flickerEnabled: this.settings.lanternFlicker && !this.settings.reducedMotion, lastEmber: player.lastEmber });
+    player.lantern.update(dt, { inSafeZone, flickerEnabled: this.settings.lanternFlicker && !this.settings.reducedMotion, lastEmber: player.lastEmber, flareDt });
 
     if (this.input.wantsFlare()) {
       if (player.lantern.tryFlare()) {

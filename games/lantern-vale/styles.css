@@ -366,6 +366,15 @@ h2 { color: var(--gold); letter-spacing: 2px; margin: 0 0 4px 0; }
   background: rgba(180,140,255,0.2); border-color: var(--violet); color: var(--violet);
 }
 #touch-flare:active { background: rgba(180,140,255,0.38); }
+#touch-flare[aria-disabled="true"] { opacity: 0.72; }
+#touch-flare.flare-active { background: rgba(180,140,255,0.45); }
+#touch-flare.flare-ready { box-shadow: 0 0 12px rgba(180,140,255,0.3); }
+#touch-flare .touch-btn-label { font-size: clamp(9px, 2.4vw, 11px); letter-spacing: 0; }
+.flare-button-track {
+  width: 65%; height: 4px; border-radius: 3px; overflow: hidden;
+  background: rgba(0,0,0,0.5); margin-top: 3px;
+}
+.flare-button-progress { display: block; height: 100%; width: 100%; background: var(--cyan); }
 #touch-interact {
   width: var(--btn-interact-size); height: var(--btn-interact-size);
   right: calc(16px + var(--safe-r) + var(--btn-flare-size) * 0.75);

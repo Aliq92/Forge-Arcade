@@ -27,7 +27,7 @@
   <div id="hud-top-right">
     <div id="firefly-counter"><span id="firefly-icon">✦</span><span id="firefly-count">0</span></div>
     <div id="flare-indicator">
-      <div class="bar-label">FLARE</div>
+      <div id="flare-status" class="bar-label">FLARE READY</div>
       <div id="flare-bar-track"><div id="flare-bar-fill"></div></div>
     </div>
   </div>
@@ -84,7 +84,7 @@
       <div class="howto-item"><span class="howto-key">✦</span>Collect fireflies to restore lantern energy</div>
       <div class="howto-item"><span class="howto-key">Lantern</span>Your only light — it drains as you explore</div>
       <div class="howto-item"><span class="howto-key">Shadows</span>Avoid them; they press in when your light is weak</div>
-      <div class="howto-item"><span class="howto-key">Space</span>Flare — a burst that repels shadows</div>
+      <div class="howto-item"><span class="howto-key">Space</span>Flare — repel shadows, then recharge automatically in 5 seconds. Unlimited uses.</div>
       <div class="howto-item"><span class="howto-key">E</span>Activate shrines, drink from ember reeds</div>
       <div class="howto-item"><span class="howto-key">Touch</span>Drag the left stick to move. Tap Use near a shrine or reed; tap Flare to repel shadows.</div>
       <div class="howto-item"><span class="howto-key">Esc / ⏸</span>Pause or resume your journey</div>
@@ -169,7 +169,7 @@
   </div>
   <div id="touch-actions">
     <button id="touch-interact"><span class="touch-btn-icon">✋</span><span class="touch-btn-label">Use</span></button>
-    <button id="touch-flare"><span class="touch-btn-icon">✧</span><span class="touch-btn-label">Flare</span></button>
+    <button id="touch-flare" aria-label="FLARE READY"><span class="touch-btn-icon">✧</span><span class="touch-btn-label">FLARE READY</span><span class="flare-button-track" aria-hidden="true"><span class="flare-button-progress"></span></span></button>
   </div>
   <button id="touch-pause" aria-label="Pause">⏸</button>
 </div>

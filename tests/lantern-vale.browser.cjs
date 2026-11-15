@@ -9,6 +9,14 @@ const base = process.env.ARCADE_TEST_URL || 'http://127.0.0.1:8431';
       const page = await browser.newPage({ viewport: touch ? { width: 375, height: 667 } : { width: 1280, height: 800 }, hasTouch: touch });
       page.setDefaultTimeout(5000);
       page.on('pageerror', e => errors.push(e.message));
+      page.on('console', message => {
+        if (message.type() === 'error' && !message.location().url.endsWith('/favicon.ico')) errors.push(message.text());
+      });
+      await page.addInitScript(() => {
+        if (!localStorage.getItem('lv_progress')) localStorage.setItem('lv_progress', JSON.stringify({
+          bestShrines: 3, victories: 0, totalFireflies: 123, energy: 0, flareEnergy: 0, flareCharges: 0
+        }));
+      });
       // Expose the real game only in the test browser; production has no test hook.
       await page.route('**/js/main.js', async route => {
         const response = await route.fetch();
@@ -75,17 +83,8 @@ const base = process.env.ARCADE_TEST_URL || 'http://127.0.0.1:8431';
         await flare.tap({ force: true });
         await page.waitForFunction(() => !testGame.input.touch.flare);
         assert.equal(await page.evaluate(() => testGame.stats.flares), 1);
-        await page.evaluate(() => { testGame.player.lantern.energy = 10; testGame.player.lantern.flareCooldown = 0; });
-        await page.waitForFunction(() => document.querySelector('#touch-flare .touch-btn-label').textContent === 'Low energy');
-        await flare.tap({ force: true });
-        await page.waitForFunction(() => !testGame.input.touch.flare);
-        assert.equal(await page.evaluate(() => testGame.stats.flares), 1);
-        await page.evaluate(() => { testGame.player.lantern.energy = 100; testGame.player.lantern.flareCooldown = 0; });
-        await page.waitForFunction(() => document.querySelector('#touch-flare').getAttribute('aria-disabled') === 'false');
-        await flare.click();
-        await page.waitForFunction(() => testGame.stats.flares === 2);
       }
-      await page.evaluate(() => { testGame.player.lantern.energy = 100; testGame.player.lantern.flareCooldown = 0; });
+      await page.waitForFunction(() => testGame.player.lantern.flareState === 'READY', null, { timeout: 10000 });
       const before = await page.evaluate(() => testGame.stats.flares);
       await page.keyboard.press('Space');
       await page.waitForFunction(n => testGame.stats.flares === n + 1, before);
@@ -119,6 +118,53 @@ const base = process.env.ARCADE_TEST_URL || 'http://127.0.0.1:8431';
         await state('playing');
         assert.equal(await page.evaluate(() => testGame.shrines.activatedCount), i + 1);
       }
+
+      // Ten real-time cycles in this same complete journey, without changing
+      // flare timers or collecting energy. Stay in the last shrine's safe zone.
+      await page.evaluate(() => { testGame.player.lantern.energy = 0; });
+      for (let cycle = 0; cycle < 10; cycle++) {
+        await page.waitForFunction(() => testGame.player.lantern.flareState === 'READY', null, { timeout: 10000 });
+        await page.waitForFunction(() => document.querySelector('#flare-status').textContent === 'FLARE READY');
+        const count = await page.evaluate(() => testGame.stats.flares);
+        if (touch) await flare.tap();
+        else await page.keyboard.down('Space');
+        await page.waitForFunction(n => testGame.stats.flares === n + 1, count);
+        await page.waitForFunction(() => testGame.player.lantern.flareState === 'ACTIVE');
+        assert.equal(await page.evaluate(() => testGame.player.lantern.flareTimer <= 0.55), true);
+        if (cycle === 0) {
+          await page.screenshot({ path: '/tmp/lantern-vale-flare-active-' + (touch ? 'mobile' : 'desktop') + '.png' });
+        }
+        if (!touch) await page.keyboard.up('Space');
+        await page.waitForFunction(() => testGame.player.lantern.flareState === 'COOLDOWN');
+        if (touch) await flare.tap({ force: true });
+        else await page.keyboard.press('Space');
+        assert.equal(await page.evaluate(() => testGame.stats.flares), count + 1);
+        if (cycle === 0) {
+          await page.waitForFunction(() => /FLARE — \d\.\ds/.test(document.querySelector('#flare-status').textContent));
+          await page.screenshot({ path: '/tmp/lantern-vale-flare-cooldown-' + (touch ? 'mobile' : 'desktop') + '.png' });
+          await pause();
+          await state('paused');
+          const frozen = await page.evaluate(() => testGame.player.lantern.flareCooldown);
+          await page.waitForTimeout(400);
+          assert.equal(await page.evaluate(() => testGame.player.lantern.flareCooldown), frozen);
+          await action('resume');
+          await state('playing');
+        }
+        if (cycle === 1 && !touch) {
+          // Auto-repeat must not fire on readiness, including after a pause reset.
+          await page.keyboard.down('Space');
+          await page.waitForFunction(() => testGame.player.lantern.flareState === 'READY', null, { timeout: 10000 });
+          await page.keyboard.down('Space');
+          await page.waitForTimeout(100);
+          assert.equal(await page.evaluate(() => testGame.stats.flares), count + 1);
+          await page.keyboard.up('Space');
+        }
+      }
+      await page.waitForFunction(() => testGame.player.lantern.flareState === 'READY', null, { timeout: 10000 });
+      assert.equal(await page.evaluate(() => testGame.player.lantern.energy), 0);
+      assert.ok(await page.evaluate(() => testGame.stats.flares >= 10));
+      await page.screenshot({ path: '/tmp/lantern-vale-flare-ready-' + (touch ? 'mobile' : 'desktop') + '.png' });
+
       assert.equal(await page.evaluate(() => testGame.world.gateOpen), true);
       await page.evaluate(() => Object.assign(testGame.player, { x: testGame.shrines.heart.x, y: testGame.shrines.heart.y }));
       await use();
@@ -133,20 +179,28 @@ const base = process.env.ARCADE_TEST_URL || 'http://127.0.0.1:8431';
       await action('restart');
       await state('playing');
       assert.equal(await page.evaluate(() => testGame.shrines.activatedCount), 0);
+      assert.equal(await page.evaluate(() => testGame.player.lantern.flareState), 'READY');
+      await page.keyboard.press('Space');
+      await page.waitForFunction(() => testGame.stats.flares === 1);
       await page.evaluate(() => { testGame.player.health = 0; });
       await state('gameover');
+      const deadTimer = await page.evaluate(() => testGame.player.lantern.flareTimer);
+      await page.waitForTimeout(100);
+      assert.equal(await page.evaluate(() => testGame.player.lantern.flareTimer), deadTimer);
       await action('retry');
       await state('playing');
       assert.equal(await page.evaluate(() => testGame.player.health), 3);
+      assert.equal(await page.evaluate(() => testGame.player.lantern.flareState), 'READY');
       await pause();
       await action('title');
       await visible('#screen-title');
       await action('modes');
       await page.locator('[data-mode="endless"]').click();
+      assert.equal(await page.evaluate(() => testGame.player.lantern.flareState), 'READY');
       await page.waitForFunction(() => /Wander freely/.test(document.querySelector('#objective-text').textContent));
       await page.screenshot({ path: '/tmp/lantern-vale-' + (touch ? 'mobile' : 'desktop') + '.png' });
       await page.close();
-      console.log('PASS: ' + (touch ? 'mobile/multitouch' : 'desktop/keyboard') + ' menus, settings, movement, flare, reeds, 5 shrines, victory, continue, restart, death/retry, endless');
+      console.log('PASS: ' + (touch ? 'mobile/multitouch' : 'desktop/keyboard') + ' menus, settings, movement, 10+ real-time zero-energy flares, pause/cooldown, reeds, 5 shrines, victory, continue, restart, death/retry, endless');
     }
     assert.deepEqual(errors, []);
     console.log('PASS: no browser exceptions');

@@ -128,15 +128,21 @@ export class UI {
     document.getElementById('firefly-count').textContent = this.game.stats.fireflies;
 
     const flareFill = document.getElementById('flare-bar-fill');
-    const flareFrac = 1 - player.lantern.flareCooldown / player.lantern.flareCooldownMax;
+    const active = player.lantern.flareState === 'ACTIVE';
+    const ready = player.lantern.flareState === 'READY';
+    const flareFrac = active ? 0 : 1 - player.lantern.flareCooldown / player.lantern.flareCooldownMax;
     flareFill.style.width = `${clamp(flareFrac * 100, 0, 100)}%`;
     const flareButton = document.getElementById('touch-flare');
     const cooldown = player.lantern.flareCooldown;
-    const lowEnergy = player.lantern.energy < player.lantern.flareCost;
-    const flareLabel = cooldown > 0 ? `${Math.ceil(cooldown)}s` : lowEnergy ? 'Low energy' : 'Flare';
+    const flareLabel = active ? 'FLARE ACTIVE' : ready ? 'FLARE READY' : `FLARE — ${(Math.ceil(cooldown * 10) / 10).toFixed(1)}s`;
+    document.getElementById('flare-status').textContent = flareLabel;
     flareButton.querySelector('.touch-btn-label').textContent = flareLabel;
-    flareButton.setAttribute('aria-disabled', String(cooldown > 0 || lowEnergy));
-    flareButton.setAttribute('aria-label', cooldown > 0 ? `Flare recharging: ${Math.ceil(cooldown)} seconds` : lowEnergy ? 'Flare needs more lantern energy' : 'Flare');
+    flareButton.setAttribute('aria-disabled', String(!ready));
+    flareButton.setAttribute('aria-label', flareLabel);
+    flareButton.classList.toggle('flare-active', active);
+    flareButton.classList.toggle('flare-ready', ready);
+    const buttonProgress = flareButton.querySelector('.flare-button-progress');
+    buttonProgress.style.width = `${clamp(flareFrac * 100, 0, 100)}%`;
 
     document.getElementById('low-energy-warning').classList.toggle('hidden', !player.lantern.lowEnergy);
     document.getElementById('objective-text').textContent = objectiveText;

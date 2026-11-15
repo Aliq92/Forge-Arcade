@@ -41,12 +41,13 @@ test('keyboard or assistive button click queues a flare', () => harness((input, 
 import { UI } from '../games/lantern-vale/js/ui.js';
 import { Lantern } from '../games/lantern-vale/js/lantern.js';
 
-test('flare button explains cooldown and insufficient energy, then becomes ready', () => {
+test('flare HUD and button display active, fractional cooldown, progress and ready at zero energy', () => {
   const previous = globalThis.document;
   const elements = new Map();
   const label = { textContent: 'Flare' };
   const attrs = new Map();
-  const button = { querySelector: () => label, setAttribute: (k, v) => attrs.set(k, v), classList: { toggle() {} } };
+  const progress = { style: {} };
+  const button = { querySelector: selector => selector === '.touch-btn-label' ? label : progress, setAttribute: (k, v) => attrs.set(k, v), classList: { toggle() {} } };
   globalThis.document = { getElementById(id) {
     if (id === 'touch-flare') return button;
     if (!elements.has(id)) elements.set(id, { style: {}, classList: { toggle() {} }, childElementCount: 0, children: [] });
@@ -57,20 +58,51 @@ test('flare button explains cooldown and insufficient energy, then becomes ready
   ui._drawMinimap = ui._updateCompass = () => {};
   const player = { lantern: new Lantern(), maxHealth: 0 };
   try {
-    player.lantern.flareCooldown = 8.1;
+    player.lantern.tryFlare();
     ui.updateHUD(player);
-    assert.equal(label.textContent, '9s');
+    assert.equal(label.textContent, 'FLARE ACTIVE');
     assert.equal(attrs.get('aria-disabled'), 'true');
-    player.lantern.flareCooldown = 0;
-    player.lantern.energy = 10;
+    assert.equal(progress.style.width, '0%');
+    const options = { inSafeZone: false, flickerEnabled: false, lastEmber: 0 };
+    player.lantern.update(2.15, options);
     ui.updateHUD(player);
-    assert.equal(label.textContent, 'Low energy');
-    player.lantern.energy = 100;
+    assert.equal(label.textContent, 'FLARE — 3.4s');
+    assert.equal(elements.get('flare-status').textContent, label.textContent);
+    assert.equal(attrs.get('aria-disabled'), 'true');
+    assert.ok(parseFloat(progress.style.width) > 30);
+    player.lantern.update(3.4, options);
+    player.lantern.energy = 0;
     ui.updateHUD(player);
-    assert.equal(label.textContent, 'Flare');
+    assert.equal(label.textContent, 'FLARE READY');
+    assert.equal(progress.style.width, '100%');
     assert.equal(attrs.get('aria-disabled'), 'false');
   } finally { globalThis.document = previous; }
 });
+
+test('holding Space queues one flare until released', () => harness(input => {
+  const key = type => {
+    const event = new Event(type, { cancelable: true });
+    Object.defineProperty(event, 'key', { value: ' ' });
+    window.dispatchEvent(event);
+  };
+  key('keydown');
+  assert.equal(input.wantsFlare(), true);
+  for (let n = 0; n < 50; n++) {
+    key('keydown');
+    assert.equal(input.wantsFlare(), false);
+  }
+  key('keyup');
+  key('keydown');
+  assert.equal(input.wantsFlare(), true);
+}));
+
+test('a held Space repeat cannot fire after pause resets input', () => harness(input => {
+  input.reset();
+  const event = new Event('keydown', { cancelable: true });
+  Object.defineProperties(event, { key: { value: ' ' }, repeat: { value: true } });
+  window.dispatchEvent(event);
+  assert.equal(input.wantsFlare(), false);
+}));
 
 test('a compatibility click after pointerdown does not queue a second flare', () => harness((input, elements) => {
   const button = elements.get('touch-flare');

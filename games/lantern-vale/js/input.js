@@ -18,6 +18,7 @@ export class InputSystem {
       if (e.key !== 'Escape' && e.target?.closest?.('button, input, a, select, textarea')) return;
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
       const k = e.key.toLowerCase();
+      if (k === ' ' && e.repeat) return;
       if (!this.keys.has(k)) this.pressedOnce.add(k);
       this.keys.add(k);
     }, { passive: false });

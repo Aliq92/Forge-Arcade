@@ -14,11 +14,11 @@ export class Lantern {
     this.mode = 'NORMAL';
 
     this.flareRadius = 260;
-    this.flareCooldownMax = 9;
+    this.flareState = 'READY';
+    this.flareCooldownMax = 5;
     this.flareCooldown = 0;
     this.flareTimer = 0; // active burst duration remaining
     this.flareDuration = 0.55;
-    this.flareCost = 22;
 
     this.radius = this.baseRadius;
     this.intensity = 1;
@@ -37,17 +37,33 @@ export class Lantern {
   recharge(amount) { this.energy = clamp(this.energy + amount, 0, this.maxEnergy); }
 
   tryFlare() {
-    if (this.flareCooldown > 0) return false;
-    if (this.energy < this.flareCost) return false;
-    this.energy = clamp(this.energy - this.flareCost, 0, this.maxEnergy);
-    this.flareCooldown = this.flareCooldownMax;
+    if (this.flareState !== 'READY') return false;
+    this.flareState = 'ACTIVE';
     this.flareTimer = this.flareDuration;
     return true;
   }
 
-  update(dt, { inSafeZone, flickerEnabled, lastEmber }) {
-    if (this.flareCooldown > 0) this.flareCooldown = Math.max(0, this.flareCooldown - dt);
-    if (this.flareTimer > 0) this.flareTimer = Math.max(0, this.flareTimer - dt);
+  update(dt, { inSafeZone, flickerEnabled, lastEmber, flareDt = dt }) {
+    // Use elapsed gameplay time even when physics clamps a slow frame. No
+    // callbacks survive pause, menus or a new Player. Carry time across states.
+    let remaining = Math.max(0, flareDt);
+    if (this.flareState === 'ACTIVE') {
+      const elapsed = Math.min(remaining, this.flareTimer);
+      this.flareTimer -= elapsed;
+      remaining -= elapsed;
+      if (this.flareTimer <= 1e-9) {
+        this.flareTimer = 0;
+        this.flareState = 'COOLDOWN';
+        this.flareCooldown = this.flareCooldownMax;
+      }
+    }
+    if (this.flareState === 'COOLDOWN') {
+      this.flareCooldown = Math.max(0, this.flareCooldown - remaining);
+      if (this.flareCooldown <= 1e-9) {
+        this.flareCooldown = 0;
+        this.flareState = 'READY';
+      }
+    }
 
     const mode = this.modeConfig;
     let drain = this.drainRate * mode.drainMul;
