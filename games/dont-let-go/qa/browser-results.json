@@ -1,0 +1,33 @@
+{
+  "checks": 27,
+  "results": [
+    "startup and local dependency",
+    "original hold, keyboard steering, release and legacy save",
+    "original gate and swept cube collision",
+    "pause freezes all simulation; resume requires hold; restart resets",
+    "mission 1: select, start, real-input completion, medal, replay once",
+    "mission 2: select, start, real-input completion, medal, replay once",
+    "mission 3: select, start, real-input completion, medal, replay once",
+    "mission 4: select, start, real-input completion, medal, replay once",
+    "mission 5: select, start, real-input completion, medal, replay once",
+    "mission 6: select, start, real-input completion, medal, replay once",
+    "mission 7: select, start, real-input completion, medal, replay once",
+    "mission 8: select, start, real-input completion, medal, replay once",
+    "mission 9: select, start, real-input completion, medal, replay once",
+    "mission 10: select, start, real-input completion, medal, replay once",
+    "mission 11: select, start, real-input completion, medal, replay once",
+    "mission 12: select, start, real-input completion, medal, replay once",
+    "save and reload restores 12 medals without changing legacy record",
+    "hazard warning, collision failure and safe counterplay",
+    "failure from incomplete objectives",
+    "reduced motion respects OS and suppresses environmental rotation",
+    "resize and portrait mission scroll",
+    "touch holding, drag steering, release and landscape layout",
+    "second touch does not release flight; touch pause suspends signal",
+    "blocked storage does not prevent startup or session rewards",
+    "decorative layers are isolated from collision objects",
+    "WASD input, pointer cancel, focus loss and manual motion control",
+    "no browser exceptions"
+  ],
+  "errors": []
+}

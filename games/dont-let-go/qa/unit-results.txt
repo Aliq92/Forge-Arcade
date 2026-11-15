@@ -1,0 +1,24 @@
+✔ twelve distinct missions in three tiers (1.721681ms)
+✔ course 1: start, achievable path, objectives, timing, rewards once (0.491184ms)
+✔ course 2: start, achievable path, objectives, timing, rewards once (0.352288ms)
+✔ course 3: start, achievable path, objectives, timing, rewards once (0.2073ms)
+✔ course 4: start, achievable path, objectives, timing, rewards once (0.22685ms)
+✔ course 5: start, achievable path, objectives, timing, rewards once (0.314778ms)
+✔ course 6: start, achievable path, objectives, timing, rewards once (0.264088ms)
+✔ course 7: start, achievable path, objectives, timing, rewards once (0.275225ms)
+✔ course 8: start, achievable path, objectives, timing, rewards once (0.37951ms)
+✔ course 9: start, achievable path, objectives, timing, rewards once (0.368932ms)
+✔ course 10: start, achievable path, objectives, timing, rewards once (0.164124ms)
+✔ course 11: start, achievable path, objectives, timing, rewards once (0.197103ms)
+✔ course 12: start, achievable path, objectives, timing, rewards once (0.189404ms)
+✔ distance integrates original sector speed (0.228146ms)
+✔ bad saves are contained and unknown fields do not unlock missions (1.251374ms)
+✔ hazard warning boundaries and optional precision (0.205617ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 20.923341

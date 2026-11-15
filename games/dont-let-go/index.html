@@ -110,6 +110,32 @@
     background:linear-gradient(90deg,var(--cyan),var(--amber));
     transform-origin:left; transform:scaleX(0); opacity:.85;
   }
+
+  button{font:inherit;color:var(--text);border:1px solid #5fd8ff55;background:#102239e8;border-radius:10px;min-height:44px;padding:10px 16px;cursor:pointer;touch-action:manipulation;}
+  button:hover,button:focus-visible{border-color:var(--cyan);outline:2px solid #5fd8ff66;outline-offset:2px;}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:18px;pointer-events:auto;}
+  .overlay{background:linear-gradient(180deg,#040b1b22,#040b1b88);}
+  .overlay.hidden{visibility:hidden;}
+  .sub,.hint,.eyebrow{color:#c1d3e6;}
+  #missionScreen{background:#050d20ed;pointer-events:auto;overflow-y:auto;justify-content:flex-start;touch-action:pan-y;padding-top:30px;}
+  #missionScreen.hidden{pointer-events:none;}
+  #missionGrid{width:min(1050px,100%);display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:left;}
+  .mission{text-align:left;padding:15px;min-height:165px;border-color:#627ca04d;}
+  .mission strong{display:block;font-size:17px;margin:7px 0;color:#e7f2ff;}
+  .mission small{display:block;color:#bed0e2;line-height:1.55;font-size:12px;}
+  .mission .tier{font:10px monospace;color:#87e5ff;letter-spacing:.06em;}
+  .mission.done{border-color:#ffcf79;}
+  #missionBrief{max-width:490px;line-height:1.7;color:#d1e0f0;font-size:14px;}
+  #missionStatus{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(22px + env(safe-area-inset-bottom,0px));background:#071326dd;border:1px solid #5fd8ff40;border-radius:10px;padding:9px 15px;font-size:12px;pointer-events:none;display:none;text-align:center;max-width:95vw;}
+  #eventWarning{position:fixed;top:100px;left:50%;transform:translateX(-50%);font-size:13px;color:#ffd18f;background:#1a1633eb;border:1px solid #ffb35c88;padding:10px 16px;border-radius:8px;display:none;pointer-events:none;text-align:center;}
+  #flightActions{position:fixed;right:14px;bottom:65px;display:none;gap:7px;z-index:6;}
+  #settings{position:fixed;left:14px;bottom:14px;display:flex;gap:6px;z-index:7;}
+  #settings button{font-size:11px;padding:7px 10px;}
+  #pauseScreen,#completeScreen{background:#050d20ce;}
+  #modeLabel{color:#ffd18f;font:11px monospace;letter-spacing:.15em;margin-bottom:12px;}
+  @media(max-width:700px){#missionGrid{grid-template-columns:repeat(2,1fr)}.mission{padding:11px;min-height:180px}.overlay{padding:18px}.sub{margin-bottom:16px}#hud-sector{max-width:37%;padding:7px 9px}#hud-sector .val{font-size:11px}#hud-time{min-width:80px;padding:7px 10px}#hud-combo{padding:7px 9px}#settings{bottom:8px;left:8px}#missionStatus{bottom:105px;font-size:11px;width:max-content}#flightActions{bottom:56px;right:8px}#eventWarning{top:86px;width:max-content;max-width:95vw;font-size:11px}}
+  @media(max-height:500px){#missionScreen{padding:15px}.overlay .title{font-size:30px}.sub{margin-bottom:10px}#stats{margin:5px 0 10px}.actions{margin-top:8px}#missionStatus{bottom:15px;max-width:60%}#eventWarning{top:75px}#settings{bottom:8px}#flightActions{bottom:8px}}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;}}
 </style>
 </head>
 <body>
@@ -128,9 +154,12 @@
   <div class="overlay" id="startScreen">
     <div class="eyebrow">FORGE ARCADE</div>
     <h1 class="title">DON'T <span class="glow">LET GO</span></h1>
-    <div class="sub">Release = signal lost.</div>
+    <div class="sub">Hold on when the world falls apart.</div>
     <div class="prompt" id="startPrompt">HOLD TO FLY</div>
-    <div class="hint">Touch and hold · or hold Space / mouse — steer with movement</div>
+    <div class="hint">Release = signal lost · Hold Space / mouse / touch<br>Steer with movement or WASD / arrows</div>
+    <div id="modeLabel">ORIGINAL FREE FLIGHT</div>
+    <div id="missionBrief"></div>
+    <div class="actions"><button id="chooseMissions">12 heroic challenges</button><button id="freeFlight">Original free flight</button></div>
   </div>
 
   <div class="overlay hidden" id="gameOverScreen">
@@ -142,11 +171,21 @@
       <div class="row"><span class="k">GATES</span><span class="v num" id="statGates">0</span></div>
       <div class="row"><span class="k">CUBES</span><span class="v num" id="statCubes">0</span></div>
     </div>
-    <div class="prompt">HOLD TO RE-ENTER</div>
+    <div id="failureReason" class="sub"></div><div class="prompt">HOLD TO RE-ENTER</div>
+    <div class="actions"><button id="overMissions">Challenges</button><button id="overHome">Main menu</button></div>
   </div>
+
+  <div class="overlay hidden" id="missionScreen"><div class="eyebrow">THE HEROIC MULTIVERSE</div><h2 class="title" style="font-size:30px">Choose your signal</h2><p class="sub">4 Hero Training · 4 City Under Siege · 4 Multiverse Crisis<br>All missions are open. Medals and optional Precision badges save locally.</p><div id="missionGrid"></div><div class="actions"><button id="closeMissions">Back</button></div></div>
+  <div class="overlay hidden" id="pauseScreen"><div class="eyebrow">SIGNAL SUSPENDED</div><h2 class="title">Paused</h2><p class="sub">Hold the flight area or Space to resume.<br>Release will end the signal once flight resumes.</p><div class="actions"><button id="pauseRestart">Restart</button><button id="pauseHome">Main menu</button></div></div>
+  <div class="overlay hidden" id="completeScreen"><div class="eyebrow">SIGNAL SECURED</div><h2 class="title" id="completeTitle">Challenge complete</h2><p class="sub" id="completeReward"></p><div class="actions"><button id="nextMission">Next challenge</button><button id="completeRetry">Replay</button><button id="completeMissions">All challenges</button></div></div>
+  <div id="missionStatus" aria-live="polite"></div><div id="eventWarning" role="status"></div>
+  <div id="flightActions"><button id="pauseButton" aria-label="Pause flight">Pause</button><button id="restartButton">Restart</button></div>
+  <div id="settings"><button id="audioButton" aria-pressed="false">Sound: off</button><button id="motionButton" aria-pressed="false">Motion: auto</button><button id="qualityButton">Detail: auto</button></div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="vendor/three.min.js"></script>
+<script src="challenges.js"></script>
+<script src="environment.js"></script>
 <script>
 (function(){
 "use strict";
@@ -155,7 +194,7 @@
    CONFIG
    ============================================================ */
 const IS_SMALL = Math.min(window.innerWidth, window.innerHeight) < 500 || ('ontouchstart' in window && navigator.maxTouchPoints > 0 && window.innerWidth < 900);
-const STAR_COUNT   = IS_SMALL ? 650 : 1100;
+const STAR_COUNT   = IS_SMALL ? 220 : 400;
 const STREAK_COUNT = IS_SMALL ? 26  : 46;
 const CUBE_POOL    = 3;
 const FAR_STAR     = 420;
@@ -185,6 +224,9 @@ const RANKS = [
 /* ============================================================
    THREE.JS SETUP
    ============================================================ */
+const motionQuery=window.matchMedia('(prefers-reduced-motion: reduce)');
+let motionOverride=false;
+const reducedMotion=()=>motionOverride||motionQuery.matches;
 const canvas = document.getElementById('gl');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, powerPreference:'high-performance', alpha:false });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, IS_SMALL ? 1.6 : 2));
@@ -198,6 +240,7 @@ scene.fog = new THREE.FogExp2(SECTORS[0].fog, SECTORS[0].fogD);
 const camera = new THREE.PerspectiveCamera(72, window.innerWidth/window.innerHeight, 0.05, 620);
 camera.position.set(0,0,0);
 scene.add(camera);
+const environment=createHeroEnvironment(THREE,scene,camera,IS_SMALL);
 
 const ambLight = new THREE.AmbientLight(SECTORS[0].amb, 1.1);
 scene.add(ambLight);
@@ -283,8 +326,8 @@ function makeStarField(count, spread, size, farDist){
   scene.add(pts);
   return { pts, geo, mat, count, spread, farDist };
 }
-const starsNear = makeStarField(STAR_COUNT, 34, 1.4, FAR_STAR);
-const starsFar  = makeStarField(Math.floor(STAR_COUNT*0.6), 70, 0.9, FAR_STAR*1.6);
+const starsNear = makeStarField(STAR_COUNT, 34, 0.10, FAR_STAR);
+const starsFar  = makeStarField(Math.floor(STAR_COUNT*0.6), 70, 0.07, FAR_STAR*1.6);
 
 function recycleField(field, camZ){
   const arr = field.geo.attributes.position.array;
@@ -339,7 +382,7 @@ function makeCloudTexture(hex){
   return new THREE.CanvasTexture(c);
 }
 const nebulaTex = makeCloudTexture(0xffffff);
-const NEB_COUNT = IS_SMALL ? 4 : 7;
+const NEB_COUNT = IS_SMALL ? 2 : 3;
 const nebulae = [];
 for(let i=0;i<NEB_COUNT;i++){
   const mat = new THREE.SpriteMaterial({ map:nebulaTex, color:SECTORS[0].neb, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, opacity:SECTORS[0].nebOp });
@@ -373,12 +416,12 @@ function makeGateMesh(colorHex){
   const g = new THREE.Group();
   const ring = new THREE.Mesh(
     new THREE.TorusGeometry(GATE_OUTER, 0.32, 10, 40),
-    new THREE.MeshStandardMaterial({ color:colorHex, emissive:colorHex, emissiveIntensity:1.5, metalness:0.3, roughness:0.35, transparent:true, opacity:0.95 })
+    new THREE.MeshStandardMaterial({ color:colorHex, emissive:colorHex, emissiveIntensity:1.5, metalness:0.3, roughness:0.35, transparent:true, opacity:0.95, fog:false })
   );
   g.add(ring);
   const inner = new THREE.Mesh(
     new THREE.TorusGeometry(GATE_OUTER, 0.06, 6, 40),
-    new THREE.MeshBasicMaterial({ color:colorHex, transparent:true, opacity:0.35 })
+    new THREE.MeshBasicMaterial({ color:colorHex, transparent:true, opacity:0.35, fog:false })
   );
   g.add(inner);
   return g;
@@ -456,7 +499,8 @@ function shipHitsCube(pos){
   return impactOffset.lengthSq() <= CUBE_HIT_R*CUBE_HIT_R;
 }
 function spawnExplosion(pos, color){
-  const n = IS_SMALL ? 40 : 64;
+  if(reducedMotion()||explosions.length>=4)return;
+  const n = IS_SMALL ? 24 : 48;
   const positions = [];
   const velocities = [];
   const rotations = [];
@@ -503,7 +547,7 @@ function updateExplosions(dt){
     e.mat.opacity = Math.max(0, e.life);
     if(e.life<=0){
       scene.remove(e.pts);
-      e.pts.dispose();
+      if(e.pts.dispose)e.pts.dispose();
       e.geo.dispose(); e.mat.dispose();
       explosions.splice(i,1);
     }
@@ -514,6 +558,7 @@ function updateExplosions(dt){
    INPUT
    ============================================================ */
 let pointerHeld = false;
+let flightPointerId=null;
 let spaceHeld = false;
 let lastPX = 0, lastPY = 0, havePointer = false;
 const keyDir = { left:false, right:false, up:false, down:false };
@@ -521,6 +566,7 @@ let steerTargetX = 0, steerTargetY = 0;
 let steerVelX = 0, steerVelY = 0;
 
 function tryStart(){
+  if(state === 'paused'){resumeGame();return;}
   if(state === 'start' || state === 'gameover') startGame();
 }
 function tryEnd(){
@@ -528,18 +574,22 @@ function tryEnd(){
 }
 
 canvas.addEventListener('pointerdown', (e)=>{
-  pointerHeld = true;
+  if(!['start','gameover','playing','paused'].includes(state))return;
+  if(pointerHeld)return;
+  pointerHeld = true;flightPointerId=e.pointerId;
+  if(e.isTrusted)canvas.setPointerCapture(e.pointerId);
   lastPX = e.clientX; lastPY = e.clientY; havePointer = true;
   tryStart();
   e.preventDefault();
 }, {passive:false});
 
 window.addEventListener('pointerup', (e)=>{
-  if(pointerHeld){ pointerHeld = false; tryEnd(); }
+  if(pointerHeld&&e.pointerId===flightPointerId){ pointerHeld = false;flightPointerId=null; tryEnd(); }
 });
-window.addEventListener('pointercancel', ()=>{ if(pointerHeld){ pointerHeld=false; tryEnd(); } });
+window.addEventListener('pointercancel', e=>{ if(pointerHeld&&e.pointerId===flightPointerId){ pointerHeld=false;flightPointerId=null; tryEnd(); } });
 
 window.addEventListener('pointermove', (e)=>{
+  if(pointerHeld&&e.pointerId!==flightPointerId)return;
   if(!havePointer){ lastPX=e.clientX; lastPY=e.clientY; havePointer=true; return; }
   const dx = e.clientX - lastPX;
   const dy = e.clientY - lastPY;
@@ -552,8 +602,12 @@ window.addEventListener('pointermove', (e)=>{
 });
 
 window.addEventListener('keydown', (e)=>{
+  if(e.code==='Escape'||e.code==='KeyP'){if(state==='playing')pauseGame();e.preventDefault();return;}
+  if(e.code==='KeyR'&&['playing','paused'].includes(state)){prepareRetry();e.preventDefault();return;}
+  if(e.target.closest?.('button'))return;
+  if(e.code.startsWith('Arrow'))e.preventDefault();
   if(e.code === 'Space'){
-    if(!spaceHeld){ spaceHeld = true; tryStart(); }
+    if(!spaceHeld && ['start','gameover','playing','paused'].includes(state)){ spaceHeld = true; tryStart(); }
     e.preventDefault();
   }
   if(e.code==='ArrowLeft'||e.code==='KeyA') keyDir.left = true;
@@ -571,10 +625,8 @@ window.addEventListener('keyup', (e)=>{
   if(e.code==='ArrowUp'||e.code==='KeyW') keyDir.up = false;
   if(e.code==='ArrowDown'||e.code==='KeyS') keyDir.down = false;
 });
-window.addEventListener('blur', ()=>{
-  if(pointerHeld){ pointerHeld=false; tryEnd(); }
-  if(spaceHeld){ spaceHeld=false; tryEnd(); }
-});
+window.addEventListener('blur', ()=>{if(state==='playing')pauseGame();clearInput();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&state==='playing')pauseGame();});
 window.addEventListener('contextmenu', (e)=>e.preventDefault());
 
 function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
@@ -582,10 +634,12 @@ function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
 /* ============================================================
    GAME STATE
    ============================================================ */
-let state = 'start'; // 'start' | 'playing' | 'gameover'
+let state = 'start'; // start | playing | gameover | menu | paused | complete
 let elapsed = 0;
 let gatesPassed = 0, perfectGates = 0, cubesDestroyed = 0, combo = 1;
-let best = parseFloat(localStorage.getItem('dlg_best_time') || '0');
+function readStorage(key){try{return localStorage.getItem(key);}catch{return null;}}
+function writeStorage(key,value){try{localStorage.setItem(key,value);return true;}catch{document.getElementById('completeReward').textContent+=' (Storage unavailable; reward lasts this session.)';return false;}}
+let best = Math.max(0,parseFloat(readStorage('dlg_best_time'))||0);
 
 const hud = document.getElementById('hud');
 const startScreen = document.getElementById('startScreen');
@@ -610,12 +664,16 @@ function resetWorld(){
   activeSectorIndex = -1;
   gates.forEach((g,i)=>{ placeGate(g, -FAR_GATE - i*150); });
   cubes.forEach(c=>{ c.state='idle'; c.timer = 2+Math.random()*4; c.mesh.visible=false; });
-  for(let i=explosions.length-1;i>=0;i--){ scene.remove(explosions[i].pts); explosions[i].pts.dispose(); explosions[i].geo.dispose(); explosions[i].mat.dispose(); explosions.splice(i,1); }
+  for(let i=explosions.length-1;i>=0;i--){ scene.remove(explosions[i].pts); if(explosions[i].pts.dispose)explosions[i].pts.dispose(); explosions[i].geo.dispose(); explosions[i].mat.dispose(); explosions.splice(i,1); }
 }
 
 function startGame(){
   resetWorld();
+  initChallenge();
   state = 'playing';
+  document.getElementById('failureReason').textContent='';
+  document.getElementById('flightActions').style.display='flex';
+  document.getElementById('missionStatus').style.display=selectedChallenge?'block':'none';
   startScreen.classList.add('hidden');
   gameOverScreen.classList.add('hidden');
   hud.classList.add('show');
@@ -623,10 +681,15 @@ function startGame(){
   signalbar.style.transition = 'none';
 }
 
-function endGame(){
+function endGame(reason='Signal released. Hold again to retry.'){
+  if(state!=='playing')return;
   state = 'gameover';
+  document.getElementById('failureReason').textContent=reason;
+  document.getElementById('eventWarning').style.display='none';
+  document.getElementById('flightActions').style.display='none';
+  document.getElementById('missionStatus').style.display='none';
   hud.classList.remove('show');
-  if(elapsed > best){ best = elapsed; localStorage.setItem('dlg_best_time', String(best)); }
+  if(!selectedChallenge && elapsed > best){ best = elapsed; writeStorage('dlg_best_time', String(best)); }
   document.getElementById('goTime').innerHTML = fmtTime(elapsed) + '<span class="glow">s</span>';
   document.getElementById('statBest').textContent = fmtTime(best) + 's';
   document.getElementById('statRank').textContent = rankFor(elapsed);
@@ -679,7 +742,7 @@ function updateSector(t){
   if(i !== activeSectorIndex){
     if(state === 'playing' && activeSectorIndex >= 0) showFlash('SECTOR // ' + cur.name);
     activeSectorIndex = i;
-    canvas.style.filter = cur.filter;
+    // Sector filters are replaced by the cached city sky palette.
   }
 
   curFog.copy(new THREE.Color(cur.fog)).lerp(new THREE.Color(next.fog), frac);
@@ -699,7 +762,7 @@ function updateSector(t){
   curNose = cur.nose + (next.nose-cur.nose)*frac;
   curSectorName = cur.name;
 
-  scene.background.copy(curFog);
+  bgColor.copy(curFog);
   scene.fog.color.copy(curFog);
   scene.fog.density = curFogDensity;
   ambLight.color.copy(curAmb);
@@ -752,11 +815,11 @@ function animate(){
     const pitchTarget = clamp(steerVelY*0.05, -0.4, 0.4);
     ship.rotation.z += (bankTarget - ship.rotation.z)*Math.min(1, dt*6);
     ship.rotation.x += (pitchTarget - ship.rotation.x)*Math.min(1, dt*6);
-    camera.rotation.z += (bankTarget*0.28 - camera.rotation.z)*Math.min(1, dt*5);
-    camera.rotation.x += (-pitchTarget*0.35 - camera.rotation.x)*Math.min(1, dt*5);
+    camera.rotation.z += ((reducedMotion()?0:bankTarget*0.28) - camera.rotation.z)*Math.min(1, dt*5);
+    camera.rotation.x += ((reducedMotion()?0:-pitchTarget*0.35) - camera.rotation.x)*Math.min(1, dt*5);
 
     // thrust flicker
-    const flick = 0.75 + Math.random()*0.25;
+    const flick = reducedMotion()?1:0.75 + Math.random()*0.25;
     thrust.scale.set(flick, flick, 1 + Math.random()*0.3);
     trailMat.opacity = 0.18 + Math.random()*0.12;
 
@@ -797,6 +860,7 @@ function animate(){
       }
     });
 
+    if(!selectedChallenge){
     // gates
     let maxGateFar = -Infinity;
     gates.forEach(g=>{ maxGateFar = Math.min(maxGateFar===-Infinity?g.mesh.position.z:maxGateFar, g.mesh.position.z); });
@@ -851,16 +915,17 @@ function animate(){
       }
     });
 
+    }else{ship.getWorldPosition(shipAfter);updateChallenge(dt);}
     updateExplosions(dt);
 
     // HUD
     timeVal.textContent = fmtTime(elapsed);
     sectorVal.textContent = curSectorName;
     comboVal.textContent = '×' + combo;
-  } else {
+  } else if(state!=='paused') {
     // idle ambient drift on start/gameover screens
     updateSector(state==='gameover' ? 0 : (Math.sin(performance.now()*0.00003)*0)+0);
-    camera.position.z -= 3*dt;
+    if(!reducedMotion())camera.position.z -= 3*dt;
     recycleField(starsNear, camera.position.z);
     recycleField(starsFar, camera.position.z);
     for(let i=0;i<STREAK_COUNT;i++){
@@ -876,11 +941,134 @@ function animate(){
     updateExplosions(dt);
   }
 
+  if(state!=='paused')environment.update(dt,selectedChallenge?selectedChallenge.mood:Math.min(3,Math.floor(elapsed/35)),reducedMotion(),state==='playing');
+  // City owns the backdrop; original sector lighting/physics still run unchanged.
+  scene.background=null;
+  streaks.visible=!reducedMotion();
+  nebulae.forEach(n=>n.visible=!reducedMotion()&&detailMode!=='low');
+  planets.forEach(p=>p.visible=false);
+  renderer.setClearColor(0x071329,1);
   renderer.render(scene, camera);
+  monitorQuality(dt);
 }
+
+/* Heroic missions are additive; free flight above keeps its original rules. */
+const HC=HeroChallenges;
+let selectedChallenge=null;
+let medals=HC.readSave(readStorage('dlg_hero_medals_v1'));
+let courseObjects=[],hazardObjects=[],warningIndex=-1;
+const tierNames=['Hero Training','City Under Siege','Multiverse Crisis'];
+function clearInput(){document.activeElement?.blur?.();flightPointerId=null;pointerHeld=false;spaceHeld=false;havePointer=false;for(const k of Object.keys(keyDir))keyDir[k]=false;}
+function disposeObject(mesh){scene.remove(mesh);mesh.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();}});}
+function initChallenge(){
+ for(const o of [...courseObjects,...hazardObjects])disposeObject(o.mesh);
+ courseObjects=[];hazardObjects=[];warningIndex=-1;
+ gates.forEach(g=>g.mesh.visible=!selectedChallenge);
+ cubes.forEach(c=>c.mesh.visible=false);
+ if(!selectedChallenge)return;
+ courseObjects=selectedChallenge.route.map(o=>{
+  const mesh=o.kind==='gate'?makeGateMesh(0x5fd8ff):makeCubeMesh();
+  mesh.position.set(o.x,o.y,-HC.distanceAt(o.time));scene.add(mesh);return {...o,mesh,checked:false};
+ });
+ hazardObjects=selectedChallenge.hazards.map(h=>{
+  const mesh=new THREE.Group();mesh.position.z=-HC.distanceAt(h.time);
+  const red=new THREE.MeshBasicMaterial({color:0xff647d,transparent:true,opacity:.55,fog:false});
+  // Two solid zones leave a four-unit-wide, full-height safe lane.
+  for(const side of [-1,1]){const edge=h.safeX+side*2,outer=side*13;
+   const wall=new THREE.Mesh(new THREE.BoxGeometry(Math.abs(outer-edge),13,.16),red.clone());wall.position.set((outer+edge)/2,0,0);mesh.add(wall);}
+  const cyan=new THREE.MeshBasicMaterial({color:0x70f5d1,fog:false});
+  for(const side of [-1,1]){const rail=new THREE.Mesh(new THREE.BoxGeometry(.09,13,.2),cyan.clone());rail.position.x=h.safeX+side*2;mesh.add(rail);}
+  mesh.visible=false;scene.add(mesh);red.dispose();cyan.dispose();return {...h,mesh,checked:false};
+ });
+}
+function updateChallenge(dt){
+ for(const o of courseObjects){
+  if(!reducedMotion())o.mesh.rotation.z+=dt*.15;
+  if(o.checked)continue;
+  if(o.kind==='cube'){
+   if(shipHitsCube(o.mesh.position)){o.checked=true;o.mesh.visible=false;cubesDestroyed++;combo++;spawnExplosion(o.mesh.position,o.mesh.userData.color);showFlash('SMASH',true);tone(440,.1);}
+   else if(o.mesh.position.z>camera.position.z+BEHIND_BUF){o.checked=true;o.mesh.visible=false;}
+  }else if(camera.position.z<=o.mesh.position.z){
+   o.checked=true;const dist=Math.hypot(camera.position.x-o.x,camera.position.y-o.y);
+   if(dist<=GATE_OUTER){gatesPassed++;combo++;if(dist<=GATE_PERFECT){perfectGates++;showFlash('PERFECT',true);}else showFlash('GATE');}
+   else combo=1;
+  }
+ }
+ let warning='';
+ hazardObjects.forEach((h,i)=>{
+  const phase=HC.eventPhase(h,elapsed);h.mesh.visible=!h.checked&&phase!=='dormant';
+  if(phase==='warning'&&!h.checked){warning=`ENERGY FRONT · ${Math.max(0,h.time-elapsed).toFixed(1)}s · Open lane: ${h.safeX<0?'LEFT':h.safeX>0?'RIGHT':'CENTRE'}`;
+   if(warningIndex!==i){warningIndex=i;tone(180,.16);}}
+  if(!h.checked&&camera.position.z<=h.mesh.position.z){h.checked=true;h.mesh.visible=false;if(HC.hazardHit(h,camera.position.x))endGame('Energy front hit. Follow the open cyan lane after the four-second warning.');}
+ });
+ const warningEl=document.getElementById('eventWarning');warningEl.textContent=warning;warningEl.style.display=warning&&state==='playing'?'block':'none';
+ document.getElementById('missionStatus').textContent=`${selectedChallenge.name} · Gates ${gatesPassed}/${selectedChallenge.goal.gates} · Cubes ${cubesDestroyed}/${selectedChallenge.goal.cubes} · ${Math.max(0,selectedChallenge.duration-elapsed).toFixed(0)}s`;
+ if(state!=='playing')return;
+ const result=HC.outcome(selectedChallenge,{elapsed,gates:gatesPassed,cubes:cubesDestroyed});
+ if(result==='complete')completeChallenge();
+ else if(result==='failed')endGame('Route ended. Reach the gate and cube targets to secure the signal.');
+}
+function completeChallenge(){
+ state='complete';clearInput();hud.classList.remove('show');
+ const precision=perfectGates>=2;
+ const fresh=HC.award(medals,selectedChallenge.id,precision);
+ document.getElementById('completeTitle').textContent=selectedChallenge.name;
+ document.getElementById('completeReward').textContent=`${fresh?'Medal unlocked':'Medal secured'} · ${selectedChallenge.reward}${precision?' · Precision badge earned':''}`;
+ writeStorage('dlg_hero_medals_v1',JSON.stringify(medals));
+ document.getElementById('completeScreen').classList.remove('hidden');
+ document.getElementById('flightActions').style.display='none';document.getElementById('missionStatus').style.display='none';
+ ship.getWorldPosition(shipAfter);shipAfter.z-=7;spawnExplosion(shipAfter,0xffcf79);tone(660,.5);renderMissions();
+}
+function renderMissions(){
+ const grid=document.getElementById('missionGrid');grid.replaceChildren();
+ HC.challenges.forEach((c,i)=>{
+  const b=document.createElement('button');b.className='mission'+(medals[c.id]?' done':'');b.dataset.challenge=c.id;
+  const tier=document.createElement('span');tier.className='tier';tier.textContent=`${String(i+1).padStart(2,'0')} / ${tierNames[c.tier-1].toUpperCase()}`;
+  const name=document.createElement('strong');name.textContent=c.name;
+  const info=document.createElement('small');info.textContent=`${c.lesson} ${c.duration}s · ${c.goal.gates} gates / ${c.goal.cubes} cubes.`;
+  const reward=document.createElement('small');reward.textContent=`${medals[c.id]?'◆ Complete':'◇ '+c.reward} · ${medals[c.id]?.precision?'★ Precision':'Optional: 2 perfect gates'}`;
+  b.append(tier,name,info,reward);b.onclick=()=>selectMission(c);grid.append(b);
+ });
+}
+function hideOverlays(){for(const id of ['startScreen','gameOverScreen','missionScreen','pauseScreen','completeScreen'])document.getElementById(id).classList.add('hidden');}
+function selectMission(c){selectedChallenge=c;prepareRetry();}
+function prepareRetry(){
+ clearInput();hideOverlays();state='start';hud.classList.remove('show');
+ document.getElementById('flightActions').style.display='none';document.getElementById('missionStatus').style.display='none';document.getElementById('eventWarning').style.display='none';
+ document.getElementById('modeLabel').textContent=selectedChallenge?`${tierNames[selectedChallenge.tier-1]} / ${selectedChallenge.name}`:'ORIGINAL FREE FLIGHT';
+ document.getElementById('missionBrief').textContent=selectedChallenge?`${selectedChallenge.lesson} Goal: ${selectedChallenge.goal.gates} gates, ${selectedChallenge.goal.cubes} cubes in ${selectedChallenge.duration}s. ${selectedChallenge.optional}.`:'';
+ startScreen.classList.remove('hidden');resetWorld();initChallenge();
+}
+function openMissions(){clearInput();hideOverlays();state='menu';hud.classList.remove('show');document.getElementById('missionScreen').classList.remove('hidden');document.getElementById('flightActions').style.display='none';document.getElementById('missionStatus').style.display='none';document.getElementById('eventWarning').style.display='none';renderMissions();}
+function pauseGame(){if(state!=='playing')return;state='paused';clearInput();document.getElementById('pauseScreen').classList.remove('hidden');document.getElementById('eventWarning').style.display='none';}
+function resumeGame(){document.getElementById('pauseScreen').classList.add('hidden');state='playing';clock.getDelta();}
+function home(){selectedChallenge=null;prepareRetry();}
+for(const id of ['chooseMissions','overMissions','completeMissions'])document.getElementById(id).onclick=openMissions;
+for(const id of ['freeFlight','overHome','pauseHome'])document.getElementById(id).onclick=home;
+document.getElementById('closeMissions').onclick=prepareRetry;
+for(const id of ['restartButton','pauseRestart','completeRetry'])document.getElementById(id).onclick=prepareRetry;
+document.getElementById('nextMission').onclick=()=>selectMission(HC.challenges[(HC.challenges.indexOf(selectedChallenge)+1)%12]);
+document.getElementById('pauseButton').onpointerdown=e=>{e.stopPropagation();pauseGame();};
+document.getElementById('pauseButton').onclick=pauseGame;
+document.addEventListener('click',e=>e.target.closest?.('button')?.blur());
+document.getElementById('motionButton').onclick=()=>{motionOverride=!motionOverride;document.getElementById('motionButton').textContent=motionOverride?'Motion: reduced':'Motion: auto';document.getElementById('motionButton').setAttribute('aria-pressed',motionOverride);};
+let detailMode='auto',slowFrames=0;
+function setDetail(low){environment.setLow(low);renderer.setPixelRatio(low?1:Math.min(window.devicePixelRatio||1,IS_SMALL?1.6:2));}
+document.getElementById('qualityButton').onclick=()=>{detailMode=detailMode==='low'?'high':'low';setDetail(detailMode==='low');document.getElementById('qualityButton').textContent='Detail: '+detailMode;};
+function monitorQuality(dt){if(detailMode!=='auto')return;slowFrames=dt>.035?slowFrames+1:Math.max(0,slowFrames-1);if(slowFrames>30){detailMode='low';setDetail(true);document.getElementById('qualityButton').textContent='Detail: low';}}
+let audioCtx=null,audioOn=false,hum=null,humGain=null;
+function tone(freq,duration){if(!audioOn||!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.setValueAtTime(freq,audioCtx.currentTime);o.frequency.exponentialRampToValueAtTime(freq*1.5,audioCtx.currentTime+duration);g.gain.setValueAtTime(.035,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+duration);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+duration);o.onended=()=>{o.disconnect();g.disconnect();};}
+document.getElementById('audioButton').onclick=()=>{
+ const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio){document.getElementById('audioButton').textContent='Sound unavailable';return;}
+ if(!audioCtx){audioCtx=new Audio();hum=audioCtx.createOscillator();humGain=audioCtx.createGain();hum.frequency.value=65;hum.type='sine';humGain.gain.value=0;hum.connect(humGain);humGain.connect(audioCtx.destination);hum.start();}
+ audioOn=!audioOn;if(audioOn)audioCtx.resume();humGain.gain.setTargetAtTime(audioOn?.012:0,audioCtx.currentTime,.2);if(!audioOn)audioCtx.suspend();
+ document.getElementById('audioButton').textContent=audioOn?'Sound: on':'Sound: off';document.getElementById('audioButton').setAttribute('aria-pressed',audioOn);tone(220,.25);
+};
+canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();if(state==='playing')pauseGame();document.querySelector('#pauseScreen .sub').textContent='Graphics interrupted. Reload to restore the renderer.';});
 
 updateSector(0);
 resetWorld();
+renderMissions();
 animate();
 })();
 </script>
