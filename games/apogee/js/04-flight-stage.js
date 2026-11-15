@@ -14,6 +14,6 @@ function separate(){if(state!==STATE.FLIGHT||flight.fuel<=0||flight.activeStage<
   else if(ratio<.58){name='GOOD';color='#f0f4fb';mult=1.13;credit=8;flight.chain=0;audio.great()}
   else{name='EARLY';color='#ff5b6e';mult=.58;credit=2;flight.chain=0;audio.bad();haptic(20)}
   flight.sepCredits+=credit;floatText(name,color,ratio<.14?1.45:ratio<.30?1.18:1);separationBurst(color,ratio<.14?1.45:ratio<.30?1.12:.8);if(flight.chain>0){$('chainChip').textContent='CHAIN ×'+flight.chain;$('chainChip').classList.add('show');setTimeout(()=>$('chainChip').classList.remove('show'),350)}
-  const stageIndex=flight.totalStages-flight.activeStage;const stageMult=1+stageIndex*.38;const thrust=(305+save.engine*55)*stageMult;flight.vel+=thrust*mult;
+  const stageIndex=flight.totalStages-flight.activeStage;const stageMult=1+stageIndex*.38;const thrust=(305+flightSpec('engine')*55)*stageMult;flight.vel+=thrust*mult;
   {const side=Math.random()<.5?-1:1;flight.debris.push({worldY:flight.alt,vy:flight.vel*.22,rot:0,rv:side*(2.8+Math.random()*3.2),x:side*(3+Math.random()*6),vx:side*(28+Math.random()*46)})};
-  flight.activeStage--;setStageFuel();if(flight.activeStage>1)audio.engine(true);if(keepChain)toast('CHAIN HELD','amber')}
+  flight.activeStage--;recordTrialSeparation(ratio);setStageFuel();if(flight.activeStage>1)audio.engine(true);if(keepChain)toast('CHAIN HELD','amber')}

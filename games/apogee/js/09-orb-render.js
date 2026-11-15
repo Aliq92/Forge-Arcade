@@ -5,7 +5,7 @@ function draw(){const sky=skyColor();ctx.fillStyle=`rgb(${sky.r},${sky.g},${sky.
   ctx.strokeStyle='rgba(255,255,255,.24)';ctx.lineWidth=2;ctx.beginPath();for(const l of flight.speedLines){ctx.moveTo(l.x,l.y);ctx.lineTo(l.x,l.y-l.len)}ctx.stroke();
   for(const d of flight.debris){const sy=ry+(flight.alt-d.worldY);if(sy>-80&&sy<H+80){ctx.save();ctx.translate(W/2+d.x,sy);ctx.rotate(d.rot);ctx.fillStyle='#465067';ctx.fillRect(-14,-15,28,30);ctx.fillStyle='#151c29';ctx.fillRect(-14,4,28,10);ctx.restore()}}
   drawHazards();
-  drawRocket(ry);drawApogeeMoment(ry);
+  drawRocket(ry);drawTrial();drawApogeeMoment(ry);
   for(const p of flight.particles){ctx.globalAlpha=clamp(p.life,0,1);ctx.fillStyle=p.color;if(p.shape==='confetti'){ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot||0);ctx.fillRect(-p.size*.7,-p.size*.35,p.size*1.4,p.size*.7);ctx.restore()}else{ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill()}}ctx.globalAlpha=1;
   ctx.lineWidth=3;for(const s of flight.shockwaves){ctx.strokeStyle=`rgba(${s.color},${clamp(s.a,0,1)})`;ctx.beginPath();ctx.arc(rocketScreenX(),ry,s.r,0,Math.PI*2);ctx.stroke()}
   if(flight.sepFlash>0){ctx.globalAlpha=flight.sepFlash*.16;ctx.fillStyle=activeTrail().plasma;ctx.fillRect(0,0,W,H);ctx.globalAlpha=1}

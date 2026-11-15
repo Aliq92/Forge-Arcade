@@ -14,7 +14,7 @@ test('Forge Arcade ships Apogee as a static playable build', async () => {
   assert.match(game, /<canvas id="gameCanvas"><\/canvas>/);
   // Apogee's current static build splits runtime and persistence into linked scripts.
   const scripts = [...game.matchAll(/<script src="([^"?]+)(?:\?[^" ]*)?"/g)].map(match => match[1]);
-  assert.equal(scripts.length, 9);
+  assert.equal(scripts.length, 11);
   const runtime = (await Promise.all(scripts.map(script => readFile(new URL(`games/apogee/${script}`, root), 'utf8')))).join('\n');
   assert.match(runtime, /function launch\(/);
   assert.match(runtime, /requestAnimationFrame/);

@@ -4,14 +4,15 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#05070d" />
+<link rel="icon" href="data:," />
 <title>APOGEE // Forge Arcade</title>
-<link rel="stylesheet" href="./styles.css?v=20260914-final" />
+<link rel="stylesheet" href="./styles.css?v=21" />
 <style>#menu{align-items:flex-start}</style>
 </head>
 <body>
 <canvas id="gameCanvas"></canvas>
 <div id="ui">
-  <div class="brand-chip"><span class="brand-mark"></span><b>FORGE ARCADE</b><span>// APOGEE</span><span class="version">FINAL</span></div>
+  <div class="brand-chip"><span class="brand-mark"></span><b>FORGE ARCADE</b><span>// APOGEE</span><span class="version">BEYOND</span></div>
   <button id="audioBtn" class="audio-btn clickable" aria-label="Toggle audio">♪</button>
 
   <div id="hud">
@@ -27,6 +28,9 @@
     <div id="tapHint" class="tap-hint">TAP TO SEPARATE • TEAL = PERFECT</div>
   </div>
 
+  <div id="trialTracker" class="hidden" role="status" aria-live="off"></div>
+  <div id="flightActions" class="hidden"><button id="pauseBtn" aria-label="Pause or resume flight">II</button><button id="retryFlightBtn" aria-label="Restart flight">↻</button></div>
+  <div id="pauseOverlay" class="screen hidden"><div class="panel menu-body"><h2>FLIGHT PAUSED</h2><p>Space / tap: separate. A/D / arrows / drag: steer in deep space. P / Escape: pause. R: retry.</p><button id="resumeBtn" class="secondary-btn">RESUME</button><button id="pauseRestartBtn" class="secondary-btn">RESTART FLIGHT</button><button id="pauseTrialsBtn" class="secondary-btn hidden">CHALLENGE SELECTION</button><button id="leaveFlightBtn" class="secondary-btn">RETURN TO GARAGE</button></div></div>
   <div id="menu" class="screen transition">
     <div class="panel">
       <div class="panel-head">
@@ -35,6 +39,7 @@
         <div class="subtitle">Push the stack higher. Separate late. Upgrade the machine. Chase the next atmosphere.</div>
       </div>
       <div class="menu-body">
+        <button id="trialsBtn" class="secondary-btn clickable">BEYOND THE LIMIT • 12 FLIGHT TRIALS</button>
         <div class="stat-row">
           <div class="mini"><div class="k">RANK</div><div id="rankText" class="v cyan">CADET</div></div>
           <div class="mini"><div class="k">BEST</div><div id="menuBest" class="v">0 KM</div></div>
@@ -85,7 +90,7 @@
 
   <div id="results" class="screen transition hidden faded">
     <div class="result-panel">
-      <div class="result-top"><div class="result-kicker">FLIGHT REPORT</div><div id="resultTitle" class="result-title">APOGEE</div><div id="resultAlt" class="result-alt">0</div><div class="result-unit">KM REACHED</div></div>
+      <div id="careerReport"><div class="result-top"><div class="result-kicker">FLIGHT REPORT</div><div id="resultTitle" class="result-title">APOGEE</div><div id="resultAlt" class="result-alt">0</div><div class="result-unit">KM REACHED</div></div>
       <div id="unlockBanner" class="unlock hidden"></div>
       <div class="result-grid">
         <div class="result-card"><div class="k">BEST</div><div id="resultBest" class="v">0 KM</div></div>
@@ -105,20 +110,25 @@
         <button id="restartBtnResults" class="secondary-btn danger clickable">CLEAR UPGRADES &amp; START OVER</button>
       </div>
     </div>
+      <div id="trialReport" class="hidden menu-body"><div class="eyebrow" id="trialOutcome" role="status"></div><h2 id="trialResultName"></h2><p id="trialReward"></p><p id="trialResultStats"></p><button id="retryTrialBtn" class="launch-btn">RETRY TRIAL</button><button id="nextTrialBtn" class="secondary-btn">NEXT CHALLENGE</button><button id="trialSelectionBtn" class="secondary-btn">CHALLENGE SELECTION</button></div>
+    </div>
   </div>
 
+  <div id="trialsScreen" class="screen hidden" aria-label="Flight trial selection"><div class="panel"><div class="panel-head"><div class="eyebrow">BEYOND THE LIMIT</div><h1>FLIGHT TRIALS</h1><div id="trialCount"></div><button id="closeTrialsBtn" class="secondary-btn">BACK TO GARAGE</button></div><div class="menu-body"><p>Separate: tap / Space. Deep space: drag / A D / arrows. Teal means PERFECT; amber means GREAT. Gates warn for 2 seconds; stay in the outlined gap. Survey rings linger for 3.5 seconds.</p><label for="insigniaSelect">Equipped reward</label><select id="insigniaSelect"></select><div id="trialList"></div><div class="trial-brief"><p id="trialBrief"></p><button id="startTrialBtn" class="launch-btn" disabled>LAUNCH TRIAL</button><small id="trialSaveStatus">Progress saved on this device</small></div></div></div></div>
   <div id="toast" class="toast"></div>
   <div id="flash"></div>
   <div id="test-status">IDLE</div>
 </div>
-<script src="./js/01-config.js?v=20260914-final"></script>
-<script src="./js/02-progress.js?v=20260914-final"></script>
-<script src="./js/03-ui.js?v=20260914-final"></script>
-<script src="./js/04-flight-stage.js?v=20260914-orbs"></script>
-<script src="./js/05-deep-space.js?v=20260914-orbs"></script>
-<script src="./js/06-update.js?v=20260914-orbs"></script>
-<script src="./js/07-render-rocket.js?v=20260914-final"></script>
-<script src="./js/08-runtime.js?v=20260914-final"></script>
-<script src="./js/09-orb-render.js?v=20260914-orbs"></script>
+<script src="./js/01-config.js?v=21"></script>
+<script src="./js/02-progress.js?v=21"></script>
+<script src="./js/03-ui.js?v=21"></script>
+<script src="./js/04-flight-stage.js?v=21"></script>
+<script src="./js/05-deep-space.js?v=21"></script>
+<script src="./js/06-update.js?v=21"></script>
+<script src="./js/07-render-rocket.js?v=21"></script>
+<script src="./js/10-trials-core.js?v=21"></script>
+<script src="./js/11-trials.js?v=21"></script>
+<script src="./js/08-runtime.js?v=21"></script>
+<script src="./js/09-orb-render.js?v=21"></script>
 </body>
 </html>
