@@ -9,6 +9,11 @@
    c.strokeStyle='#a798b011';c.lineWidth=1;for(let i=0;i<18;i++){const px=(i*137.31)%w;c.beginPath();c.moveTo(px,h*.12);c.lineTo(px+(i%2?3:-5),h*.66);c.stroke();}for(let i=0;i<110;i++){c.fillStyle=i%2?'#e1cdb307':'#03020825';c.fillRect((i*171.73)%w,(i*93.27)%(h*.7),3+(i%4)*7,1+(i%3));}
    const floor=c.createLinearGradient(0,h*.66,0,h);floor.addColorStop(0,'#18161f');floor.addColorStop(1,'#0c0e16');c.fillStyle=floor;c.beginPath();c.moveTo(w*.12,h*.65);c.lineTo(w*.88,h*.65);c.lineTo(w,h*.82);c.lineTo(w,h);c.lineTo(0,h);c.lineTo(0,h*.82);c.closePath();c.fill();c.strokeStyle='#76667d1b';c.lineWidth=1;
    for(let i=-5;i<=7;i++){c.beginPath();c.moveTo(w*.5+i*17,h*.65);c.lineTo(w*.5+i*w*.23,h);c.stroke();}for(const f of [.70,.77,.87,.99]){c.beginPath();c.moveTo(0,h*f);c.lineTo(w,h*f);c.stroke();}
+   // Retro wall inlays and a quiet two-tone floor, cached with the room.
+   c.strokeStyle='#8a71ba20';c.lineWidth=1;
+   for(const side of [.27,.73]){const px=w*side;c.strokeRect(px-w*.07,h*.18,w*.14,h*.41);c.beginPath();c.moveTo(px-w*.065,h*.52);c.lineTo(px,h*.44);c.lineTo(px+w*.065,h*.52);c.moveTo(px-w*.065,h*.55);c.lineTo(px,h*.47);c.lineTo(px+w*.065,h*.55);c.stroke();}
+   const rows=[.65,.70,.77,.87,1];
+   for(let row=0;row<4;row++)for(let col=-6;col<6;col++){if((row+col)%2)continue;const a=rows[row],b=rows[row+1],spread=y=>17+(y-.65)/.35*w*.23;c.fillStyle=row%2?'#7960a00a':'#326a790d';c.beginPath();c.moveTo(w*.5+col*spread(a),h*a);c.lineTo(w*.5+(col+1)*spread(a),h*a);c.lineTo(w*.5+(col+1)*spread(b),h*b);c.lineTo(w*.5+col*spread(b),h*b);c.closePath();c.fill();}
    const warm=c.createRadialGradient(x,h*.31,0,x,h*.31,h*.67);warm.addColorStop(0,'#d2ad6d12');warm.addColorStop(.65,'#6c536609');warm.addColorStop(1,'#00000000');c.fillStyle=warm;c.fillRect(0,0,w,h);
    // Ceiling cable and a deliberately mundane, slightly crooked fixture.
    c.strokeStyle='#06070c';c.lineWidth=3;c.beginPath();c.moveTo(x,0);c.lineTo(x,h*.09);c.stroke();c.fillStyle='#090b11';c.fillRect(x-48,h*.09,96,12);c.fillStyle='#cfb99666';c.fillRect(x-35,h*.09+10,70,3);

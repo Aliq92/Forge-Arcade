@@ -4,6 +4,7 @@
  let storage;try{storage=localStorage;}catch{storage=null;}const store=new RecordStore(storage),loaded=store.read();
  const seed=crypto.getRandomValues(new Uint32Array(1))[0];
  let game=loaded.game||new JudgmentGame({seed,effects:!matchMedia('(prefers-reduced-motion: reduce)').matches});
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches)game.effects=false;
  const canvas=$('room'),room=new JudgmentRoom(canvas),confetti=new ChamberEffects.Confetti(innerWidth,innerHeight),frameCosts=new Float32Array(240);
  let lastTs=performance.now(),rafId=null,frameIndex=0,down=false,toastUntil=0,lastMessage='',lastEvent='',lastCount=-1,warningShown=false;
  class ChamberAudio{
@@ -22,10 +23,17 @@
  function renderNotes(){const p=C.legacy.placards[game.stage];$('placard-title').textContent=p.title;$('placard-medium').textContent=p.medium;$('placard-desc').textContent=p.desc;$('employee-id').textContent=game.employeeId?'LOCAL EXHIBIT RECORD · '+game.employeeId:'';$('discovery-count').textContent=game.achievements.size+' / '+C.achievements.length;
   $('discoveries').replaceChildren(...C.achievements.map((a,i)=>{const li=document.createElement('li');li.className=game.achievements.has(a.id)?'unlocked':'';li.textContent=game.achievements.has(a.id)?'✧ '+a.name:'◇ Undiscovered '+String(i+1).padStart(2,'0');return li;}));
  }
+ const neonRoom=$('neon-room'),reactionColors={sarcastic:'#b864e9',compliment:'#ffad70',absurd:'#64e3e5',mysterious:'#688ded',fourthwall:'#ef82bf',rare:'#ffd38b'};
+ const motionQuery=matchMedia('(prefers-reduced-motion: reduce)');
+ motionQuery.addEventListener('change',e=>{if(e.matches){game.effects=false;confetti.clear();sync();}});
  const categoryNames={sarcastic:'UNSOLICITED OPINION',compliment:'UNEXPECTED KINDNESS',absurd:'OFFICIAL NONSENSE',mysterious:'ROOM TRANSMISSION',fourthwall:'VERY SELF-AWARE',rare:'RARE APPROVAL'};
  function sync(){if(game.count!==lastCount){$('count-num').textContent=game.count.toLocaleString();$('stage-tag').textContent=C.legacy.stages[game.stage].name;$('decoy').hidden=!game.decoy;lastCount=game.count;renderNotes();}
   if(game.message!==lastMessage){$('judgment').textContent=game.message;lastMessage=game.message;}$('category').textContent=categoryNames[game.category];
   const id=game.event?.id||'';if(id!==lastEvent){$('chamber').dataset.event=id;lastEvent=id;if(id==='lights')audio.tone(140,.08,0,.06);}
+  neonRoom.style.setProperty('--reaction',reactionColors[game.category]||reactionColors.mysterious);
+  neonRoom.style.setProperty('--room-pulse',game.effects?String(Math.max(game.pressPulse,['golden','celebration','rare','disco'].includes(id)?.38:0)):'0');
+  neonRoom.dataset.celebrating=String(['golden','celebration','rare','disco'].includes(id));
+  $('chamber').classList.toggle('room-paused',game.paused||!game.entered);
   const progress=game.event?1-game.event.remaining/game.event.duration:0,reduced=!game.effects;
   const escape=id==='escape'&&!reduced?Math.sin(progress*Math.PI)*(innerWidth<600?14:24):0;
   $('button-head').style.setProperty('--escape-x',escape+'px');$('button-head').style.setProperty('--escape-y',escape?'-5px':'0px');$('button-head').style.setProperty('--button-scale',reduced?'1':id==='shrink'?'.78':id==='grow'?'1.08':'1');
@@ -44,7 +52,7 @@
  window.addEventListener('keyup',e=>{if(e.key==='Enter'||e.code==='Space')release();});
  $('enter').addEventListener('click',()=>{game.enter();$('chamber').classList.add('entered');$('startOverlay').hidden=true;document.querySelector('header').inert=false;document.querySelector('footer').inert=false;$('interaction').inert=false;lastTs=performance.now();audio.ensure();$('the-button').focus({preventScroll:true});if(loaded.warning){showToast(loaded.warning,4);warningShown=true;}sync();});
  $('sound').addEventListener('click',()=>{game.sound=!game.sound;if(game.sound)audio.ensure();audio.update();sync();persist();});
- $('effects').addEventListener('click',()=>{game.effects=!game.effects;confetti.clear();confetti.reduced=!game.effects;sync();persist();});
+ $('effects').addEventListener('click',()=>{game.effects=motionQuery.matches?false:!game.effects;confetti.clear();confetti.reduced=!game.effects;sync();persist();});
  function pauseForDialog(){down=false;game.paused=true;audio.update();sync();}
  function closeDialog(dialog){dialog.close();game.paused=document.hidden;lastTs=performance.now();audio.update();sync();}
  $('notes').addEventListener('click',()=>{renderNotes();pauseForDialog();$('notesDialog').showModal();});$('closeNotes').addEventListener('click',()=>closeDialog($('notesDialog')));

@@ -1,8 +1,34 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>The Button That Judges You · The Judgment Chamber</title><link rel="stylesheet" href="chamber.css?v=7"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23211b29'/%3E%3Cellipse cx='16' cy='19' rx='12' ry='8' fill='%23676870'/%3E%3Cellipse cx='16' cy='15' rx='10' ry='7' fill='%23ca4952'/%3E%3C/svg%3E"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>The Button That Judges You · The Judgment Chamber</title><link rel="stylesheet" href="chamber.css?v=20"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23211b29'/%3E%3Cellipse cx='16' cy='19' rx='12' ry='8' fill='%23676870'/%3E%3Cellipse cx='16' cy='15' rx='10' ry='7' fill='%23ca4952'/%3E%3C/svg%3E"></head>
 <body><main id="chamber" data-event="">
 <canvas id="room" aria-hidden="true"></canvas>
+<div id="neon-room" aria-hidden="true">
+ <div class="ceiling-led"></div><div class="wall-led left"></div><div class="wall-led right"></div>
+ <div id="sigil-sign" role="img" aria-label="Original repeating geometric neon sigil">
+ <div class="sign-mount"></div>
+ <svg viewBox="0 0 240 250" xmlns="http://www.w3.org/2000/svg" focusable="false">
+  <defs>
+   <g id="chamber-sigil" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M0 -29 L22 -15 L22 13 L0 29 L-22 13 L-22 -15 Z M0 -19 L12 0 L0 19 L-12 0 Z M-29 0 L29 0 M0 -35 L0 -29 M0 29 L0 35"/>
+    <circle r="4"/>
+   </g>
+  </defs>
+  <g class="neon-tubes">
+   <path d="M120 10 L216 66 L216 180 L120 236 L24 180 L24 66 Z" fill="none" stroke="currentColor" stroke-width="2" opacity=".55"/>
+   <use href="#chamber-sigil" x="120" y="51"/>
+   <use href="#chamber-sigil" x="76" y="88"/><use href="#chamber-sigil" x="164" y="88"/>
+   <use href="#chamber-sigil" x="120" y="125"/>
+   <use href="#chamber-sigil" x="76" y="162"/><use href="#chamber-sigil" x="164" y="162"/>
+   <use href="#chamber-sigil" x="120" y="199"/>
+  </g>
+ </svg>
+ <div class="sign-caption">THE REPEAT OFFENDER<span>ONE PRESS. NO REFUNDS.</span></div>
+ </div>
+ <div class="led-panel left"><i></i><i></i><i></i><i></i><i></i><span>APPLAUSE / OPTIONAL</span></div>
+ <div class="led-panel right"><i></i><i></i><i></i><i></i><i></i><span>OPINIONS / ALWAYS ON</span></div>
+ <div class="floor-led"></div><div class="room-response"></div>
+</div>
 <header><a id="forge-back-link" href="../../index.html" aria-label="Return to Forge Arcade">←<span> Arcade</span></a><div class="exhibitMark">MUSEUM OF POINTLESS INTERFACES<span>EXHIBIT 07 / THE JUDGMENT CHAMBER</span></div><div class="counter" role="group" aria-label="Total button presses"><small>PRESSES</small><b id="count-num">0</b></div><div class="controls"><button id="sound" aria-label="Enable sound" aria-pressed="false" title="Enable sound">♪̸</button><button id="effects" aria-label="Calm effects" aria-pressed="false" title="Calm effects">◌</button><button id="reset" aria-label="Reset saved progress" title="Reset saved progress">↺</button></div></header>
 <section id="interaction" aria-label="The chamber" inert>
 <div id="speech"><div class="category" id="category">THE ROOM IS CONSIDERING</div><div id="judgment" role="status" aria-live="polite" aria-atomic="true">Go ahead. Press it.</div><div class="speechRule"></div></div>
@@ -13,4 +39,4 @@
 <section id="startOverlay" aria-label="Welcome to the chamber"><a class="menuBack" href="../../index.html">← Arcade</a><div class="menu"><div class="menuMark">MUSEUM OF POINTLESS INTERFACES</div><div class="miniatureButton" aria-hidden="true"></div><p class="eyebrow">THE JUDGMENT CHAMBER / EXHIBIT 07</p><h1>THE BUTTON<br>THAT JUDGES YOU</h1><p class="subtitle">It has opinions. Unfortunately.</p><button id="enter">ENTER THE CHAMBER <span>→</span></button><p id="return-note">One button. Endless judgment.</p><p class="menuControls">Click, tap, Enter or Space. Curiosity is sufficient.</p></div></section>
 <dialog id="notesDialog" aria-labelledby="notesTitle"><div class="dialogHead"><div><small>THE CURATOR'S FILE</small><h2 id="notesTitle">Chamber notes</h2></div><button id="closeNotes" aria-label="Close chamber notes">×</button></div><div class="notesBody"><p id="placard-title"></p><p id="placard-medium" class="fine"></p><p id="placard-desc"></p><p class="fine">The paperwork, surveillance and administrative departments are fictional. Your record stays in this browser.</p><div class="discoveryHead"><h3>Small discoveries</h3><span id="discovery-count">0 / 7</span></div><ul id="discoveries"></ul><p class="fine" id="employee-id"></p><p class="fine">Click or tap the large button. Enter / Space also work in the chamber. Hold keys do not repeat. Sound and Calm effects are in the top corner. Reset always asks before clearing your record.</p></div></dialog>
 <dialog id="resetDialog" aria-labelledby="resetTitle"><p class="eyebrow">A CLEAN SHEET OF PAPERWORK</p><h2 id="resetTitle">Start a clean record?</h2><p>Reset your press total and discoveries? Your sound and effects choices will stay.</p><div class="dialogActions"><button id="cancelReset" autofocus>Keep my record</button><button id="confirmReset">Reset record</button></div></dialog>
-</main><script src="content.js?v=7"></script><script src="judgment.js?v=7"></script><script src="effects.js?v=7"></script><script src="room.js?v=7.1"></script><script src="chamber.js?v=7"></script></body></html>
+</main><script src="content.js?v=7"></script><script src="judgment.js?v=7"></script><script src="effects.js?v=7"></script><script src="room.js?v=20"></script><script src="chamber.js?v=20"></script></body></html>
