@@ -1,0 +1,13 @@
+✔ city decorations use at most 24 draw objects and batch repeated technology (27.51357ms)
+✔ low detail keeps traffic bounded and restores all instances on high (7.700873ms)
+✔ sky is cached per mood and decorative updates never move the camera (9.414851ms)
+✔ reduced motion freezes portal and aircraft transforms (8.215116ms)
+✔ opaque city layers draw near-to-far and the sky fills uncovered pixels last (7.654063ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 69.525462

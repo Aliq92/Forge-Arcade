@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>DON'T LET GO — Forge Arcade</title>
+<link rel="icon" type="image/svg+xml" href="../../assets/thumbnails/dont-let-go.svg">
 <style>
   :root{
     --void:#05070c;
@@ -136,6 +137,17 @@
   @media(max-width:700px){#missionGrid{grid-template-columns:repeat(2,1fr)}.mission{padding:11px;min-height:180px}.overlay{padding:18px}.sub{margin-bottom:16px}#hud-sector{max-width:37%;padding:7px 9px}#hud-sector .val{font-size:11px}#hud-time{min-width:80px;padding:7px 10px}#hud-combo{padding:7px 9px}#settings{bottom:8px;left:8px}#missionStatus{bottom:105px;font-size:11px;width:max-content}#flightActions{bottom:56px;right:8px}#eventWarning{top:86px;width:max-content;max-width:95vw;font-size:11px}}
   @media(max-height:500px){#missionScreen{padding:15px}.overlay .title{font-size:30px}.sub{margin-bottom:10px}#stats{margin:5px 0 10px}.actions{margin-top:8px}#missionStatus{bottom:15px;max-width:60%}#eventWarning{top:75px}#settings{bottom:8px}#flightActions{bottom:8px}}
   @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;}}
+  html.reduced-motion *,html.reduced-motion *::before,html.reduced-motion *::after{animation:none!important;transition:none!important;}
+  @media(max-height:500px){
+    #startScreen{padding:12px 18px 64px;}
+    #startScreen .eyebrow{font-size:9px;margin-bottom:3px;}
+    #startScreen .title{margin-bottom:4px;}
+    #startScreen .sub{font-size:12px;margin-bottom:8px;}
+    #startScreen .prompt{font-size:11px;padding:7px 20px;}
+    #startScreen .hint{font-size:10px;margin-top:8px;}
+    #startScreen #modeLabel{font-size:10px;margin-bottom:6px;}
+    #startScreen #missionBrief{font-size:12px;line-height:1.4;max-width:700px;}
+  }
 </style>
 </head>
 <body>
@@ -607,6 +619,8 @@ window.addEventListener('keydown', (e)=>{
   if(e.target.closest?.('button'))return;
   if(e.code.startsWith('Arrow'))e.preventDefault();
   if(e.code === 'Space'){
+    // A held key keeps repeating after pause/restart; resuming needs a new press.
+    if(e.repeat){e.preventDefault();return;}
     if(!spaceHeld && ['start','gameover','playing','paused'].includes(state)){ spaceHeld = true; tryStart(); }
     e.preventDefault();
   }
@@ -1051,9 +1065,9 @@ document.getElementById('nextMission').onclick=()=>selectMission(HC.challenges[(
 document.getElementById('pauseButton').onpointerdown=e=>{e.stopPropagation();pauseGame();};
 document.getElementById('pauseButton').onclick=pauseGame;
 document.addEventListener('click',e=>e.target.closest?.('button')?.blur());
-document.getElementById('motionButton').onclick=()=>{motionOverride=!motionOverride;document.getElementById('motionButton').textContent=motionOverride?'Motion: reduced':'Motion: auto';document.getElementById('motionButton').setAttribute('aria-pressed',motionOverride);};
+document.getElementById('motionButton').onclick=()=>{motionOverride=!motionOverride;document.documentElement.classList.toggle('reduced-motion',motionOverride);document.getElementById('motionButton').textContent=motionOverride?'Motion: reduced':'Motion: auto';document.getElementById('motionButton').setAttribute('aria-pressed',motionOverride);};
 let detailMode='auto',slowFrames=0;
-function setDetail(low){environment.setLow(low);renderer.setPixelRatio(low?1:Math.min(window.devicePixelRatio||1,IS_SMALL?1.6:2));}
+function setDetail(low){environment.setLow(low);renderer.setPixelRatio(low?(IS_SMALL?1:.75):Math.min(window.devicePixelRatio||1,IS_SMALL?1.6:2));}
 document.getElementById('qualityButton').onclick=()=>{detailMode=detailMode==='low'?'high':'low';setDetail(detailMode==='low');document.getElementById('qualityButton').textContent='Detail: '+detailMode;};
 function monitorQuality(dt){if(detailMode!=='auto')return;slowFrames=dt>.035?slowFrames+1:Math.max(0,slowFrames-1);if(slowFrames>30){detailMode='low';setDetail(true);document.getElementById('qualityButton').textContent='Detail: low';}}
 let audioCtx=null,audioOn=false,hum=null,humGain=null;

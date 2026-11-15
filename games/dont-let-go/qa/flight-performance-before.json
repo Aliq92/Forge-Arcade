@@ -1,0 +1,86 @@
+{
+  "renderer": "Chromium SwiftShader software WebGL",
+  "viewport": "1440x900",
+  "warmupMs": 1500,
+  "sampleMs": 5000,
+  "variants": [
+    {
+      "variant": "original",
+      "draws": 27,
+      "triangles": 3424,
+      "dpr": 1,
+      "state": "playing",
+      "elapsed": 3.2391000000000956,
+      "samples": 44,
+      "medianMs": 100.09999999999945,
+      "p95Ms": 166.59999999999945,
+      "medianJSRenderMs": 0.599999999627471,
+      "errors": []
+    },
+    {
+      "variant": "expanded-high",
+      "draws": 64,
+      "triangles": 10318,
+      "dpr": 1,
+      "state": "playing",
+      "elapsed": 1.9102000000001873,
+      "samples": 28,
+      "medianMs": 183.30000000000018,
+      "p95Ms": 316.6999999999998,
+      "medianJSRenderMs": 1.1000000000931323,
+      "errors": []
+    },
+    {
+      "variant": "expanded-low",
+      "draws": 57,
+      "triangles": 9298,
+      "dpr": 1,
+      "state": "playing",
+      "elapsed": 2.1577000000001876,
+      "samples": 30,
+      "medianMs": 166.60000000000036,
+      "p95Ms": 299.89999999999964,
+      "medianJSRenderMs": 0.8000000002793968,
+      "errors": []
+    },
+    {
+      "variant": "without-city",
+      "draws": 25,
+      "triangles": 3280,
+      "dpr": 1,
+      "state": "playing",
+      "elapsed": 6.2303000000016775,
+      "samples": 116,
+      "medianMs": 33.400000000000546,
+      "p95Ms": 66.80000000000018,
+      "medianJSRenderMs": 0.40000000037252903,
+      "errors": []
+    },
+    {
+      "variant": "without-ui-blur",
+      "draws": 64,
+      "triangles": 10318,
+      "dpr": 1,
+      "state": "playing",
+      "elapsed": 2.1880999999996287,
+      "samples": 28,
+      "medianMs": 183.19999999999982,
+      "p95Ms": 183.39999999999964,
+      "medianJSRenderMs": 1.1999999997206032,
+      "errors": []
+    },
+    {
+      "variant": "half-resolution",
+      "draws": 69,
+      "triangles": 10354,
+      "dpr": 0.5,
+      "state": "playing",
+      "elapsed": 4.268100000001491,
+      "samples": 61,
+      "medianMs": 83.29999999999927,
+      "p95Ms": 166.60000000000036,
+      "medianJSRenderMs": 0.8999999999068677,
+      "errors": []
+    }
+  ]
+}

@@ -11,8 +11,8 @@ const results=[];
 const instrument=`
 const renderForQA=renderer.render.bind(renderer);
 window.__qa={
- snapshot:()=>({state,elapsed,gates:gatesPassed,cubes:cubesDestroyed,perfect:perfectGates,combo,best,x:camera.position.x,y:camera.position.y,z:camera.position.z,selected:selectedChallenge?.id,course:courseObjects.length,hazards:hazardObjects.length,medals:JSON.parse(JSON.stringify(medals)),reduced:reducedMotion(),portalAngle:environment.portals[0].rotation.z,mood:environment.mood,draws:renderer.info.render.calls,geometries:renderer.info.memory.geometries}),
- step(n,pilot=false){
+ snapshot:()=>({state,elapsed,gates:gatesPassed,cubes:cubesDestroyed,perfect:perfectGates,combo,best,x:camera.position.x,y:camera.position.y,z:camera.position.z,selected:selectedChallenge?.id,course:courseObjects.length,hazards:hazardObjects.length,medals:JSON.parse(JSON.stringify(medals)),reduced:reducedMotion(),portalAngle:environment.portals[0].rotation.z,mood:environment.mood,detail:detailMode,dpr:renderer.getPixelRatio(),draws:renderer.info.render.calls,geometries:renderer.info.memory.geometries}),
+ step(n,pilot=false,delta=1/60){
   const old=renderer.render;renderer.render=()=>{};
   for(let i=0;i<n;i++){
    if(pilot&&state==='playing'){
@@ -22,7 +22,7 @@ window.__qa={
     const dx=(goal.x-steerTargetX)/.018,dy=-(goal.y-steerTargetY)/.018;
     window.dispatchEvent(new PointerEvent('pointermove',{pointerId:flightPointerId??1,clientX:lastPX+dx,clientY:lastPY+dy}));
    }
-   clock.getDelta=()=>1/60;animate();
+   clock.getDelta=()=>delta;animate();
   }
   renderer.render=old;renderForQA(scene,camera);return this.snapshot();
  },
@@ -36,6 +36,9 @@ async function main(){
  const errors=[];
  const page=await browser.newPage({viewport:{width:1440,height:900}});
  page.on('pageerror',e=>errors.push(e.message));
+ page.on('console',message=>{if(message.type()==='error')errors.push('Console: '+message.text());});
+ page.on('requestfailed',request=>errors.push('Request failed: '+request.url()));
+ page.on('response',response=>{if(response.status()>=400)errors.push(`HTTP ${response.status()}: ${response.url()}`);});
  const check=async(name,fn)=>{await fn();results.push(name);console.log('PASS',name);};
  await page.addInitScript(()=>{window.requestAnimationFrame=()=>0;});
  await page.route('**/games/dont-let-go/',async route=>{const response=await route.fetch();const source=(await response.text()).replace('updateSector(0);\nresetWorld();\nrenderMissions();',instrument+'\nupdateSector(0);\nresetWorld();\nrenderMissions();');await route.fulfill({response,body:source});});
@@ -43,6 +46,9 @@ async function main(){
  const snap=()=>page.evaluate(()=>__qa.snapshot());
  const step=(n,pilot=false)=>page.evaluate(([n,p])=>__qa.step(n,p),[n,pilot]);
  await check('startup and local dependency',async()=>{assert.equal((await snap()).state,'start');assert.equal(await page.locator('h1').first().innerText(),"DON'T LET GO");await step(1);await page.waitForTimeout(450);await page.screenshot({path:dir+'/after-desktop.png'});});
+ await check('slow frames lower desktop render resolution while preserving simulation',async()=>{
+  const s=await page.evaluate(()=>__qa.step(32,false,.05));assert.equal(s.detail,'low');assert.equal(s.dpr,.75);assert.equal(s.state,'start');await page.reload();
+ });
  await check('original hold, keyboard steering, release and legacy save',async()=>{
   await page.evaluate(()=>localStorage.setItem('dlg_best_time','123.4'));await page.reload();await page.keyboard.down('Space');await page.keyboard.down('ArrowRight');await step(60);await page.keyboard.up('ArrowRight');assert.ok((await snap()).x>3);await page.keyboard.up('Space');assert.equal((await snap()).state,'gameover');assert.equal((await snap()).best,123.4);
  });
@@ -70,6 +76,12 @@ async function main(){
  await check('resize and portrait mission scroll',async()=>{
   await page.setViewportSize({width:390,height:844});await page.click('#chooseMissions');assert.equal(await page.locator('.mission').count(),12);await page.locator('.mission').nth(11).scrollIntoViewIfNeeded();await step(1);await page.waitForTimeout(450);await page.screenshot({path:dir+'/mobile-challenges.png'});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.locator('.mission').nth(11).click();await step(1);await page.waitForTimeout(450);await page.screenshot({path:dir+'/mobile-portrait.png'});
  });
+ await check('landscape mission briefing fits above persistent controls',async()=>{
+  await page.setViewportSize({width:844,height:390});
+  const title=await page.locator('#startScreen .title').boundingBox();const actions=await page.locator('#startScreen .actions').boundingBox();
+  assert.ok(title.y>=0,`title clipped at ${title.y}`);assert.ok(actions.y+actions.height<=335,`actions overlap bottom controls at ${actions.y+actions.height}`);
+  await step(1);await page.waitForTimeout(450);await page.screenshot({path:dir+'/landscape-mission-brief.png'});await page.setViewportSize({width:390,height:844});
+ });
  await check('touch holding, drag steering, release and landscape layout',async()=>{
   await page.dispatchEvent('#gl','pointerdown',{pointerId:2,pointerType:'touch',clientX:195,clientY:420});await page.dispatchEvent('#gl','pointermove',{pointerId:2,pointerType:'touch',clientX:270,clientY:380});await step(60);assert.ok((await snap()).x>0);await page.dispatchEvent('#gl','pointerup',{pointerId:2,pointerType:'touch'});assert.equal((await snap()).state,'gameover');await page.setViewportSize({width:844,height:390});await page.click('#overHome');await step(1);await page.waitForTimeout(450);await page.screenshot({path:dir+'/mobile-landscape.png'});
  });
@@ -81,9 +93,15 @@ async function main(){
  });
  await check('decorative layers are isolated from collision objects',async()=>{const s=await page.evaluate(()=>__qa.isolationProbe());assert.equal(s.before,s.after);assert.deepEqual(s.hidden,s.visible);});
  await check('WASD input, pointer cancel, focus loss and manual motion control',async()=>{
-  await page.click('#completeMissions');await page.click('#closeMissions');await page.click('#freeFlight');await page.keyboard.down('Space');await page.keyboard.down('KeyA');await page.keyboard.down('KeyW');await step(60);await page.keyboard.up('KeyA');await page.keyboard.up('KeyW');assert.ok((await snap()).x<-3);assert.ok((await snap()).y>3);await page.evaluate(()=>window.dispatchEvent(new Event('blur')));assert.equal((await snap()).state,'paused');await page.keyboard.up('Space');await page.click('#pauseHome');await page.dispatchEvent('#gl','pointerdown',{pointerId:2,clientX:400,clientY:200});await page.dispatchEvent('#gl','pointercancel',{pointerId:2});assert.equal((await snap()).state,'gameover');await page.click('#motionButton');assert.equal((await snap()).reduced,true);
+  await page.click('#completeMissions');await page.click('#closeMissions');await page.click('#freeFlight');await page.keyboard.down('Space');await page.keyboard.down('KeyA');await page.keyboard.down('KeyW');await step(60);await page.keyboard.up('KeyA');await page.keyboard.up('KeyW');assert.ok((await snap()).x<-3);assert.ok((await snap()).y>3);await page.evaluate(()=>window.dispatchEvent(new Event('blur')));assert.equal((await snap()).state,'paused');await page.keyboard.up('Space');await page.click('#pauseHome');await page.dispatchEvent('#gl','pointerdown',{pointerId:2,clientX:400,clientY:200});await page.dispatchEvent('#gl','pointercancel',{pointerId:2});assert.equal((await snap()).state,'gameover');await page.click('#motionButton');assert.equal((await snap()).reduced,true);assert.equal(await page.locator('#startPrompt').evaluate(e=>getComputedStyle(e).animationName),'none');await page.click('#motionButton');assert.equal((await snap()).reduced,false);assert.equal(await page.locator('#startPrompt').evaluate(e=>getComputedStyle(e).animationName),'pulse');
  });
- await check('no browser exceptions',async()=>assert.deepEqual(errors,[]));
+ await check('held Space repeat cannot resume pause or restart a route',async()=>{
+  await page.click('#overHome');await page.keyboard.down('Space');await step(30);await page.keyboard.press('Escape');
+  await page.evaluate(()=>window.dispatchEvent(new KeyboardEvent('keydown',{code:'Space',repeat:true,bubbles:true})));assert.equal((await snap()).state,'paused');
+  await page.keyboard.up('Space');await page.keyboard.down('Space');assert.equal((await snap()).state,'playing');await page.keyboard.press('KeyR');
+  await page.evaluate(()=>window.dispatchEvent(new KeyboardEvent('keydown',{code:'Space',repeat:true,bubbles:true})));assert.equal((await snap()).state,'start');await page.keyboard.up('Space');
+ });
+ await check('no browser console, HTTP or JavaScript errors',async()=>assert.deepEqual(errors,[]));
  fs.writeFileSync(dir+'/browser-results.json',JSON.stringify({checks:results.length,results,errors},null,2));await browser.close();
 }
 main().catch(e=>{console.error(e);process.exit(1)});

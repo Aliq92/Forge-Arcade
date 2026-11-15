@@ -33,3 +33,16 @@ Review focus: held input across UI and pause; stale objects on restart; storage
 blocked/corrupt; narrow portrait HUD; background memory/draw-call growth.
 Tests must exercise these. Performance measurements in headless software WebGL
 are diagnostic, not evidence of mid-range Android frame rates.
+
+## Follow-up after review
+
+- [x] Reproduce and fix held-Space repeat resuming pause/restart.
+- [x] Reproduce and fix landscape mission-brief overlap with bottom controls.
+- [x] Benchmark original and expanded flight sequentially; isolate raster cost.
+- [x] Batch repeated city technology and traffic; enforce a draw-object budget.
+- [x] Render opaque towers near-to-far; render the sky after opaque geometry.
+- [x] Lower desktop fallback DPR to 0.75 while retaining native DOM text.
+- [x] Add environment and browser regressions; rerun all twelve routes/replays.
+- [x] Extend console/HTTP monitoring; fix the missing favicon using existing art.
+- [x] Make manual reduced motion suppress CSS animation as well as JS effects.
+- [x] Refresh final live GPU-resource checks, root regressions and static build.

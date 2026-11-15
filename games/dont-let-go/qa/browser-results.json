@@ -1,7 +1,8 @@
 {
-  "checks": 27,
+  "checks": 30,
   "results": [
     "startup and local dependency",
+    "slow frames lower desktop render resolution while preserving simulation",
     "original hold, keyboard steering, release and legacy save",
     "original gate and swept cube collision",
     "pause freezes all simulation; resume requires hold; restart resets",
@@ -22,12 +23,14 @@
     "failure from incomplete objectives",
     "reduced motion respects OS and suppresses environmental rotation",
     "resize and portrait mission scroll",
+    "landscape mission briefing fits above persistent controls",
     "touch holding, drag steering, release and landscape layout",
     "second touch does not release flight; touch pause suspends signal",
     "blocked storage does not prevent startup or session rewards",
     "decorative layers are isolated from collision objects",
     "WASD input, pointer cancel, focus loss and manual motion control",
-    "no browser exceptions"
+    "held Space repeat cannot resume pause or restart a route",
+    "no browser console, HTTP or JavaScript errors"
   ],
   "errors": []
 }

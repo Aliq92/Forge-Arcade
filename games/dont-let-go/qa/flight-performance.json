@@ -1,0 +1,87 @@
+{
+  "baselineRef": "67a9732^",
+  "renderer": "Chromium SwiftShader software WebGL",
+  "viewport": "1440x900",
+  "warmupMs": 1500,
+  "sampleMs": 5000,
+  "variants": [
+    {
+      "variant": "original",
+      "draws": 27,
+      "triangles": 3424,
+      "dpr": 1,
+      "state": "playing",
+      "elapsed": 3.2447000000001887,
+      "samples": 44,
+      "medianMs": 100.10000000000036,
+      "p95Ms": 166.69999999999982,
+      "medianJSRenderMs": 0.8000000002793968,
+      "errors": []
+    },
+    {
+      "variant": "expanded-high",
+      "draws": 42,
+      "triangles": 10330,
+      "dpr": 1,
+      "state": "playing",
+      "elapsed": 2.0326999999997217,
+      "samples": 28,
+      "medianMs": 183.29999999999927,
+      "p95Ms": 300,
+      "medianJSRenderMs": 1.099999999627471,
+      "errors": []
+    },
+    {
+      "variant": "expanded-low",
+      "draws": 40,
+      "triangles": 9310,
+      "dpr": 0.75,
+      "state": "playing",
+      "elapsed": 3.0700999999996292,
+      "samples": 43,
+      "medianMs": 100.00000000000091,
+      "p95Ms": 200.10000000000036,
+      "medianJSRenderMs": 0.8000000002793968,
+      "errors": []
+    },
+    {
+      "variant": "without-city",
+      "draws": 25,
+      "triangles": 3280,
+      "dpr": 1,
+      "state": "playing",
+      "elapsed": 5.989599999999154,
+      "samples": 110,
+      "medianMs": 33.400000000000546,
+      "p95Ms": 83.29999999999927,
+      "medianJSRenderMs": 0.5,
+      "errors": []
+    },
+    {
+      "variant": "without-ui-blur",
+      "draws": 42,
+      "triangles": 10330,
+      "dpr": 1,
+      "state": "playing",
+      "elapsed": 2.0903999999994425,
+      "samples": 29,
+      "medianMs": 166.69999999999982,
+      "p95Ms": 300.09999999999945,
+      "medianJSRenderMs": 0.7999999998137355,
+      "errors": []
+    },
+    {
+      "variant": "half-resolution",
+      "draws": 46,
+      "triangles": 10354,
+      "dpr": 0.5,
+      "state": "playing",
+      "elapsed": 4.245,
+      "samples": 62,
+      "medianMs": 83.30000000000018,
+      "p95Ms": 116.5,
+      "medianJSRenderMs": 0.7999999998137355,
+      "errors": []
+    }
+  ]
+}

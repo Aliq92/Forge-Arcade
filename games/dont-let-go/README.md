@@ -23,14 +23,21 @@ Those movement constants, speed progression, scoring radii, cube collision
 formula and hold/release mechanic remain. Original free flight stays the
 default mode. Its record uses the same save key; challenge runs do not replace
 that record. Challenge medals use the separate `dlg_hero_medals_v1` key.
-Restart returns to hold-to-start; focus loss now safely pauses.
+Restart returns to hold-to-start; focus loss now safely pauses. Keyboard repeat
+from an already-held Space key cannot resume a pause or relaunch after restart.
+Both actions require a fresh press. The longest mission briefing also fits
+landscape above the persistent controls, and the manual motion toggle applies
+to CSS animations as well as the 3D environment.
 
 ## Visual direction and source files
 
 **Aegis City** is an original suspended metropolis: enormous blue towers,
 illuminated facades, roof antennas, floating reactor assemblies, holographic
 signs and elevated light lanes. Three instanced building layers move at
-0.12/0.35/0.75 of flight displacement. The cached sky has atmospheric cloud
+0.12/0.35/0.75 of flight displacement. Repeated transit lanes, reactor cores,
+reactor spines, signs and aircraft are instanced as well. The city uses 23
+decorative draw objects; opaque tower layers render near-to-far, and the sky
+fills uncovered pixels afterward to limit overdraw. The cached sky has atmospheric cloud
 banks, warm horizon light and four palettes: Heroic Dawn, Neon Metropolis,
 Stormfront and Cosmic Breach. Geometric portals have nested rotating rings,
 a translucent energy halo and orbiting marks. Aircraft, storms and portal
@@ -111,8 +118,10 @@ Run a local server from the repository root:
 ```sh
 python3 -m http.server 4173
 node games/dont-let-go/tests/challenges.test.cjs
+node games/dont-let-go/tests/environment.test.cjs
 node games/dont-let-go/tests/playtest.cjs
 node games/dont-let-go/tests/live-browser.cjs
+node games/dont-let-go/tests/performance.cjs
 node --test tests/*.test.mjs
 node build.mjs
 ```
@@ -128,17 +137,28 @@ Results:
   coordinates, keyboard-rate feasibility, objectives, warning lead time,
   success/failure and one-time rewards. Also tests speed integration, corrupt
   saves, hazard boundaries and warning phases. See `qa/unit-results.txt`.
-- **27/27 deterministic browser checks pass.** Every mission is completed and
+- **5/5 environment tests pass.** These use the real Three.js geometry/math
+  implementation and a minimal canvas-texture context. They enforce the
+  decorative draw budget, batched traffic/technology, low/high restoration,
+  cached skies, camera isolation, frozen reduced-motion transforms and opaque
+  depth ordering. See `qa/environment-results.txt`.
+- **30/30 deterministic browser checks pass.** Every mission is completed and
   replayed using pointermove input through the real input handlers and actual
   collision/scoring code, with no camera or score assignment. Covers original
   hold/release, gate scoring, swept cube collision, arrows/WASD, warning and
   hazard failure, incomplete targets, rewards/reload, legacy saves, blocked
   storage, pause/resume/restart, focus loss, pointer cancellation, secondary
-  touch, reduced motion, decorative isolation, portrait, landscape, resizing
-  and mission-menu scrolling. No page exceptions. See `qa/browser-results.json`.
+  touch, reduced motion, decorative isolation, portrait, landscape, resizing,
+  mission-menu scrolling, deliberate Space re-press after pause/restart,
+  low-detail desktop resolution reduction and landscape mission-brief bounds.
+  No JavaScript exceptions, console errors, failed requests or HTTP errors.
+  See `qa/browser-results.json`.
 - **Live browser smoke passes** with continuous rendering, real mouse events,
   CDP touch start/move/end, opt-in audio/mute, responsive layouts and repeated
-  mission selection. No page exceptions. See `qa/performance.json`.
+  mission selection. Resource checks wait for two animation frames after each
+  selection, so the GPU has actually rendered the replacement course.
+  No JavaScript exceptions, console errors, failed requests or HTTP errors.
+  See `qa/performance.json`.
 - **32/32 existing root regression entries pass**, before and after the change.
   See `qa/root-regressions.txt`.
 - **Static production build succeeds** and includes all relative game scripts
@@ -162,6 +182,7 @@ Additional captures: [challenge picker](qa/after-challenges.png),
 [portrait menu](qa/mobile-portrait.png),
 [real touch flight](qa/live-mobile-flight.png),
 [landscape](qa/live-mobile-landscape.png),
+[landscape mission brief](qa/landscape-mission-brief.png),
 [mobile mission picker](qa/mobile-challenges.png), and
 [reduced motion](qa/reduced-motion.png).
 
@@ -175,20 +196,44 @@ Sky and facades are cached canvas textures; tower layers and roof antennas use
 instancing and shared geometry. City counts are fixed, aircraft are bounded,
 particles have at most four concurrent bursts (24 shards on small screens,
 48 on desktop), and bursts dispose their GPU resources. Course geometry is
-disposed on replacement. DPR is capped at 1.6 mobile / 2 desktop, falling to 1
-in low detail. Sustained slow frames reduce detail automatically; reduced
+disposed on replacement. DPR is capped at 1.6 mobile / 2 desktop, falling to 1 mobile / 0.75 desktop
+in low detail. The HTML interface stays at native resolution. Sustained slow frames reduce detail automatically; reduced
 motion removes optional effects. There is no per-frame full-screen filter,
 bloom, dynamic shadow map, external asset request or unbounded particle list.
 
-Final low-detail samples: 55 draw calls / 9,304 triangles on desktop and 53
-draw calls / 8,272 triangles in portrait, at DPR 1. The software renderer
-measured median frames of 150 ms desktop and 50 ms portrait (p95 299.9 /
-99.9 ms). These are slow and are not a 60 FPS result. Full measurements are
-recorded in `qa/performance.json`.
-Repeated course selections show stable geometry and texture counts. The
-software renderer used here has slow frame times and does **not** establish
-smooth desktop or mid-range Android performance. A hardware GPU / physical
-Android pass is still required before approving production performance.
+Controlled, sequential **flight** measurements at 1440×900, with identical
+seeded randomness, a 1.5-second warmup and a 5-second timing window:
+
+| Version / setting | Draw calls | Render DPR | Median frame | p95 frame |
+|---|---:|---:|---:|---:|
+| Original game | 27 | 1 | 100.1 ms | 166.7 ms |
+| Expansion before optimization, high | 64 | 1 | 183.3 ms | 316.7 ms |
+| Expansion before optimization, low | 57 | 1 | 166.6 ms | 299.9 ms |
+| Optimized expansion, high | 42 | 1 | 183.3 ms | 300.0 ms |
+| Optimized expansion, low | 40 | 0.75 | 100.0 ms | 200.1 ms |
+
+Batching reduces high-detail draw calls by 34%; it does not by itself improve
+the median software-rendered frame time. The lower-resolution fallback reduces
+median low-detail frames by about 40%, reaching a comparable median to the
+original game. This is **not** a 60 FPS result; tail latency still exceeds the
+original in this small sample. The city raster cost is the main limitation:
+disabling the city/sky reduced median flight frames to 33.4 ms; disabling UI
+blur changed little. A 0.5-DPR diagnostic measured 83.3 ms, but is not the
+shipped default or automatic quality level.
+
+See `qa/flight-performance-before.json` and `qa/flight-performance.json` for
+all samples and ablations. The benchmark defaults to the original source at
+`67a9732^` (commit `84498167c7c0e8607b340c83e2eea9119c29fc71`);
+`DLG_BASE_REF` can override it. Baseline and current pages use the same local
+Three.js r128. `qa/performance.json` separately records final continuous-menu
+rendering, live controls and stable GPU resources across eight replacements:
+36 geometries and 5 textures throughout repeated final-mission selection on
+both desktop and mobile emulation.
+
+This environment has no `/dev/dri` hardware GPU. Its Chromium SwiftShader
+software timings do **not** establish smooth desktop or mid-range Android
+performance. A hardware GPU / physical Android pass is still required before
+approving production performance.
 
 Ready for code review and deployment preparation; **not deployed**. Functional
 and build checks pass with no critical regressions observed. Remaining release
