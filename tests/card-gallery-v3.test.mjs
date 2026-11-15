@@ -11,10 +11,10 @@ function registry() {
   for (const [,path] of html.matchAll(/src="([^"?]+-register\.js)/g)) vm.runInContext(read(path), context);
   return context;
 }
-test('every active experience has a distinct local thumbnail in archive and featured cards', () => {
+test('every artwork-enabled experience has a distinct local thumbnail in archive and featured cards', () => {
   const context = registry();
   if (fs.existsSync(new URL('../card-thumbnails.js',import.meta.url))) vm.runInContext(read('card-thumbnails.js'),context);
-  const cards = vm.runInContext('GAMES.map(game=>({id:game.id,archive:cardHTML(game),featured:featuredCardHTML(game)}))',context);
+  const cards = vm.runInContext('GAMES.filter(game=>!game.hidden || CARD_THUMBNAILS.has(game.id)).map(game=>({id:game.id,archive:cardHTML(game),featured:featuredCardHTML(game)}))',context);
   assert.equal(cards.length,40);
   const paths = new Set();
   for (const card of cards) {

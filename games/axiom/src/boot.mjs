@@ -1,0 +1,1 @@
+import('./app/main.mjs').catch(error=>{const host=document.getElementById('content');host.textContent='AXIOM could not load: '+error.message+'. Serve this folder over HTTP and reload.';host.setAttribute('role','alert');console.error(error);});

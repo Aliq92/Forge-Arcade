@@ -43,9 +43,9 @@ function webpMetadata(buffer){
  return lossless;
 }
 
-test('artwork manifest covers exactly the 40 registered experiences',()=>{
+test('artwork manifest covers exactly the 40 artwork-enabled experiences',()=>{
  const ids=manifest.map(item=>item.id),context=registry();
- const registered=Array.from(vm.runInContext('GAMES.map(game=>game.id)',context));
+ const registered=Array.from(vm.runInContext('GAMES.filter(game=>!game.hidden || CARD_THUMBNAILS.has(game.id)).map(game=>game.id)',context));
  assert.equal(ids.length,40);assert.equal(new Set(ids).size,40);assert.deepEqual([...ids].sort(),registered.sort());
 });
 
@@ -63,7 +63,7 @@ test('all 40 distinct card illustrations exist as lossless 960 by 540 WebP files
 
 test('archive and featured cards select pixel WebP sources while preserving original SVG fallback',()=>{
  const context=registry();
- const cards=vm.runInContext('GAMES.map(game=>({id:game.id,archive:cardHTML(game),featured:featuredCardHTML(game)}))',context);
+ const cards=vm.runInContext('GAMES.filter(game=>!game.hidden || CARD_THUMBNAILS.has(game.id)).map(game=>({id:game.id,archive:cardHTML(game),featured:featuredCardHTML(game)}))',context);
  assert.equal(cards.length,40);
  for(const {id,archive,featured}of cards)for(const markup of [archive,featured]){
   assert.match(markup,/<picture(?:\s|>)/,`${id} needs responsive image selection`);
