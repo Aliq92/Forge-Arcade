@@ -1,0 +1,17 @@
+✔ bounded landscape batches replace technology and leave flight corridor open (45.572287ms)
+✔ low detail bounds trees and removes optional effects; high restores them (17.009497ms)
+✔ sky is cached per mood and camera transforms are never modified (17.887666ms)
+✔ near ridges move faster than far ridges, and geometry is reused through long flight (60.338019ms)
+✔ periodic terrain seams match heights and frozen scenery has no GPU matrix uploads (18.715814ms)
+✔ reduced motion freezes ambient movement and decorative parallax during flight (20.039372ms)
+✔ opaque landscape draws near-to-far; sky fills remaining pixels last (16.547117ms)
+✔ sky covers portrait, landscape and ultrawide viewports after resize (16.910608ms)
+✔ pines stay planted and travel toward the camera with their terrain (28.869043ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 249.81208

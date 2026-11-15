@@ -155,7 +155,7 @@
   <canvas id="gl"></canvas>
 
   <div id="hud">
-    <div class="hud-chip" id="hud-sector"><div class="label">SECTOR</div><div class="val" id="sectorVal">THE VOID</div></div>
+    <div class="hud-chip" id="hud-sector"><div class="label">SECTOR</div><div class="val" id="sectorVal">HEADWATERS</div></div>
     <div class="hud-chip" id="hud-time"><div class="label">TIME</div><div class="val num" id="timeVal">0.0</div></div>
     <div class="hud-chip" id="hud-combo"><div class="label">COMBO</div><div class="val num" id="comboVal">×1</div></div>
   </div>
@@ -171,7 +171,7 @@
     <div class="hint">Release = signal lost · Hold Space / mouse / touch<br>Steer with movement or WASD / arrows</div>
     <div id="modeLabel">ORIGINAL FREE FLIGHT</div>
     <div id="missionBrief"></div>
-    <div class="actions"><button id="chooseMissions">12 heroic challenges</button><button id="freeFlight">Original free flight</button></div>
+    <div class="actions"><button id="chooseMissions">12 flight challenges</button><button id="freeFlight">Original free flight</button></div>
   </div>
 
   <div class="overlay hidden" id="gameOverScreen">
@@ -187,7 +187,7 @@
     <div class="actions"><button id="overMissions">Challenges</button><button id="overHome">Main menu</button></div>
   </div>
 
-  <div class="overlay hidden" id="missionScreen"><div class="eyebrow">THE HEROIC MULTIVERSE</div><h2 class="title" style="font-size:30px">Choose your signal</h2><p class="sub">4 Hero Training · 4 City Under Siege · 4 Multiverse Crisis<br>All missions are open. Medals and optional Precision badges save locally.</p><div id="missionGrid"></div><div class="actions"><button id="closeMissions">Back</button></div></div>
+  <div class="overlay hidden" id="missionScreen"><div class="eyebrow">THE QUIET HIGHLANDS</div><h2 class="title" style="font-size:30px">Choose your signal</h2><p class="sub">4 First Flights · 4 Valley Trails · 4 Summit Routes<br>All missions are open. Medals and optional Precision badges save locally.</p><div id="missionGrid"></div><div class="actions"><button id="closeMissions">Back</button></div></div>
   <div class="overlay hidden" id="pauseScreen"><div class="eyebrow">SIGNAL SUSPENDED</div><h2 class="title">Paused</h2><p class="sub">Hold the flight area or Space to resume.<br>Release will end the signal once flight resumes.</p><div class="actions"><button id="pauseRestart">Restart</button><button id="pauseHome">Main menu</button></div></div>
   <div class="overlay hidden" id="completeScreen"><div class="eyebrow">SIGNAL SECURED</div><h2 class="title" id="completeTitle">Challenge complete</h2><p class="sub" id="completeReward"></p><div class="actions"><button id="nextMission">Next challenge</button><button id="completeRetry">Replay</button><button id="completeMissions">All challenges</button></div></div>
   <div id="missionStatus" aria-live="polite"></div><div id="eventWarning" role="status"></div>
@@ -216,12 +216,12 @@ const CORRIDOR_Y   = 4.6;
 const BEHIND_BUF   = 8;
 
 const SECTORS = [
-  { name:'THE VOID',     t:0,   speed:16, fog:0x05070c, star:0x9fd2ff, amb:0x1a2436, key:0x335577, fogD:0.0090, neb:0x42658a, nebOp:0.08, planetOp:0.12, streak:0x6f8daa, streakOp:0.16, starOp:0.68, drift:0.03, warp:0.62, nose:0.75, filter:'saturate(.78) contrast(1.08) brightness(.90)' },
-  { name:'LOW ORBIT',    t:18,  speed:22, fog:0x061226, star:0xa9e2ff, amb:0x1c2c46, key:0x3d6f9c, fogD:0.0068, neb:0x4d9cff, nebOp:0.20, planetOp:0.60, streak:0x9edcff, streakOp:0.30, starOp:0.90, drift:0.07, warp:0.80, nose:0.95, filter:'saturate(1.08) contrast(1.05) brightness(1.00)' },
-  { name:'NEBULA DRIFT', t:42,  speed:29, fog:0x180d30, star:0xe0c2ff, amb:0x2a1c40, key:0x7a4fbf, fogD:0.0058, neb:0xbd73ff, nebOp:0.68, planetOp:0.32, streak:0xe2c2ff, streakOp:0.32, starOp:0.92, drift:0.22, warp:0.88, nose:1.05, filter:'saturate(1.28) contrast(1.03) brightness(1.02)' },
-  { name:'SOLAR EDGE',   t:70,  speed:37, fog:0x2c1206, star:0xffd8a8, amb:0x3a2010, key:0xd97a3a, fogD:0.0062, neb:0xff7a36, nebOp:0.38, planetOp:0.72, streak:0xffc37d, streakOp:0.40, starOp:0.94, drift:0.12, warp:0.98, nose:1.20, filter:'saturate(1.16) contrast(1.08) brightness(1.04) sepia(.08)' },
-  { name:'SINGULARITY',  t:104, speed:47, fog:0x020308, star:0xffffff, amb:0x141420, key:0x8fa7ff, fogD:0.0120, neb:0x4b4f8f, nebOp:0.07, planetOp:0.06, streak:0xaebfff, streakOp:0.58, starOp:1.00, drift:0.04, warp:1.16, nose:1.35, filter:'saturate(.72) contrast(1.24) brightness(.80)' },
-  { name:'HYPERSPACE',   t:146, speed:60, fog:0x000000, star:0xffffff, amb:0x0a0a10, key:0xbfe6ff, fogD:0.0035, neb:0xaee8ff, nebOp:0.02, planetOp:0.00, streak:0xe8f7ff, streakOp:0.92, starOp:1.00, drift:0.00, warp:1.72, nose:1.55, filter:'saturate(.58) contrast(1.34) brightness(1.08)' }
+  { name:'HEADWATERS',     t:0,   speed:16, fog:0x05070c, star:0x9fd2ff, amb:0x1a2436, key:0x335577, fogD:0.0090, neb:0x42658a, nebOp:0.08, planetOp:0.12, streak:0x6f8daa, streakOp:0.16, starOp:0.68, drift:0.03, warp:0.62, nose:0.75, filter:'saturate(.78) contrast(1.08) brightness(.90)' },
+  { name:'PINE VALLEY',    t:18,  speed:22, fog:0x061226, star:0xa9e2ff, amb:0x1c2c46, key:0x3d6f9c, fogD:0.0068, neb:0x4d9cff, nebOp:0.20, planetOp:0.60, streak:0x9edcff, streakOp:0.30, starOp:0.90, drift:0.07, warp:0.80, nose:0.95, filter:'saturate(1.08) contrast(1.05) brightness(1.00)' },
+  { name:'HIGH MEADOWS', t:42,  speed:29, fog:0x180d30, star:0xe0c2ff, amb:0x2a1c40, key:0x7a4fbf, fogD:0.0058, neb:0xbd73ff, nebOp:0.68, planetOp:0.32, streak:0xe2c2ff, streakOp:0.32, starOp:0.92, drift:0.22, warp:0.88, nose:1.05, filter:'saturate(1.28) contrast(1.03) brightness(1.02)' },
+  { name:'AMBER RIDGE',   t:70,  speed:37, fog:0x2c1206, star:0xffd8a8, amb:0x3a2010, key:0xd97a3a, fogD:0.0062, neb:0xff7a36, nebOp:0.38, planetOp:0.72, streak:0xffc37d, streakOp:0.40, starOp:0.94, drift:0.12, warp:0.98, nose:1.20, filter:'saturate(1.16) contrast(1.08) brightness(1.04) sepia(.08)' },
+  { name:'BLUE HOUR',  t:104, speed:47, fog:0x020308, star:0xffffff, amb:0x141420, key:0x8fa7ff, fogD:0.0120, neb:0x4b4f8f, nebOp:0.07, planetOp:0.06, streak:0xaebfff, streakOp:0.58, starOp:1.00, drift:0.04, warp:1.16, nose:1.35, filter:'saturate(.72) contrast(1.24) brightness(.80)' },
+  { name:'OPEN SKY',   t:146, speed:60, fog:0x000000, star:0xffffff, amb:0x0a0a10, key:0xbfe6ff, fogD:0.0035, neb:0xaee8ff, nebOp:0.02, planetOp:0.00, streak:0xe8f7ff, streakOp:0.92, starOp:1.00, drift:0.00, warp:1.72, nose:1.55, filter:'saturate(.58) contrast(1.34) brightness(1.08)' }
 ];
 
 const RANKS = [
@@ -252,12 +252,12 @@ scene.fog = new THREE.FogExp2(SECTORS[0].fog, SECTORS[0].fogD);
 const camera = new THREE.PerspectiveCamera(72, window.innerWidth/window.innerHeight, 0.05, 620);
 camera.position.set(0,0,0);
 scene.add(camera);
-const environment=createHeroEnvironment(THREE,scene,camera,IS_SMALL);
+const environment=createHighlandEnvironment(THREE,scene,camera,IS_SMALL);
 
 const ambLight = new THREE.AmbientLight(SECTORS[0].amb, 1.1);
 scene.add(ambLight);
 const keyLight = new THREE.DirectionalLight(SECTORS[0].key, 0.9);
-keyLight.position.set(2,3,4);
+keyLight.position.set(-2,3,4);
 camera.add(keyLight);
 scene.add(camera);
 const noseLight = new THREE.PointLight(0x8fd6ff, 1.1, 22, 2);
@@ -267,6 +267,7 @@ camera.add(noseLight);
 window.addEventListener('resize', ()=>{
   camera.aspect = window.innerWidth/window.innerHeight;
   camera.updateProjectionMatrix();
+  environment.resize();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
@@ -756,7 +757,7 @@ function updateSector(t){
   if(i !== activeSectorIndex){
     if(state === 'playing' && activeSectorIndex >= 0) showFlash('SECTOR // ' + cur.name);
     activeSectorIndex = i;
-    // Sector filters are replaced by the cached city sky palette.
+    // Sector filters are replaced by the cached highland sky palette.
   }
 
   curFog.copy(new THREE.Color(cur.fog)).lerp(new THREE.Color(next.fog), frac);
@@ -955,11 +956,13 @@ function animate(){
     updateExplosions(dt);
   }
 
-  if(state!=='paused')environment.update(dt,selectedChallenge?selectedChallenge.mood:Math.min(3,Math.floor(elapsed/35)),reducedMotion(),state==='playing');
-  // City owns the backdrop; original sector lighting/physics still run unchanged.
+  if(state!=='paused')environment.update(dt,selectedChallenge?selectedChallenge.mood:Math.min(3,Math.floor(activeSectorIndex*2/3)),reducedMotion(),state==='playing');
+  // Highlands own the backdrop; flight physics and sector speed remain unchanged.
   scene.background=null;
   streaks.visible=!reducedMotion();
-  nebulae.forEach(n=>n.visible=!reducedMotion()&&detailMode!=='low');
+  nebulae.forEach(n=>n.visible=false);
+  starsNear.pts.visible=false;starsFar.pts.visible=false;
+  ambLight.color.setHex(0x91b7af);keyLight.color.setHex(0xffdfac);
   planets.forEach(p=>p.visible=false);
   renderer.setClearColor(0x071329,1);
   renderer.render(scene, camera);
@@ -971,7 +974,7 @@ const HC=HeroChallenges;
 let selectedChallenge=null;
 let medals=HC.readSave(readStorage('dlg_hero_medals_v1'));
 let courseObjects=[],hazardObjects=[],warningIndex=-1;
-const tierNames=['Hero Training','City Under Siege','Multiverse Crisis'];
+const tierNames=['First Flights','Valley Trails','Summit Routes'];
 function clearInput(){document.activeElement?.blur?.();flightPointerId=null;pointerHeld=false;spaceHeld=false;havePointer=false;for(const k of Object.keys(keyDir))keyDir[k]=false;}
 function disposeObject(mesh){scene.remove(mesh);mesh.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();}});}
 function initChallenge(){

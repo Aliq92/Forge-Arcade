@@ -6,12 +6,12 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const base=process.env.DLG_URL||'http://127.0.0.1:4173/games/dont-let-go/';
-const dir=path.resolve(__dirname,'../qa');
+const dir=path.resolve(__dirname,'../qa/fix23');
 const results=[];
 const instrument=`
 const renderForQA=renderer.render.bind(renderer);
 window.__qa={
- snapshot:()=>({state,elapsed,gates:gatesPassed,cubes:cubesDestroyed,perfect:perfectGates,combo,best,x:camera.position.x,y:camera.position.y,z:camera.position.z,selected:selectedChallenge?.id,course:courseObjects.length,hazards:hazardObjects.length,medals:JSON.parse(JSON.stringify(medals)),reduced:reducedMotion(),portalAngle:environment.portals[0].rotation.z,mood:environment.mood,detail:detailMode,dpr:renderer.getPixelRatio(),draws:renderer.info.render.calls,geometries:renderer.info.memory.geometries}),
+ snapshot:()=>({state,elapsed,gates:gatesPassed,cubes:cubesDestroyed,perfect:perfectGates,combo,best,x:camera.position.x,y:camera.position.y,z:camera.position.z,selected:selectedChallenge?.id,course:courseObjects.length,hazards:hazardObjects.length,medals:JSON.parse(JSON.stringify(medals)),reduced:reducedMotion(),ambientTime:environment.visualTime,mood:environment.mood,detail:detailMode,dpr:renderer.getPixelRatio(),draws:renderer.info.render.calls,geometries:renderer.info.memory.geometries,environmentGeometries:(()=>{const ids=new Set();environment.group.traverse(o=>{if(o.geometry)ids.add(o.geometry.uuid);});return [...ids].sort().join();})()}),
  step(n,pilot=false,delta=1/60){
   const old=renderer.render;renderer.render=()=>{};
   for(let i=0;i<n;i++){
@@ -70,8 +70,8 @@ async function main(){
   await page.click('#chooseMissions');await page.locator('.mission').nth(4).click();await page.keyboard.down('Space');await page.keyboard.down('ArrowRight');await step(360);await page.keyboard.up('ArrowRight');assert.equal(await page.locator('#eventWarning').isVisible(),true);await step(1);await page.waitForTimeout(450);await page.screenshot({path:dir+'/storm-warning.png'});await step(240);assert.equal((await snap()).state,'gameover');assert.match(await page.locator('#failureReason').innerText(),/Energy front hit/);await page.keyboard.up('Space');
  });
  await check('failure from incomplete objectives',async()=>{await page.click('#overMissions');await page.locator('.mission').nth(9).click();await page.keyboard.down('Space');await step(60*35);assert.equal((await snap()).state,'gameover');assert.match(await page.locator('#failureReason').innerText(),/Route ended/);await page.keyboard.up('Space');});
- await check('reduced motion respects OS and suppresses environmental rotation',async()=>{
-  await page.emulateMedia({reducedMotion:'reduce'});assert.equal((await snap()).reduced,true);await step(1);const a=(await snap()).portalAngle;await step(120);assert.equal((await snap()).portalAngle,a);await page.click('#overHome');await page.evaluate(()=>__qa.render());await step(1);await page.waitForTimeout(450);await page.screenshot({path:dir+'/reduced-motion.png'});await page.emulateMedia({reducedMotion:'no-preference'});
+ await check('reduced motion respects OS and suppresses ambient movement',async()=>{
+  await page.emulateMedia({reducedMotion:'reduce'});assert.equal((await snap()).reduced,true);await step(1);const a=(await snap()).ambientTime;await step(120);assert.equal((await snap()).ambientTime,a);await page.click('#overHome');await page.evaluate(()=>__qa.render());await step(1);await page.waitForTimeout(450);await page.screenshot({path:dir+'/reduced-motion.png'});await page.emulateMedia({reducedMotion:'no-preference'});
  });
  await check('resize and portrait mission scroll',async()=>{
   await page.setViewportSize({width:390,height:844});await page.click('#chooseMissions');assert.equal(await page.locator('.mission').count(),12);await page.locator('.mission').nth(11).scrollIntoViewIfNeeded();await step(1);await page.waitForTimeout(450);await page.screenshot({path:dir+'/mobile-challenges.png'});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.locator('.mission').nth(11).click();await step(1);await page.waitForTimeout(450);await page.screenshot({path:dir+'/mobile-portrait.png'});
@@ -100,6 +100,9 @@ async function main(){
   await page.evaluate(()=>window.dispatchEvent(new KeyboardEvent('keydown',{code:'Space',repeat:true,bubbles:true})));assert.equal((await snap()).state,'paused');
   await page.keyboard.up('Space');await page.keyboard.down('Space');assert.equal((await snap()).state,'playing');await page.keyboard.press('KeyR');
   await page.evaluate(()=>window.dispatchEvent(new KeyboardEvent('keydown',{code:'Space',repeat:true,bubbles:true})));assert.equal((await snap()).state,'start');await page.keyboard.up('Space');
+ });
+ await check('endless flight crosses all existing sectors with stable environment resources',async()=>{
+  await page.click('#freeFlight');await page.keyboard.down('Space');await step(1);const before=await snap();await step(60*150);const after=await snap();assert.equal(after.state,'playing');assert.ok(after.elapsed>=150);assert.equal(after.mood,3);assert.equal(after.environmentGeometries,before.environmentGeometries);assert.ok(Number.isFinite(after.z));await page.keyboard.up('Space');
  });
  await check('no browser console, HTTP or JavaScript errors',async()=>assert.deepEqual(errors,[]));
  fs.writeFileSync(dir+'/browser-results.json',JSON.stringify({checks:results.length,results,errors},null,2));await browser.close();

@@ -5,14 +5,13 @@ const fs=require('node:fs');
 const assert=require('node:assert/strict');
 const path=require('node:path');
 const url=process.env.DLG_URL||'http://127.0.0.1:4173/games/dont-let-go/';
-const baseRef=process.env.DLG_BASE_REF||'67a9732^';
+const baseRef=process.env.DLG_BASE_REF||'f0a3a9d';
 const original=execFileSync('git',['show',baseRef+':games/dont-let-go/index.html'],{encoding:'utf8'});
 const current=fs.readFileSync(path.resolve(__dirname,'../index.html'),'utf8');
 const vendor=path.resolve(__dirname,'../vendor/three.min.js');
 const environment=fs.readFileSync(path.resolve(__dirname,'../environment.js'),'utf8');
 const variants=process.env.DLG_VARIANTS?JSON.parse(process.env.DLG_VARIANTS):[
- {name:'original',original:true},{name:'expanded-high'},{name:'expanded-low',low:true},
- {name:'without-city',noCity:true},{name:'without-ui-blur',noBlur:true},{name:'half-resolution',dpr:.5}
+ {name:'fix22-high',original:true},{name:'highlands-high'},{name:'highlands-low',low:true}
 ];
 (async()=>{
  const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});const report=[];
@@ -20,13 +19,13 @@ const variants=process.env.DLG_VARIANTS?JSON.parse(process.env.DLG_VARIANTS):[
  for(const v of variants){
  const context=await browser.newContext({viewport:{width:1440,height:900},deviceScaleFactor:1});const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(()=>{let seed=22;Math.random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};});
- await page.route('**/environment.js',r=>r.fulfill({body:environment,contentType:'text/javascript'}));
+ await page.route('**/environment.js',r=>r.fulfill({body:v.original?execFileSync('git',['show',baseRef+':games/dont-let-go/environment.js'],{encoding:'utf8'}):environment,contentType:'text/javascript'}));
  await page.route('**/three.min.js',r=>r.fulfill({path:vendor,contentType:'text/javascript'}));
  await page.route('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',r=>r.fulfill({path:vendor,contentType:'text/javascript'}));
  await page.route('**/games/dont-let-go/',r=>{
  let source=v.original?original:current;
  const injection=`window.__bench={frames:[],js:[],last:0,active:false,info:()=>({draws:renderer.info.render.calls,triangles:renderer.info.render.triangles,dpr:renderer.getPixelRatio(),state,elapsed})};
- ${v.original?'':`detailMode='high';${v.low?'setDetail(true);': ''}${v.noCity?'environment.group.visible=false;':''}${v.frontToBack?'environment.layers.forEach((l,i)=>{l.towers.renderOrder=l.roofs.renderOrder=3-i;});environment.group.children[0].renderOrder=10;':''}`}
+ ${`detailMode='high';${v.low?'setDetail(true);': ''}${v.noCity?'environment.group.visible=false;':''}`}
  ${v.dpr?`renderer.setPixelRatio(${v.dpr});`:''}
  const benchRender=renderer.render.bind(renderer);
  renderer.render=function(s,c){const a=performance.now();benchRender(s,c);if(__bench.active)__bench.js.push(performance.now()-a);};
@@ -41,6 +40,6 @@ const variants=process.env.DLG_VARIANTS?JSON.parse(process.env.DLG_VARIANTS):[
  assert.deepEqual(errors,[]);assert.equal(result.state,'playing');assert.ok(result.samples>=15,'insufficient frames for a timing sample');
  const item={variant:v.name,...result,errors};report.push(item);console.log(JSON.stringify(item));await context.close();
  }
- fs.writeFileSync(path.resolve(__dirname,process.env.DLG_BENCH_OUT||'../qa/flight-performance.json'),JSON.stringify({baselineRef:baseRef,renderer:'Chromium SwiftShader software WebGL',viewport:'1440x900',warmupMs:1500,sampleMs:5000,variants:report},null,2));
+ fs.writeFileSync(path.resolve(__dirname,process.env.DLG_BENCH_OUT||'../qa/fix23/flight-performance.json'),JSON.stringify({baselineRef:baseRef,renderer:'Chromium SwiftShader software WebGL',viewport:'1440x900',warmupMs:1500,sampleMs:5000,variants:report},null,2));
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exit(1)});

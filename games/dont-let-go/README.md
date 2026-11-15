@@ -1,122 +1,66 @@
-# DON'T LET GO — FIX #22: The Heroic Multiverse
+# DON'T LET GO — FIX #23: The Quiet Highlands
 
-Implemented on `codex/fix-22-heroic-multiverse`. No deployment or remote push.
-Only this game's directory changes. The Forge Arcade homepage, card, shared
-styles, navigation and deployment configuration are untouched.
+Development branch: `codex/fix-23-living-world`. No deployment or remote push.
+Only this game's directory changes. [FIX22.md](FIX22.md) preserves the prior
+implementation report; its environment and old performance findings are historical.
 
-## Existing game analysis
+## Inspection and art direction
 
-The original `index.html` was a self-contained Three.js r128 flight game,
-loading its library from a CDN. Hold Space, mouse or touch to fly; release ends
-the signal. Pointer movement or WASD/arrows steer a smoothed camera inside
-x ±6.4 / y ±4.6. The ship banks with steering. Six timed sectors gradually
-increase speed from 16 to 60, with milestones at 0/18/42/70/104/146 seconds.
+The inspected baseline is `f0a3a9d`. This is a Three.js forward-flight game,
+not a platformer: hold Space/mouse/touch to sustain flight, steer the camera
+inside x ±6.4 / y ±4.6, thread gates and collect cubes. The recognizable ship
+is attached to the smoothed camera. Release ends flight. Six existing timed
+sectors increase speed; twelve FIX #22 challenges add targets, energy-front
+hazards, medals and optional precision rewards. These features were present
+and are retained, including all challenge IDs and both save keys.
 
-Two recycled gates score within radius 6 and award perfects within radius 1.6.
-Missing a gate resets combo; it does not kill the player. Three pooled energy
-cubes use a swept ship collision with radius 1.5. Cubes are collectibles, not
-hazards. There were no finite levels, challenge menu, pause or audio. The
-existing record is `dlg_best_time`. No game-specific tests existed; the 32
-root regression test entries passed before modification.
+The prior scenery was a suspended city with facade towers, transit lanes,
+reactors, billboards, rotating portals and flashing lightning. Its decorative
+objects were collision-independent, but the busy technology and space effects
+competed with the gate/cube silhouettes. There are no external artwork assets:
+Three.js is vendored, and the scenery is procedural.
 
-Those movement constants, speed progression, scoring radii, cube collision
-formula and hold/release mechanic remain. Original free flight stays the
-default mode. Its record uses the same save key; challenge runs do not replace
-that record. Challenge medals use the separate `dlg_hero_medals_v1` key.
-Restart returns to hold-to-start; focus loss now safely pauses. Keyboard repeat
-from an already-held Space key cannot resume a pause or relaunch after restart.
-Both actions require a fresh press. The longest mission briefing also fits
-landscape above the persistent controls, and the manual motion toggle applies
-to CSS animations as well as the 3D environment.
+**Natural highlands** gives the fast, continuous flight a calm, legible setting.
+A broad valley points toward the next gate. Faceted ridges, pines, a river,
+small waterfalls and distant birds establish scale without introducing false
+platforms or obstacles. The muted teal/stone palette leaves cyan gates, amber
+collectibles and red challenge hazards visually dominant. Terrain inside the
+central corridor is more than 30 units below flight; the river is 55 units below.
 
-## Visual direction and source files
+## Implementation
 
-**Aegis City** is an original suspended metropolis: enormous blue towers,
-illuminated facades, roof antennas, floating reactor assemblies, holographic
-signs and elevated light lanes. Three instanced building layers move at
-0.12/0.35/0.75 of flight displacement. Repeated transit lanes, reactor cores,
-reactor spines, signs and aircraft are instanced as well. The city uses 23
-decorative draw objects; opaque tower layers render near-to-far, and the sky
-fills uncovered pixels afterward to limit overdraw. The cached sky has atmospheric cloud
-banks, warm horizon light and four palettes: Heroic Dawn, Neon Metropolis,
-Stormfront and Cosmic Breach. Geometric portals have nested rotating rings,
-a translucent energy halo and orbiting marks. Aircraft, storms and portal
-rotation are decorative and never enter collision queries.
+- `environment.js`: replaces the city with three periodic terrain layers,
+  reusable terrain geometry, baked directional facet lighting, instanced pines,
+  four falls, a river ribbon, distant birds and a cached atmospheric sky.
+- Depth comes from progressively muted ridge colours and camera-displacement
+  parallax factors of 0.12 / 0.30 / 0.60. Two tiles per layer share geometry;
+  matching end heights prevent cracks at recycling boundaries.
+- Geometry, normals and lighting colours are generated once. Each frame moves
+  layer roots; tree matrices update only when camera travel or motion mode changes.
+  There are 11 decorative draw objects, versus the city's 23. Counts are bounded.
+- Birds drift slowly; falls have restrained opacity movement. No lightning,
+  rotating portals, energy halos or decorative city structures remain. Sky clouds
+  are intentionally static. Reduced motion freezes ambient movement and optional
+  decorative forward parallax; essential flight and steering continue.
+- Four sky palettes represent morning, clear afternoon, muted evening and blue
+  hour. Existing sector milestones select them in endless flight; authored
+  challenge mood values select them in missions. No new stages were introduced.
+- `index.html`: uses the environment, hides old space backdrops, gives the ship
+  warm upper-left light, and updates menu/tier/sector presentation labels. Timings,
+  speeds, steering, collision radii, scoring, hazard rules and mission data are
+  unchanged. Original mission titles/briefings remain for familiarity.
+- Low detail limits pines to 40 and hides falls/birds. Existing DPR caps, automatic
+  slow-frame fallback, Motion/Detail controls and CSS motion reduction remain.
+- Existing audio is preserved: the quiet ship hum and gameplay cues are opt-in,
+  with the same Sound/mute control. No new sound assets or autoplay were added.
+- No new DOM layers intercept input. HUD, navigation, responsive layouts,
+  restart, pause, challenge selection and save formats remain intact.
 
-- `index.html`: preserved original flight simulation, mission adapter, UI,
-  pause/restart, guarded storage, audio and adaptive detail.
-- `challenges.js`: twelve authored routes, integrated sector-distance formula,
-  event timing, completion rules, save validation and idempotent rewards.
-- `environment.js`: independent procedural city, cached sky/facade textures,
-  parallax, reactors, signs, portals, aircraft and distant lightning.
-- `vendor/three.min.js`: the same Three.js r128, now served locally. MIT license
-  in `vendor/THREE-LICENSE.txt`; downloaded from cdnjs. SHA-256:
-  `9274bbcec8d96168626c732b5d31c775aa8cfb7eaa0599bec0c175908a2c1ce2`.
-- `tests/`: deterministic rules tests and reproducible browser QA scripts.
-- `qa/`: screenshots, test output and performance evidence.
+## Reproducible verification
 
-All art and synthesized audio are authored procedurally. No franchise assets,
-characters, logos, recognizable vehicles, or unlicensed audio are included.
-
-## Twelve playable challenges
-
-Every mission starts at time 0, position (0,0,0), with no collected objects and
-combo 1. Its first target arrives at 5 seconds. Hold throughout, collect the
-listed gate/cube targets, and survive until the duration expires. Targets are
-placed using the integral of the original speed curve. All missions remain
-selectable; optional badges never gate progress.
-
-| Tier | Challenge | Duration | Success: gates / cubes | Problem to solve |
-|---|---|---:|---:|---|
-| Hero Training | First Light | 18s | 3 / 0 | Hold and follow broad introductory gates |
-| Hero Training | Skyline Weave | 23s | 4 / 0 | Alternate left/right alignment |
-| Hero Training | Reactor Spark | 23s | 2 / 2 | Align the actual ship with cubes between gates |
-| Hero Training | Cloud Ladder | 23s | 4 / 0 | Climb and descend |
-| City Under Siege | Evacuation Lane | 26s | 3 / 1 | Return to the left safe lane for an energy front |
-| City Under Siege | Reactor Relay | 28s | 2 / 3 | Alternate cube precision and gate timing |
-| City Under Siege | Storm Crossing | 31s | 3 / 1 | Switch between two safe lanes |
-| City Under Siege | Highline Rescue | 33s | 3 / 2 | Control altitude and return to centre for a front |
-| Multiverse Crisis | Breach Run | 36s | 2 / 2 | Alternate three front lanes and cube alignment |
-| Multiverse Crisis | Prism Ascent | 33s | 4 / 2 | Fly a rising/descending helix with upper cubes |
-| Multiverse Crisis | Last Skybridge | 41s | 3 / 2 | Combine altitude, three fronts and precision |
-| Multiverse Crisis | The World Holds | 46s | 4 / 2 | Complete the final breach relay |
-
-Completing a mission awards one persistent medal and its tier crest. Threading
-two perfect gates also earns an optional Precision badge. Replays can improve
-the badge, but never duplicate medals. Completion has a short bounded energy
-burst, clear message and optional audio cue; there is no currency.
-
-## Environmental events and controls
-
-Challenge-only energy fronts are red interference walls with a four-unit open
-lane outlined in cyan. The HUD names LEFT / CENTRE / RIGHT four seconds before
-arrival and counts down. Steering into that lane is the counterplay; altitude
-never blocks passage. Hazard checks occur at the wall plane and use the same
-safe-lane rule every time. Release, a front collision, or reaching the route
-end without all targets fails a mission. Free flight has no new hazards.
-
-Distant aircraft, reactor installations, portals and soft storm lightning
-remain background events. There is no teleportation or gravity modification.
-
-- Flight: hold Space, mouse or touch; steer with pointer movement or WASD/arrows.
-- Pause: P / Escape or the Pause button; holding the flight area or Space resumes.
-- Restart: R or Restart; hold again to launch.
-- Sound: off at startup; opt in using Sound. Includes a quiet reactor ambience,
-  cube cue, front warning and completion tone. The button also mutes audio.
-- Motion: follows OS reduced-motion preference; the button can force reduction.
-  Reduced mode freezes portal/aircraft motion, removes lightning, bursts,
-  streaks and haze, suppresses camera banking and disables CSS transitions.
-  Essential forward flight and steering continue.
-- Detail: automatic slow-frame fallback, with manual low/high selection.
-- Multi-touch tracks the flight finger; a secondary button touch cannot release
-  it accidentally. Gameplay prevents scrolling; the mission picker scrolls.
-
-## Verification
-
-Run a local server from the repository root:
+From the repository root, serve with `python3 -m http.server 4173`, then run:
 
 ```sh
-python3 -m http.server 4173
 node games/dont-let-go/tests/challenges.test.cjs
 node games/dont-let-go/tests/environment.test.cjs
 node games/dont-let-go/tests/playtest.cjs
@@ -124,121 +68,77 @@ node games/dont-let-go/tests/live-browser.cjs
 node games/dont-let-go/tests/performance.cjs
 node --test tests/*.test.mjs
 node build.mjs
+git diff --check
 ```
 
-Browser scripts require Playwright and Chromium (`CHROMIUM_PATH` can override
-`/usr/bin/chromium`; `DLG_URL` can override the local URL). They inject test
-access only into their served responses. No test hooks, auto-steering or
-completion shortcuts ship in the production HTML.
+Browser scripts require Playwright and Chromium; set `CHROMIUM_PATH` and
+`DLG_URL` if necessary. Test hooks are injected into served responses only.
+No debug hooks ship. Run browser scripts sequentially for timing comparisons.
+New evidence is in [qa/fix23](qa/fix23/); previous evidence is retained separately.
 
-Results:
+Baseline: the existing challenge/environment tests, 30 browser checks and all
+32 root regression entries passed before modification. Baseline screenshots
+were captured with the existing deterministic browser harness.
 
-- **16/16 rules tests pass.** Every course validates starting targets, reachable
-  coordinates, keyboard-rate feasibility, objectives, warning lead time,
-  success/failure and one-time rewards. Also tests speed integration, corrupt
-  saves, hazard boundaries and warning phases. See `qa/unit-results.txt`.
-- **5/5 environment tests pass.** These use the real Three.js geometry/math
-  implementation and a minimal canvas-texture context. They enforce the
-  decorative draw budget, batched traffic/technology, low/high restoration,
-  cached skies, camera isolation, frozen reduced-motion transforms and opaque
-  depth ordering. See `qa/environment-results.txt`.
-- **30/30 deterministic browser checks pass.** Every mission is completed and
-  replayed using pointermove input through the real input handlers and actual
-  collision/scoring code, with no camera or score assignment. Covers original
-  hold/release, gate scoring, swept cube collision, arrows/WASD, warning and
-  hazard failure, incomplete targets, rewards/reload, legacy saves, blocked
-  storage, pause/resume/restart, focus loss, pointer cancellation, secondary
-  touch, reduced motion, decorative isolation, portrait, landscape, resizing,
-  mission-menu scrolling, deliberate Space re-press after pause/restart,
-  low-detail desktop resolution reduction and landscape mission-brief bounds.
-  No JavaScript exceptions, console errors, failed requests or HTTP errors.
-  See `qa/browser-results.json`.
-- **Live browser smoke passes** with continuous rendering, real mouse events,
-  CDP touch start/move/end, opt-in audio/mute, responsive layouts and repeated
-  mission selection. Resource checks wait for two animation frames after each
-  selection, so the GPU has actually rendered the replacement course.
-  No JavaScript exceptions, console errors, failed requests or HTTP errors.
-  See `qa/performance.json`.
-- **32/32 existing root regression entries pass**, before and after the change.
-  See `qa/root-regressions.txt`.
-- **Static production build succeeds** and includes all relative game scripts
-  and the local vendor library. `git diff --check` passes.
-
-The browser completion harness advances simulation at deterministic 60 Hz and
-suppresses intermediate rendering; screenshots render real scenes. The live
-browser script separately tests continuous rendering and real device events.
-These are complementary checks, not evidence of human difficulty balance.
+Final executed checks: **16/16 challenge tests, 9/9 environment tests,
+31/31 deterministic browser checks and 32/32 root regression entries pass**.
+The production build and `git diff --check` pass. Continuous browser QA passes
+on desktop and emulated mobile with no console, JavaScript, request or HTTP
+errors. All twelve missions complete and replay without duplicate rewards.
+The 150-second endless run crosses all original sectors with unchanged
+environment geometry identities. Wide-screen sky coverage has an additional
+unit regression and refreshed live landscape screenshots. Deterministic mission completions use real pointer
+handlers and actual scoring/collision code, without assigning camera position,
+scores or medals. Continuous-render QA separately exercises real mouse and CDP
+touch input, audio/mute, portrait/landscape, resize and repeated course selection.
 
 ## Visual evidence
 
-| Before | After |
-|---|---|
-| [Original menu](qa/before-desktop.png) | [Aegis City menu](qa/after-desktop.png) |
-| [Original flight](qa/before-flight.png) | [City flight](qa/after-flight.png) |
+| View | FIX #22 | FIX #23 |
+| --- | --- | --- |
+| Menu | [Before](qa/fix23/before-desktop.png) | [After](qa/fix23/after-desktop.png) |
+| Flight | [Before, retained FIX #22 capture](qa/fix23/before-flight.png) | [After](qa/fix23/after-flight.png) |
+| Portrait briefing | [Before](qa/fix23/before-portrait.png) | [After](qa/fix23/mobile-portrait.png) |
 
-Additional captures: [challenge picker](qa/after-challenges.png),
-[energy-front warning](qa/storm-warning.png),
-[final mission completion](qa/complete-12.png),
-[portrait menu](qa/mobile-portrait.png),
-[real touch flight](qa/live-mobile-flight.png),
-[landscape](qa/live-mobile-landscape.png),
-[landscape mission brief](qa/landscape-mission-brief.png),
-[mobile mission picker](qa/mobile-challenges.png), and
-[reduced motion](qa/reduced-motion.png).
+Also inspect [touch flight](qa/fix23/live-mobile-flight.png),
+[landscape](qa/fix23/live-mobile-landscape.png),
+[hazard warning](qa/fix23/storm-warning.png), and
+[reduced motion](qa/fix23/reduced-motion.png).
 
-Review confirmed that gates retain a bright cyan/amber outline, the flight
-corridor stays unobstructed by architecture, the portals sit above/to the side
-of the action, and essential HUD elements fit in portrait and landscape.
+## Performance findings
 
-## Performance and readiness
+Controlled sequential flight runs at 1440×900, seeded randomness, 1.5 seconds
+warmup and a 5-second sample window; full samples in
+[flight-performance.json](qa/fix23/flight-performance.json):
 
-Sky and facades are cached canvas textures; tower layers and roof antennas use
-instancing and shared geometry. City counts are fixed, aircraft are bounded,
-particles have at most four concurrent bursts (24 shards on small screens,
-48 on desktop), and bursts dispose their GPU resources. Course geometry is
-disposed on replacement. DPR is capped at 1.6 mobile / 2 desktop, falling to 1 mobile / 0.75 desktop
-in low detail. The HTML interface stays at native resolution. Sustained slow frames reduce detail automatically; reduced
-motion removes optional effects. There is no per-frame full-screen filter,
-bloom, dynamic shadow map, external asset request or unbounded particle list.
+| Version | Draw calls | DPR | Median frame | p95 frame |
+| --- | ---: | ---: | ---: | ---: |
+| FIX #22 high | 42 | 1 | 116.7 ms | 333.3 ms |
+| Highlands high | 25 | 1 | 100.0 ms | 200.0 ms |
+| Highlands low | 23 | 0.75 | 83.2 ms | 150.0 ms |
 
-Controlled, sequential **flight** measurements at 1440×900, with identical
-seeded randomness, a 1.5-second warmup and a 5-second timing window:
+High-detail draw calls decrease about 40%; median frame time decreases about
+14% in this short software-rendered sample. Terrain raises rendered triangles
+from approximately 10,330 to 15,044, while eliminating many separate effects.
+Repeated final-mission selection holds at 26 geometries / 2 textures on desktop
+and mobile emulation. This is bounded resource use, not an exhaustive memory
+profile. Results are machine-dependent and the small timing sample is not a
+statistical hardware-performance guarantee.
 
-| Version / setting | Draw calls | Render DPR | Median frame | p95 frame |
-|---|---:|---:|---:|---:|
-| Original game | 27 | 1 | 100.1 ms | 166.7 ms |
-| Expansion before optimization, high | 64 | 1 | 183.3 ms | 316.7 ms |
-| Expansion before optimization, low | 57 | 1 | 166.6 ms | 299.9 ms |
-| Optimized expansion, high | 42 | 1 | 183.3 ms | 300.0 ms |
-| Optimized expansion, low | 40 | 0.75 | 100.0 ms | 200.1 ms |
+## Limitations and release assessment
 
-Batching reduces high-detail draw calls by 34%; it does not by itself improve
-the median software-rendered frame time. The lower-resolution fallback reduces
-median low-detail frames by about 40%, reaching a comparable median to the
-original game. This is **not** a 60 FPS result; tail latency still exceeds the
-original in this small sample. The city raster cost is the main limitation:
-disabling the city/sky reduced median flight frames to 33.4 ms; disabling UI
-blur changed little. A 0.5-DPR diagnostic measured 83.3 ms, but is not the
-shipped default or automatic quality level.
+This environment uses Chromium SwiftShader software WebGL, not a hardware GPU.
+Measurements are diagnostic and cannot establish 60 FPS on desktop or Android.
+Physical mid-range Android, iOS/Safari, GPU coverage and human visual/difficulty
+review remain release checks. The retained quality controller is the fallback,
+not evidence of a hardware performance guarantee.
 
-See `qa/flight-performance-before.json` and `qa/flight-performance.json` for
-all samples and ablations. The benchmark defaults to the original source at
-`67a9732^` (commit `84498167c7c0e8607b340c83e2eea9119c29fc71`);
-`DLG_BASE_REF` can override it. Baseline and current pages use the same local
-Three.js r128. `qa/performance.json` separately records final continuous-menu
-rendering, live controls and stable GPU resources across eight replacements:
-36 geometries and 5 textures throughout repeated final-mission selection on
-both desktop and mobile emulation.
+The art is deliberately faceted and restrained. Cloud banks are cached rather
+than animated; waterfalls use subtle luminance variation rather than fluid
+simulation. Palette changes occur at existing progression boundaries. Existing
+space-effect objects remain allocated but hidden to keep this patch out of the
+original simulation; a separate cleanup could remove their unused update work.
 
-This environment has no `/dev/dri` hardware GPU. Its Chromium SwiftShader
-software timings do **not** establish smooth desktop or mid-range Android
-performance. A hardware GPU / physical Android pass is still required before
-approving production performance.
-
-Ready for code review and deployment preparation; **not deployed**. Functional
-and build checks pass with no critical regressions observed. Remaining release
-validation: physical Android and iOS/Safari input/audio/performance, broader
-GPU coverage and human difficulty tuning. Graphics context loss pauses with a
-reload instruction. Saves are local to the browser. All three tiers are open;
-medal progression and optional precision, rather than access locks, provide
-progression without altering the original endless mode.
+Ready for code and visual review; not deployed. Recorded automated checks pass. Approval to deploy
+has not been requested or assumed. All other Forge Arcade games, cards, shared
+styles and deployment configuration remain unchanged.

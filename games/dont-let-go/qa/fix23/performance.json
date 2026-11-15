@@ -1,0 +1,96 @@
+[
+  {
+    "viewport": "1440×900",
+    "renderer": "Chromium / SwiftShader software WebGL",
+    "metrics": {
+      "state": "start",
+      "elapsed": 0,
+      "x": 0,
+      "y": 0,
+      "z": -9.875700000000762,
+      "draws": 23,
+      "triangles": 13536,
+      "geometries": 20,
+      "textures": 2,
+      "dpr": 0.75,
+      "mood": 0,
+      "medianFrameMs": 83.29999999999927,
+      "p95FrameMs": 150,
+      "sampleFrames": 59
+    },
+    "firstCourse": {
+      "state": "start",
+      "elapsed": 0,
+      "x": 0,
+      "y": 0,
+      "z": -0.36,
+      "draws": 25,
+      "triangles": 13548,
+      "geometries": 26,
+      "textures": 2,
+      "dpr": 0.75,
+      "mood": 3
+    },
+    "lastCourse": {
+      "state": "start",
+      "elapsed": 0,
+      "x": 0,
+      "y": 0,
+      "z": -0.36,
+      "draws": 25,
+      "triangles": 13548,
+      "geometries": 26,
+      "textures": 2,
+      "dpr": 0.75,
+      "mood": 3
+    },
+    "errors": []
+  },
+  {
+    "viewport": "390×844 / 844×390",
+    "renderer": "Chromium / SwiftShader software WebGL",
+    "metrics": {
+      "state": "start",
+      "elapsed": 0,
+      "x": 0,
+      "y": 0,
+      "z": -13.993799999998878,
+      "draws": 23,
+      "triangles": 13296,
+      "geometries": 20,
+      "textures": 2,
+      "dpr": 1,
+      "mood": 0,
+      "medianFrameMs": 33.399999999999636,
+      "p95FrameMs": 66.70000000000073,
+      "sampleFrames": 124
+    },
+    "firstCourse": {
+      "state": "start",
+      "elapsed": 0,
+      "x": 0,
+      "y": 0,
+      "z": -0.3729000000001397,
+      "draws": 25,
+      "triangles": 13308,
+      "geometries": 26,
+      "textures": 2,
+      "dpr": 1,
+      "mood": 3
+    },
+    "lastCourse": {
+      "state": "start",
+      "elapsed": 0,
+      "x": 0,
+      "y": 0,
+      "z": -0.26970000000006983,
+      "draws": 25,
+      "triangles": 13308,
+      "geometries": 26,
+      "textures": 2,
+      "dpr": 1,
+      "mood": 3
+    },
+    "errors": []
+  }
+]

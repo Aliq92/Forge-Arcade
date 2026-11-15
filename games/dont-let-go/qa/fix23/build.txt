@@ -1,0 +1,1 @@
+Static Forge Arcade production build: /workspace/Forge-Arcade/dist

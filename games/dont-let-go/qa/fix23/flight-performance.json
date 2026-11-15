@@ -1,0 +1,48 @@
+{
+  "baselineRef": "f0a3a9d",
+  "renderer": "Chromium SwiftShader software WebGL",
+  "viewport": "1440x900",
+  "warmupMs": 1500,
+  "sampleMs": 5000,
+  "variants": [
+    {
+      "variant": "fix22-high",
+      "draws": 42,
+      "triangles": 10330,
+      "dpr": 1,
+      "state": "playing",
+      "elapsed": 2.434599999999978,
+      "samples": 37,
+      "medianMs": 116.70000000000027,
+      "p95Ms": 333.2999999999997,
+      "medianJSRenderMs": 0.9000000000232831,
+      "errors": []
+    },
+    {
+      "variant": "highlands-high",
+      "draws": 25,
+      "triangles": 15044,
+      "dpr": 1,
+      "state": "playing",
+      "elapsed": 3.2795999999999785,
+      "samples": 46,
+      "medianMs": 100,
+      "p95Ms": 200,
+      "medianJSRenderMs": 0.6999999999534339,
+      "errors": []
+    },
+    {
+      "variant": "highlands-low",
+      "draws": 23,
+      "triangles": 13536,
+      "dpr": 0.75,
+      "state": "playing",
+      "elapsed": 4.4538999999997895,
+      "samples": 66,
+      "medianMs": 83.19999999999982,
+      "p95Ms": 150,
+      "medianJSRenderMs": 0.5,
+      "errors": []
+    }
+  ]
+}

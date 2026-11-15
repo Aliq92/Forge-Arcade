@@ -1,0 +1,30 @@
+PASS startup and local dependency
+PASS slow frames lower desktop render resolution while preserving simulation
+PASS original hold, keyboard steering, release and legacy save
+PASS original gate and swept cube collision
+PASS pause freezes all simulation; resume requires hold; restart resets
+PASS mission 1: select, start, real-input completion, medal, replay once
+PASS mission 2: select, start, real-input completion, medal, replay once
+PASS mission 3: select, start, real-input completion, medal, replay once
+PASS mission 4: select, start, real-input completion, medal, replay once
+PASS mission 5: select, start, real-input completion, medal, replay once
+PASS mission 6: select, start, real-input completion, medal, replay once
+PASS mission 7: select, start, real-input completion, medal, replay once
+PASS mission 8: select, start, real-input completion, medal, replay once
+PASS mission 9: select, start, real-input completion, medal, replay once
+PASS mission 10: select, start, real-input completion, medal, replay once
+PASS mission 11: select, start, real-input completion, medal, replay once
+PASS mission 12: select, start, real-input completion, medal, replay once
+PASS save and reload restores 12 medals without changing legacy record
+PASS hazard warning, collision failure and safe counterplay
+PASS failure from incomplete objectives
+PASS reduced motion respects OS and suppresses environmental rotation
+PASS resize and portrait mission scroll
+PASS landscape mission briefing fits above persistent controls
+PASS touch holding, drag steering, release and landscape layout
+PASS second touch does not release flight; touch pause suspends signal
+PASS blocked storage does not prevent startup or session rewards
+PASS decorative layers are isolated from collision objects
+PASS WASD input, pointer cancel, focus loss and manual motion control
+PASS held Space repeat cannot resume pause or restart a route
+PASS no browser console, HTTP or JavaScript errors
