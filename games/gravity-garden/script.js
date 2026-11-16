@@ -72,6 +72,10 @@
   let wellCounter = 0;
   let selectedWell = null;
   let nextWellPolarity = 1;
+  let nextWellType='attractor', simulationTime=0;
+  const forceScratch={x:0,y:0};
+  const types={attractor:['◉','Smooth inward pull','#528fff'],repulsor:['◎','Soft outward push','#ff795d'],vortex:['↻','Swirl with inward guidance','#b583ff'],pulse:['◌','Alternating attraction and repulsion','#5ce5ef'],orbit:['⊙','Assisted circular orbit','#57dfa2'],chaos:['✣','Seeded bounded disturbances','#e897ec'],binary:['∞','Two linked gravity centers','#f5cf70']};
+  const defaults={mass:1,radius:600,direction:1,frequency:.5,repelStrength:1,orbitRadius:100,separation:100,rotationRate:0};
   let paused = false;
   let currentPresetKey = 'classic';
 
@@ -145,9 +149,10 @@
     const m = clamp(mass || 1, WELL_MIN_MASS, WELL_MAX_MASS);
     const w = {
       x, y,
-      mass: m,
-      r: wellRadius(m),
-      polarity: polarity || 1,
+      mass: m * Math.abs(polarity || 1),
+      r: wellRadius(m * Math.abs(polarity || 1)),
+      polarity: polarity<0?-1:1,
+      type:polarity<0?'repulsor':'attractor',radius:600,enabled:true,direction:1,frequency:.5,repelStrength:1,orbitRadius:100,separation:100,rotationRate:0,seed:wellCounter+1,
       locked: false,
       pulsePhase: Math.random() * Math.PI * 2,
       id: wellCounter++
@@ -162,7 +167,7 @@
     if (selectedWell === w) deselectWell();
     updateStats();
   }
-  function togglePolarity(w){ w.polarity *= -1; }
+  function togglePolarity(w){ if(!['attractor','repulsor'].includes(w.type))return; w.polarity *= -1; w.type=w.polarity<0?'repulsor':'attractor'; }
   function setWellMass(w, m){
     w.mass = clamp(m, WELL_MIN_MASS, WELL_MAX_MASS);
     w.r = wellRadius(w.mass);
@@ -174,7 +179,7 @@
     const nx = clamp(w.x + Math.cos(angle) * offset, 10, W - 10);
     const ny = clamp(w.y + Math.sin(angle) * offset, 10, H - 10);
     const nw = addWell(nx, ny, w.polarity, w.mass);
-    if (nw) selectWell(nw);
+    if(nw){for(const k of ['type','radius','enabled','direction','frequency','repelStrength','orbitRadius','separation','rotationRate','seed'])nw[k]=w[k]; selectWell(nw);}
   }
 
   function selectWell(w){
@@ -184,11 +189,12 @@
   }
   function deselectWell(){
     selectedWell = null;
+    syncControls(null);
     document.getElementById('inspector').style.display = 'none';
   }
   function updateInspector(){
     if (!selectedWell) return;
-    const label = selectedWell.polarity > 0 ? 'ATTRACT' : 'REPEL';
+    syncControls(selectedWell); const label=selectedWell.type.toUpperCase();
     document.getElementById('inspTitle').textContent = `${label} · MASS ${selectedWell.mass.toFixed(2)}`;
     document.getElementById('massVal').textContent = selectedWell.mass.toFixed(2);
     document.getElementById('inspLock').textContent = selectedWell.locked ? 'Locked' : 'Lock';
@@ -287,7 +293,7 @@
 
   function clearParticles(){ particles.length = 0; updateStats(); }
   function clearWells(){ wells.length = 0; deselectWell(); updateStats(); }
-  function clearAll(){ wells.length = 0; particles.length = 0; flashes.length = 0; sparks.length = 0; deselectWell(); updateStats(); }
+  function clearAll(){ simulationTime=0; accumulator=0; wells.length = 0; particles.length = 0; flashes.length = 0; sparks.length = 0; deselectWell(); updateStats(); }
 
   function updateStats(){
     document.getElementById('wellCount').textContent = wells.length;
@@ -296,21 +302,12 @@
 
   // ---------- physics ----------
   function simulateStep(dt){
+    simulationTime+=dt/60;
     const absorb = settings.absorb;
     for (let pi = particles.length - 1; pi >= 0; pi--){
       const p = particles[pi];
-      let ax = 0, ay = 0, attractMag = 0, repelMag = 0;
-      for (let wi = 0; wi < wells.length; wi++){
-        const w = wells[wi];
-        const dx = w.x - p.x, dy = w.y - p.y;
-        const distSq = dx * dx + dy * dy + SOFTEN * SOFTEN;
-        const d = Math.sqrt(distSq);
-        const force = (G * w.mass * w.polarity) / distSq;
-        ax += force * dx / d;
-        ay += force * dy / d;
-        const mag = Math.abs(force);
-        if (w.polarity > 0) attractMag += mag; else repelMag += mag;
-      }
+      GravityPhysics.combined(wells,p,simulationTime,forceScratch);
+      const ax=forceScratch.x,ay=forceScratch.y,attractMag=forceScratch.attractMag,repelMag=forceScratch.repelMag;
       p.vx += ax * dt;
       p.vy += ay * dt;
       p.vx *= 0.9995;
@@ -369,7 +366,7 @@
       for (let i = particles.length - 1; i >= 0; i--){
         const p = particles[i];
         for (let w of wells){
-          if (w.polarity < 0) continue;
+          if(!w.enabled || w.type!=='attractor') continue;
           const d = dist(w.x, w.y, p.x, p.y);
           if (d < w.r * 0.8){
             particles.splice(i, 1);
@@ -398,37 +395,41 @@
   }
 
   function spawnAbsorbFlash(w){
+    if(flashes.length>64)flashes.shift();
     flashes.push({ x: w.x, y: w.y, r: 2, maxR: w.r * 2.0, alpha: 0.6, age: 0 });
     if (!settings.reducedMotion){
       const n = 4 + Math.floor(Math.random() * 3);
       for (let i = 0; i < n; i++){
         const a = Math.random() * Math.PI * 2;
         const spd = 0.6 + Math.random() * 0.8;
+        if(sparks.length>160)sparks.shift();
         sparks.push({ x: w.x, y: w.y, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd, alpha: 0.8, r: 1.2 });
       }
     }
   }
   function spawnMergeFlash(w){
+    if(flashes.length>64)flashes.shift();
     flashes.push({ x: w.x, y: w.y, r: 4, maxR: w.r * 3.1, alpha: 0.9, age: 0 });
     if (!settings.reducedMotion){
       const n = 8;
       for (let i = 0; i < n; i++){
         const a = (i / n) * Math.PI * 2;
         const spd = 1.0 + Math.random() * 0.6;
+        if(sparks.length>160)sparks.shift();
         sparks.push({ x: w.x, y: w.y, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd, alpha: 0.9, r: 1.6 });
       }
     }
   }
 
   function tryMergeAfterDrag(w){
-    if (w.polarity < 0) return;
+    if(w.type!=='attractor') return;
     let changed = true;
     let guard = 0;
     while (changed && guard < wells.length){
       changed = false; guard++;
       for (let i = wells.length - 1; i >= 0; i--){
         const ow = wells[i];
-        if (ow === w || ow.polarity < 0) continue;
+        if(ow===w || ow.type!=='attractor') continue;
         const d = dist(w.x, w.y, ow.x, ow.y);
         if (d < (w.r + ow.r) * MERGE_OVERLAP_FACTOR){
           const totalMass = w.mass + ow.mass;
@@ -465,17 +466,9 @@
   function updateFieldGrid(){
     if (!fieldGrid) rebuildFieldGrid();
     for (const cell of fieldGrid){
-      let fx = 0, fy = 0;
-      for (const w of wells){
-        const dx = w.x - cell.x, dy = w.y - cell.y;
-        const distSq = dx * dx + dy * dy + SOFTEN * SOFTEN;
-        const d = Math.sqrt(distSq);
-        const force = (w.mass * w.polarity) / distSq;
-        fx += force * dx / d;
-        fy += force * dy / d;
-      }
-      cell.fx = fx; cell.fy = fy;
-      cell.mag = Math.hypot(fx, fy);
+      GravityPhysics.combined(wells,{x:cell.x,y:cell.y,vx:0,vy:0},simulationTime,forceScratch);
+      cell.fx=forceScratch.x/G;cell.fy=forceScratch.y/G;
+      cell.mag = Math.hypot(cell.fx,cell.fy);
     }
   }
 
@@ -596,66 +589,29 @@
   }
 
   function renderWells(t){
-    for (const w of wells){
-      const pulseAmp = settings.reducedMotion ? 0.03 : 0.08;
-      const pulse = 1 + Math.sin(t * 0.002 + w.pulsePhase) * pulseAmp;
-      const attract = w.polarity > 0;
-      const glowR = w.r * (2.6 + w.mass * 0.35) * pulse;
-      const glowColor = attract ? '245, 217, 168' : '255, 122, 105';
-      const coreColor = attract ? '#e8b872' : '#ff7a69';
-      const glowAlpha = attract ? 0.32 + w.mass * 0.03 : 0.28 + w.mass * 0.035;
-
-      const grad = ctx.createRadialGradient(w.x, w.y, 0, w.x, w.y, glowR);
-      grad.addColorStop(0, `rgba(${glowColor}, ${glowAlpha})`);
-      grad.addColorStop(1, `rgba(${glowColor}, 0)`);
-      ctx.beginPath();
-      ctx.fillStyle = grad;
-      ctx.arc(w.x, w.y, glowR, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.fillStyle = coreColor;
-      ctx.arc(w.x, w.y, w.r * pulse, 0, Math.PI * 2);
-      ctx.fill();
-
-      if (!attract){
-        ctx.beginPath();
-        ctx.strokeStyle = `rgba(255, 122, 105, ${0.35 + w.mass * 0.05})`;
-        ctx.lineWidth = 1 + w.mass * 0.15;
-        ctx.arc(w.x, w.y, w.r * pulse + 5, 0, Math.PI * 2);
-        ctx.stroke();
-      } else if (w.mass > 1.4){
-        ctx.beginPath();
-        ctx.strokeStyle = `rgba(245, 217, 168, ${0.15 + (w.mass - 1) * 0.05})`;
-        ctx.lineWidth = 1;
-        ctx.arc(w.x, w.y, w.r * pulse + 4, 0, Math.PI * 2);
-        ctx.stroke();
+    const anim=settings.reducedMotion?0:simulationTime;
+    for(const w of wells){
+      const color=w.type==='pulse'?(Math.cos(simulationTime*Math.PI*2*w.frequency)>=0?'#5ce5ef':'#f078cd'):types[w.type][2];
+      ctx.save();ctx.globalAlpha=w.enabled?1:.35;ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=1.4;
+      const centers=w.type==='binary'?GravityPhysics.centers(w,simulationTime):[w];
+      if(w.type==='binary'){ctx.beginPath();ctx.moveTo(centers[0].x,centers[0].y);ctx.lineTo(centers[1].x,centers[1].y);ctx.stroke();}
+      if(w.type==='orbit'){ctx.globalAlpha*=.35;ctx.setLineDash([4,6]);ctx.beginPath();ctx.arc(w.x,w.y,GravityPhysics.orbitRadius(w),0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=w.enabled?1:.35;}
+      for(const c of centers){
+        let proximity=0;for(const p of particles){const d=Math.hypot(p.x-c.x,p.y-c.y);if(d<90)proximity=Math.max(proximity,1-d/90);}
+        const r=w.type==='binary'?w.r*.8:w.r;
+        const glow=ctx.createRadialGradient(c.x,c.y,0,c.x,c.y,r*5);glow.addColorStop(0,color);glow.addColorStop(1,'transparent');
+        ctx.globalAlpha=(w.enabled?1:.35)*(.28+proximity*.3);ctx.fillStyle=glow;ctx.beginPath();ctx.arc(c.x,c.y,r*5,0,Math.PI*2);ctx.fill();ctx.globalAlpha=w.enabled?1:.35;
+        ctx.fillStyle=color;ctx.beginPath();ctx.arc(c.x,c.y,r,0,Math.PI*2);ctx.fill();
       }
-
-      if (w.locked){
-        ctx.beginPath();
-        ctx.strokeStyle = 'rgba(207, 216, 227, 0.5)';
-        ctx.lineWidth = 1;
-        ctx.setLineDash([2, 3]);
-        ctx.arc(w.x, w.y, w.r * pulse + 9, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.setLineDash([]);
+      if(w.type==='vortex'){
+        for(let arm=0;arm<2;arm++){ctx.beginPath();for(let k=0;k<48;k++){const f=k/47,r=w.r+f*44,a=arm*Math.PI+f*5-anim*w.direction;const x=w.x+Math.cos(a)*r,y=w.y+Math.sin(a)*r;if(k===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.stroke();}
+      }else if(w.type==='chaos'){
+        ctx.beginPath();for(let k=0;k<=20;k++){const a=k/20*Math.PI*2,r=30+7*Math.sin(k*2+anim*3+w.seed);ctx.strokeStyle='hsl('+((anim*40+w.seed*47)%360)+' 80% 75%)';const x=w.x+Math.cos(a)*r,y=w.y+Math.sin(a)*r;if(!k)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.stroke();
+      }else if(w.type!=='binary' && w.type!=='orbit'){
+        for(let k=0;k<3;k++){let f=(anim*(w.type==='pulse'?w.frequency:.4)+k/3)%1;const inward=w.type==='attractor'||(w.type==='pulse'&&Math.cos(simulationTime*Math.PI*2*w.frequency)>=0);if(inward)f=1-f;ctx.globalAlpha=(w.enabled?1:.35)*.45;ctx.beginPath();ctx.arc(w.x,w.y,w.r+f*45,0,Math.PI*2);ctx.stroke();
+          if(inward){const a=k*Math.PI*2/3;ctx.fillStyle=color;ctx.beginPath();ctx.arc(w.x+Math.cos(a)*(w.r+f*45),w.y+Math.sin(a)*(w.r+f*45),2,0,Math.PI*2);ctx.fill();}}
       }
-
-      if (w === selectedWell){
-        ctx.beginPath();
-        ctx.strokeStyle = 'rgba(245, 217, 168, 0.75)';
-        ctx.lineWidth = 1.5;
-        ctx.arc(w.x, w.y, w.r * pulse + 7, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-      if (w === heldWell && didDrag){
-        ctx.beginPath();
-        ctx.strokeStyle = 'rgba(245, 217, 168, 0.9)';
-        ctx.lineWidth = 1.5;
-        ctx.arc(w.x, w.y, w.r * pulse + 10, 0, Math.PI * 2);
-        ctx.stroke();
-      }
+      ctx.globalAlpha=.8;ctx.strokeStyle='#e8d9b5';if(w.locked)ctx.setLineDash([2,3]);if(w.locked||w===selectedWell||w===heldWell){ctx.beginPath();ctx.arc(w.x,w.y,w.r+9,0,Math.PI*2);ctx.stroke();}ctx.restore();
     }
   }
 
@@ -721,6 +677,7 @@
   function render(t){
     ctx.fillStyle = 'rgba(5, 7, 13, 0.28)';
     ctx.fillRect(0, 0, W, H);
+    t=settings.reducedMotion?0:simulationTime*1000;
     renderStars(t);
     renderField(t);
     renderParticles();
@@ -776,7 +733,8 @@
     for (let i = wells.length - 1; i >= 0; i--){
       const w = wells[i];
       const hit = radiusOverride != null ? radiusOverride : Math.max(w.r + 14, 26);
-      if (dist(w.x, w.y, x, y) < hit) return w;
+      if (dist(w.x,w.y,x,y)<hit) return w;
+      if(w.type==='binary' && GravityPhysics.centers(w,simulationTime).some(c=>dist(c.x,c.y,x,y)<hit))return w;
     }
     return null;
   }
@@ -841,13 +799,13 @@
       if (didDrag){
         if (settings.merge) tryMergeAfterDrag(heldWell);
       } else {
-        togglePolarity(heldWell);
         selectWell(heldWell);
       }
     } else if (dragStart){
       if (activeTool === 'well'){
         if (!didDrag){
-          addWell(dragStart.x, dragStart.y, nextWellPolarity);
+          const w=addWell(dragStart.x,dragStart.y,nextWellPolarity,defaults.mass);
+          if(w){Object.assign(w,defaults,{type:nextWellType,polarity:nextWellType==='repulsor'?-1:1});setWellMass(w,w.mass);selectWell(w);}
         }
       } else if (activeTool === 'particles'){
         if (particleMode === 'stream'){
@@ -872,7 +830,7 @@
   canvas.addEventListener('touchstart', (e) => { e.preventDefault(); onDown(e); }, { passive: false });
   canvas.addEventListener('touchmove', (e) => { e.preventDefault(); onMove(e); }, { passive: false });
   canvas.addEventListener('touchend', (e) => { e.preventDefault(); onUp(e); }, { passive: false });
-  canvas.addEventListener('touchcancel', (e) => { e.preventDefault(); onUp(e); }, { passive: false });
+  canvas.addEventListener('touchcancel', (e) => { e.preventDefault(); clearTimeout(pressTimer); heldWell=null;dragStart=null;streamPreview=null;didDrag=false; }, { passive: false });
 
   // ---------- presets ----------
   const PRESETS = {
@@ -948,7 +906,7 @@
         for (let i = 0; i < petals; i++){
           const a = (i / petals) * Math.PI * 2;
           const w = addWell(cx + Math.cos(a) * petalDist, cy + Math.sin(a) * petalDist, 0.5);
-          if (w) w.polarity = -1;
+          if(w)togglePolarity(w);
         }
         spawnBatch(90, () => {
           const a = Math.random() * Math.PI * 2;
@@ -967,7 +925,7 @@
       setup(){
         const cx = W / 2, cy = H * 0.58;
         const core = addWell(cx, cy, 1.6);
-        if (core) core.polarity = -1;
+        if(core) togglePolarity(core);
         const outerDist = Math.min(W, H) * 0.3;
         [-1, 1].forEach((s) => {
           addWell(cx + s * outerDist, cy - outerDist * 0.55, 1.1);
@@ -1025,7 +983,7 @@
       setup(){
         const cx = W / 2, cy = H / 2;
         const core = addWell(cx, cy, 2.2);
-        if (core) core.polarity = -1;
+        if(core) togglePolarity(core);
         const n = 4;
         const d = Math.min(W, H) * 0.26;
         for (let i = 0; i < n; i++){
@@ -1084,22 +1042,28 @@
     activeTool = tool;
     document.getElementById('toolWell').classList.toggle('active', tool === 'well');
     document.getElementById('toolParticles').classList.toggle('active', tool === 'particles');
-    document.getElementById('wellSubrow').style.display = tool === 'well' ? 'flex' : 'none';
+    document.getElementById('wellSubrow').style.display = tool === 'well' ? 'block' : 'none';
     document.getElementById('particleSubrow').style.display = tool === 'particles' ? 'flex' : 'none';
   }
   document.getElementById('toolWell').addEventListener('click', () => setTool('well'));
   document.getElementById('toolParticles').addEventListener('click', () => setTool('particles'));
 
-  document.getElementById('polAttract').addEventListener('click', () => {
-    nextWellPolarity = 1;
-    document.getElementById('polAttract').classList.add('active');
-    document.getElementById('polRepel').classList.remove('active');
-  });
-  document.getElementById('polRepel').addEventListener('click', () => {
-    nextWellPolarity = -1;
-    document.getElementById('polRepel').classList.add('active');
-    document.getElementById('polAttract').classList.remove('active');
-  });
+  function syncControls(w){
+    const type=w?w.type:nextWellType;
+    (w||defaults).orbitRadius=GravityPhysics.orbitRadius(w||defaults);
+    document.querySelectorAll('[data-well-type]').forEach(b=>{b.classList.toggle('active',b.dataset.wellType===type);b.setAttribute('aria-pressed',b.dataset.wellType===type);});
+    document.getElementById('wellDescription').textContent=(w?'Editing ':'New: ')+type+' · '+types[type][1];
+    for(const i of document.querySelectorAll('[data-param]')){i.value=(w||defaults)[i.dataset.param];document.getElementById(i.id+'Value').textContent=i.value;const t=i.closest('label').dataset.types;i.closest('label').hidden=!!t&&!t.split(' ').includes(type);}
+    document.getElementById('inspEnabled').textContent=w&&!w.enabled?'Enable':'Disable';
+  }
+  for(const [type,def] of Object.entries(types)){
+    const b=document.createElement('button');b.className='btn small';b.dataset.wellType=type;b.textContent=def[0]+' '+type;
+    b.addEventListener('click',()=>{nextWellType=type;nextWellPolarity=type==='repulsor'?-1:1;deselectWell();syncControls(null);});document.getElementById('wellTypes').appendChild(b);
+  }
+  for(const i of document.querySelectorAll('[data-param]'))i.addEventListener('input',()=>{const w=selectedWell||defaults;w[i.dataset.param]=Number(i.value);if(i.dataset.param==='orbitRadius')w.radius=Math.max(w.radius,w.orbitRadius/.75);w.orbitRadius=GravityPhysics.orbitRadius(w);if(selectedWell){setWellMass(w,w.mass);updateInspector();}else syncControls(null);});
+  document.getElementById('inspFlip').addEventListener('click',()=>{if(selectedWell){togglePolarity(selectedWell);updateInspector();}});
+  document.getElementById('inspEnabled').addEventListener('click',()=>{if(selectedWell){selectedWell.enabled=!selectedWell.enabled;syncControls(selectedWell);}});
+  document.getElementById('clearWells').addEventListener('click',clearWells);
 
   function setParticleMode(mode, btnId){
     particleMode = mode;
@@ -1261,7 +1225,7 @@
   // ---------- keyboard shortcuts ----------
   window.addEventListener('keydown', (e) => {
     const tag = (document.activeElement && document.activeElement.tagName) || '';
-    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'BUTTON') return;
     switch (e.key){
       case ' ':
         e.preventDefault();
@@ -1298,6 +1262,8 @@
 
   function init(){
     loadSettings();
+    settings.reducedMotion=settings.reducedMotion||matchMedia('(prefers-reduced-motion: reduce)').matches;
+    syncControls(null);
     initStars();
 
     waitForLayout(() => {

@@ -18,7 +18,7 @@
   </div>
 </div>
 
-<div id="hint">Tap empty space to place a well · tap a well to flip attract/repel · drag to move · hold to remove. Particles reveal the gravity field.</div>
+<div id="hint">Tap empty space to place a well · tap a well to edit · drag to move · hold to remove. Particles reveal the gravity field.</div>
 <div id="toast"></div>
 
 <div id="exitCinematic" class="btn small">Exit ✕</div>
@@ -36,17 +36,13 @@
         <span class="mass-val" id="massVal">1.0</span>
         <div class="btn small" id="massUp">+</div>
       </div>
-      <div class="btn small" id="inspLock">Lock</div>
+      <button class="btn small" id="inspFlip">Flip</button><button class="btn small" id="inspEnabled">Disable</button><div class="btn small" id="inspLock">Lock</div>
       <div class="btn small" id="inspDup">Duplicate</div>
       <div class="btn small danger" id="inspDel">Delete</div>
     </div>
   </div>
 
-  <div id="wellSubrow" class="row" style="display:none;">
-    <div class="btn small active" id="polAttract">New: Attract</div>
-    <div class="btn small" id="polRepel">New: Repel</div>
-  </div>
-
+<div id="wellSubrow" class="panel"><div id="wellTypes" class="row"></div><p id="wellDescription"></p><div class="well-controls"><label data-types="">Strength <output id="parammassValue"></output><input aria-label="Strength" id="parammass" data-param="mass" type="range" min="0.25" max="5" step="0.005"></label><label data-types="">Influence radius <output id="paramradiusValue"></output><input aria-label="Influence radius" id="paramradius" data-param="radius" type="range" min="60" max="1200" step="10"></label><label data-types="vortex orbit">Direction: -1 CCW / 1 CW <output id="paramdirectionValue"></output><input aria-label="Direction: -1 CCW / 1 CW" id="paramdirection" data-param="direction" type="range" min="-1" max="1" step="2"></label><label data-types="pulse">Pulse Hz <output id="paramfrequencyValue"></output><input aria-label="Pulse Hz" id="paramfrequency" data-param="frequency" type="range" min="0.1" max="3" step="0.1"></label><label data-types="pulse">Repulsion strength <output id="paramrepelStrengthValue"></output><input aria-label="Repulsion strength" id="paramrepelStrength" data-param="repelStrength" type="range" min="0.25" max="5" step="0.25"></label><label data-types="orbit">Orbit radius <output id="paramorbitRadiusValue"></output><input aria-label="Orbit radius" id="paramorbitRadius" data-param="orbitRadius" type="range" min="25" max="300" step="5"></label><label data-types="binary">Pair separation <output id="paramseparationValue"></output><input aria-label="Pair separation" id="paramseparation" data-param="separation" type="range" min="30" max="300" step="5"></label><label data-types="binary">Pair rotation rad/s <output id="paramrotationRateValue"></output><input aria-label="Pair rotation rad/s" id="paramrotationRate" data-param="rotationRate" type="range" min="-2" max="2" step="0.1"></label></div><button id="clearWells" class="btn small">Clear wells</button></div>
   <div id="particleSubrow" class="row" style="display:none;">
     <div class="btn small" id="pmSeed20">Seed 20</div>
     <div class="btn small" id="pmSeed50">Seed 50</div>
@@ -125,16 +121,17 @@
     <h3>How To Play</h3>
     <div class="preset-desc" style="font-size:13px; line-height:1.6; color:var(--ui-text); opacity:0.85;">
       Tap empty space to place a gravity well.<br>
-      Tap a well to flip it between attract (gold) and repel (coral).<br>
+      Tap a well to edit it. Use Flip for attract/repel.<br>
       Drag a well to reshape the garden around it.<br>
       Hold a well to remove it.<br><br>
-      Gold wells pull particles in. Coral wells push them away. Particles reveal the invisible field between them — mix attract and repel to grow petals, streams and rings.<br><br>
+      Blue attractors pull particles in. Coral repulsors push them away. Choose seven well behaviors. Particles reveal the invisible field between them — mix attract and repel to grow petals, streams and rings.<br><br>
       Use the Particles tool to seed, burst, stream, ring or cloud new particles. Use More for speed, trails, color, and field visualization.
     </div>
     <div class="btn sheet-close" id="closeHelp">Close</div>
   </div>
 </div>
 
+<script src="physics.js"></script>
 <script src="script.js"></script>
 <a href="../../index.html" id="forge-back-link" style="position:fixed;right:12px;bottom:12px;z-index:2147483000;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;font:500 12px/1.2 system-ui,-apple-system,sans-serif;color:#e8e8ec;background:rgba(10,10,14,.55);border:1px solid rgba(255,255,255,.14);border-radius:999px;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:.55;transition:opacity .15s ease;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.55">← Arcade</a></body>
 </html>

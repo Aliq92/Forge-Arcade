@@ -289,3 +289,8 @@ body.cinematic.hide-cursor { cursor: none; }
   .btn { padding: 9px 11px; font-size: 12px; }
   #title { font-size: 12px; }
 }
+
+#wellSubrow{max-height:34vh;overflow-y:auto;touch-action:pan-y} #wellTypes{max-width:none;gap:4px} #wellDescription{font-size:11px;margin:7px 0;line-height:1.4} .well-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 14px}.well-controls label{font-size:11px}.well-controls label[hidden]{display:none}.well-controls input{display:block;width:100%;accent-color:#80beef;touch-action:pan-x}#clearWells{margin-top:5px}.sheet{touch-action:pan-y}#forge-back-link{top:45px;bottom:auto!important}@media(max-width:560px){#uiStack{gap:4px}#wellTypes .btn{font-size:10px;padding:5px 7px;min-height:30px}#inspector{padding:6px}#inspector .btn{padding:5px 7px}.well-controls{gap:2px 10px}#wellSubrow{max-height:31vh}}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+#forge-back-link{top:80px;}
+@media(max-width:560px){#forge-back-link{top:96px;}}
