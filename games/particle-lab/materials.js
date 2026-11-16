@@ -1,246 +1,71 @@
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.ParticleLabMaterials=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
 'use strict';
-function MaterialWorld(random=Math.random){
-// ---------- material definitions ----------
-  var EMPTY=0, SAND=1, WATER=2, OIL=3, STONE=4, WOOD=5, FIRE=6, SMOKE=7, ACID=8;
-
-  var MATERIALS = [
-    { id: SAND,  name:"Sand",  color:[212,168,86] },
-    { id: WATER, name:"Water", color:[58,120,209] },
-    { id: OIL,   name:"Oil",   color:[70,55,26] },
-    { id: STONE, name:"Stone", color:[102,104,116] },
-    { id: WOOD,  name:"Wood",  color:[122,79,42] },
-    { id: FIRE,  name:"Fire",  color:[233,90,24] },
-    { id: ACID,  name:"Acid",  color:[152,222,73] },
-    { id: EMPTY, name:"Erase", color:[30,34,42] }
-  ];
-
-  var BG = [10,13,18];
-  var SMOKE_COLOR = [120,122,132];
-  var FIRE_HOT = [255,224,120];
-  var FIRE_COOL = [220,50,16];
-
-  var FIRE_LIFE_MIN=22, FIRE_LIFE_MAX=42;
-  var SMOKE_LIFE_MIN=60, SMOKE_LIFE_MAX=120;
-
-  // ---------- grid setup ----------
-  var COLS = 200, ROWS = 120; // fixed internal resolution (5:3 aspect)
-  var len = COLS*ROWS;
-  var grid = new Uint8Array(len);
-  var extra = new Uint16Array(len);
-  var variance = new Int8Array(len);
-  var moved = new Uint8Array(len);
-
-  for (var vi=0; vi<len; vi++){
-    variance[vi] = (random()*3|0) - 1; // -1,0,1
+const ID=Object.freeze({air:0,sand:1,water:2,stone:3,metal:4,wood:5,oil:6,lava:7,ice:8,steam:9,fire:10,smoke:11});
+const rows=[
+ ['Air','gas',0,20,.015,[10,16,28],'Empty space carries heat.'],
+ ['Sand','powder',1.6,20,.12,[224,185,105],'Grains fall and slide into piles.'],
+ ['Water','liquid',1,20,.32,[54,143,235],'Flows, boils and extinguishes fire.'],
+ ['Stone','solid',3,20,.18,[119,128,147],'Stationary, heat-resistant construction.'],
+ ['Metal','solid',5,20,.85,[173,193,211],'A durable conductor of heat.'],
+ ['Wood','solid',.7,20,.10,[153,99,55],'Stationary construction; ignites when hot.'],
+ ['Oil','liquid',.8,20,.12,[139,105,39],'Floats on water and burns readily.'],
+ ['Lava','liquid',2.5,1100,.35,[255,91,29],'Slow hot liquid; cools into stone.'],
+ ['Ice','solid',.9,-15,.38,[163,232,246],'Melts into water at 0°C.'],
+ ['Steam','gas',.05,120,.06,[191,219,235],'Rises and condenses below 75°C.'],
+ ['Fire','gas',.01,800,.24,[255,174,57],'Heats nearby fuel, then becomes smoke.'],
+ ['Smoke','gas',.02,110,.04,[124,133,155],'Rises and eventually dissipates.']
+];
+const MATERIALS=Object.freeze(rows.map((r,id)=>Object.freeze({id,key:Object.keys(ID)[id],name:r[0],state:r[1],density:r[2],temp:r[3],temperature:r[3],conductivity:r[4],color:r[5],description:r[6],flammable:id===5||id===6,ignition:id===5?280:id===6?230:Infinity,...(id===8?{melting:0}:id===2?{boiling:100}:id===9?{condensation:75}:id===7?{solidification:650}:{})})));
+const clamp=t=>Math.max(-100,Math.min(1500,t));
+class World{
+ constructor(width=96,height=64,seed=23){
+  if(!Number.isInteger(width)||!Number.isInteger(height)||width<2||height<2||width>256||height>256)throw Error('Invalid world dimensions');
+  this.width=width;this.height=height;this.seed=seed>>>0;this.tick=0;const n=width*height;
+  this.cells=new Uint8Array(n);this.temp=new Float32Array(n).fill(20);this.locked=new Uint8Array(n);this.origin=new Uint8Array(n);this.life=new Uint16Array(n);this.moved=new Uint8Array(n);this.delta=new Float32Array(n);this.stats={melted:0,boiled:0,condensed:0,cooled:0,ignited:0,extinguished:0};
+ }
+ inside(x,y){return Number.isInteger(x)&&Number.isInteger(y)&&x>=0&&y>=0&&x<this.width&&y<this.height;}
+ get(x,y){return this.inside(x,y)?this.cells[y*this.width+x]:-1;}
+ set(x,y,id,temp=MATERIALS[id]?.temp,locked=false){if(!this.inside(x,y)||!MATERIALS[id]||!Number.isFinite(temp))return false;const i=y*this.width+x;this.cells[i]=id;this.temp[i]=clamp(temp);this.locked[i]=locked?1:0;this.origin[i]=id;this.life[i]=id===ID.fire?45:id===ID.smoke?100:0;return true;}
+ paint(x,y,id,radius=0,options={}){if(!MATERIALS[id]||![x,y,radius].every(Number.isFinite))return 0;radius=Math.min(20,Math.max(0,Math.floor(radius)));let n=0;for(let yy=Math.floor(y)-radius;yy<=Math.floor(y)+radius;yy++)for(let xx=Math.floor(x)-radius;xx<=Math.floor(x)+radius;xx++){if(!this.inside(xx,yy)||(xx-x)**2+(yy-y)**2>radius*radius)continue;const i=yy*this.width+xx;if(this.locked[i]||(!options.overwrite&&id!==ID.air&&this.cells[i]!==ID.air))continue;this.set(xx,yy,id);n++;}return n;}
+ line(x1,y1,x2,y2,id,radius=0,options={}){if(![x1,y1,x2,y2,radius].every(Number.isFinite))return 0;x1=Math.round(Math.max(0,Math.min(this.width-1,x1)));x2=Math.round(Math.max(0,Math.min(this.width-1,x2)));y1=Math.round(Math.max(0,Math.min(this.height-1,y1)));y2=Math.round(Math.max(0,Math.min(this.height-1,y2)));const steps=Math.max(Math.abs(x2-x1),Math.abs(y2-y1));let n=0;for(let k=0;k<=steps;k++){const t=steps?k/steps:0;n+=this.paint(Math.round(x1+(x2-x1)*t),Math.round(y1+(y2-y1)*t),id,radius,options);}return n;}
+ rect(x1,y1,x2,y2,id,filled=true,options={}){if(![x1,y1,x2,y2].every(Number.isFinite))return 0;let n=0;for(let y=Math.max(0,Math.min(y1,y2));y<=Math.min(this.height-1,Math.max(y1,y2));y++)for(let x=Math.max(0,Math.min(x1,x2));x<=Math.min(this.width-1,Math.max(x1,x2));x++)if(filled||x===x1||x===x2||y===y1||y===y2)n+=this.paint(x,y,id,0,options);return n;}
+ heat(x,y,delta,radius=2){if(![x,y,delta,radius].every(Number.isFinite))return 0;let n=0;radius=Math.min(20,Math.max(0,Math.floor(radius)));for(let yy=y-radius;yy<=y+radius;yy++)for(let xx=x-radius;xx<=x+radius;xx++)if(this.inside(xx,yy)&&(xx-x)**2+(yy-y)**2<=radius*radius){const i=yy*this.width+xx;if(!this.locked[i]){this.temp[i]=clamp(this.temp[i]+delta);n++;}}return n;}
+ count(id,rect){let n=0;for(let y=0;y<this.height;y++)for(let x=0;x<this.width;x++)if((!rect||(x>=rect.x&&y>=rect.y&&x<rect.x+rect.w&&y<rect.y+rect.h))&&this.cells[y*this.width+x]===id)n++;return n;}
+ change(i,id,stat){this.cells[i]=id;this.life[i]=id===ID.fire?45:id===ID.smoke?100:0;if(stat)this.stats[stat]++;}
+ step(){
+  const w=this.width,h=this.height,n=this.cells.length;this.tick++;this.delta.fill(0);this.moved.fill(0);
+  // Pairwise conservative diffusion; sum of the four exchanges stays bounded.
+  for(let i=0;i<n;i++){if(this.cells[i]===ID.fire)this.temp[i]=Math.max(650,this.temp[i]);for(const j of [i%w<w-1?i+1:-1,i+w<n?i+w:-1])if(j>=0){const q=(this.temp[j]-this.temp[i])*Math.min(MATERIALS[this.cells[i]].conductivity,MATERIALS[this.cells[j]].conductivity)*.20;this.delta[i]+=q;this.delta[j]-=q;}}
+  for(let i=0;i<n;i++)this.temp[i]=clamp(this.temp[i]+this.delta[i]);
+  for(let i=0;i<n;i++){
+   const id=this.cells[i],t=this.temp[i];
+   if(id===ID.ice&&t>=0)this.change(i,ID.water,'melted');
+   else if(id===ID.water&&t>=100)this.change(i,ID.steam,'boiled');
+   else if(id===ID.steam&&t<=75)this.change(i,ID.water,'condensed');
+   else if(id===ID.lava&&t<=650)this.change(i,ID.stone,'cooled');
+   else if(MATERIALS[id].flammable&&t>=MATERIALS[id].ignition){this.change(i,ID.fire,'ignited');this.temp[i]=800;}
+   else if(id===ID.fire){const x=i%w,y=(i/w)|0;let wet=false;for(const [dx,dy] of [[0,-1],[0,1],[-1,0],[1,0]])if(this.get(x+dx,y+dy)===ID.water)wet=true;if(wet){this.change(i,ID.smoke,'extinguished');this.temp[i]=100;}else if(--this.life[i]===0)this.change(i,ID.smoke);}
+   else if(id===ID.smoke&&--this.life[i]===0)this.change(i,ID.air);
   }
-
-  function idx(x,y){ return y*COLS+x; }
-
-  // returns -1 for solid side/bottom walls, -2 for open top (void)
-  function get(x,y){
-    if (x<0 || x>=COLS || y>=ROWS) return -1;
-    if (y<0) return -2;
-    return grid[idx(x,y)];
+  const swap=(i,j)=>{for(const arr of [this.cells,this.temp,this.origin,this.life]){const a=arr[i];arr[i]=arr[j];arr[j]=a;}this.moved[i]=this.moved[j]=1;};
+  const move=(i,x,y,gas)=>{if(!this.inside(x,y))return false;const j=y*w+x;if(this.moved[j])return false;const a=MATERIALS[this.cells[i]],b=MATERIALS[this.cells[j]];if(b.id===ID.air||(gas?b.state==='gas'&&a.density<b.density:(b.state==='liquid'||b.state==='gas')&&a.density>b.density)){swap(i,j);return true;}return false;};
+  for(let y=h-1;y>=0;y--)for(let k=0;k<w;k++){
+   const x=this.tick%2?k:w-1-k,i=y*w+x,id=this.cells[i],m=MATERIALS[id];if(this.moved[i]||id===ID.air||m.state==='solid')continue;
+   const gas=m.state==='gas',dy=gas?-1:1,dir=((this.tick+x+y+this.seed)&1)?1:-1;
+   if(id===ID.lava&&this.tick%3!==0)continue;
+   if(move(i,x,y+dy,gas)||move(i,x+dir,y+dy,gas)||move(i,x-dir,y+dy,gas))continue;
+   if(m.state==='liquid'||gas){if(move(i,x+dir,y,gas))continue;move(i,x-dir,y,gas);}
   }
-
-  function setCell(i, type, extraVal){
-    grid[i] = type;
-    extra[i] = extraVal || 0;
-  }
-
-  function swap(i,j){
-    var t = grid[i]; grid[i]=grid[j]; grid[j]=t;
-    var e = extra[i]; extra[i]=extra[j]; extra[j]=e;
-    moved[j] = 1;
-  }
-
-  function randSign(){ return random()<0.5 ? -1 : 1; }
-
-  // ---------- physics rules ----------
-  function updateSand(x,y,i){
-    var below = get(x,y+1);
-    if (below===EMPTY || below===WATER || below===OIL){
-      swap(i, idx(x,y+1)); return;
-    }
-    var d = randSign();
-    var order = [d,-d];
-    for (var k=0;k<2;k++){
-      var nx=x+order[k], ny=y+1;
-      var nb = get(nx,ny);
-      if (nb===EMPTY || nb===WATER || nb===OIL){
-        swap(i, idx(nx,ny)); return;
-      }
-    }
-  }
-
-  function updateLiquid(x,y,i,selfType){
-    var below = get(x,y+1);
-    if (below===EMPTY){ swap(i, idx(x,y+1)); return; }
-    if (selfType===WATER && below===OIL){ swap(i, idx(x,y+1)); return; }
-    if (selfType===WATER && below===ACID){ swap(i, idx(x,y+1)); return; }
-    if (selfType===ACID){
-      // acid dissolves sand, wood, and oil; water neutralizes it
-      if (below===SAND || below===WOOD || below===OIL){
-        if (random()<0.08){
-          setCell(idx(x,y+1), EMPTY, 0);
-          swap(i, idx(x,y+1));
-        }
-        return;
-      }
-      if (below===WATER){
-        setCell(i, EMPTY, 0); moved[i]=1; return;
-      }
-    }
-
-    var d = randSign();
-    var order = [d,-d];
-    for (var k=0;k<2;k++){
-      var nx=x+order[k], ny=y+1;
-      if (get(nx,ny)===EMPTY){ swap(i, idx(nx,ny)); return; }
-    }
-    for (var k2=0;k2<2;k2++){
-      var nx2=x+order[k2];
-      if (get(nx2,y)===EMPTY){ swap(i, idx(nx2,y)); return; }
-    }
-  }
-
-  var NEIGH8 = [[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]];
-
-  function updateWood(x,y,i){
-    for (var n=0;n<8;n++){
-      var nx=x+NEIGH8[n][0], ny=y+NEIGH8[n][1];
-      if (get(nx,ny)===FIRE && random()<0.028){
-        setCell(i, FIRE, FIRE_LIFE_MIN + (random()*(FIRE_LIFE_MAX-FIRE_LIFE_MIN)|0));
-        return;
-      }
-    }
-  }
-
-  function updateFire(x,y,i){
-    // water nearby extinguishes fire fast
-    for (var n=0;n<8;n++){
-      var nx=x+NEIGH8[n][0], ny=y+NEIGH8[n][1];
-      var nt = get(nx,ny);
-      if (nt===WATER){ extra[i] = Math.min(extra[i], 3); break; }
-    }
-
-    extra[i]--;
-    if (extra[i]<=0){
-      if (random()<0.55){
-        setCell(i, SMOKE, SMOKE_LIFE_MIN + (random()*(SMOKE_LIFE_MAX-SMOKE_LIFE_MIN)|0));
-      } else {
-        setCell(i, EMPTY, 0);
-      }
-      moved[i]=1;
-      return;
-    }
-
-    // ignite flammable neighbors
-    for (var n2=0;n2<8;n2++){
-      var nx2=x+NEIGH8[n2][0], ny2=y+NEIGH8[n2][1];
-      if (nx2<0||nx2>=COLS||ny2<0||ny2>=ROWS) continue;
-      var ni = idx(nx2,ny2);
-      var nt2 = grid[ni];
-      if (nt2===OIL && random()<0.16){
-        setCell(ni, FIRE, FIRE_LIFE_MIN + (random()*(FIRE_LIFE_MAX-FIRE_LIFE_MIN)|0));
-      } else if (nt2===WOOD && random()<0.03){
-        setCell(ni, FIRE, FIRE_LIFE_MIN + (random()*(FIRE_LIFE_MAX-FIRE_LIFE_MIN)|0));
-      }
-    }
-
-    // flicker upward occasionally
-    if (random()<0.35){
-      var dx = randSign();
-      var ny3 = y-1, nx3 = x+dx;
-      if (get(nx3,ny3)===EMPTY){
-        swap(i, idx(nx3,ny3));
-      }
-    }
-  }
-
-  function updateSmoke(x,y,i){
-    extra[i]--;
-    if (extra[i]<=0){ setCell(i, EMPTY, 0); moved[i]=1; return; }
-
-    var above = get(x,y-1);
-    if (above===-2){ setCell(i, EMPTY, 0); moved[i]=1; return; }
-    if (above===EMPTY){ swap(i, idx(x,y-1)); return; }
-
-    var d = randSign();
-    var order=[d,-d];
-    for (var k=0;k<2;k++){
-      var nx=x+order[k], ny=y-1;
-      if (get(nx,ny)===EMPTY){ swap(i, idx(nx,ny)); return; }
-    }
-  }
-
-  function step(){
-    moved.fill(0);
-    for (var y=ROWS-1; y>=0; y--){
-      var leftToRight = (y % 2 === 0);
-      for (var xi=0; xi<COLS; xi++){
-        var x = leftToRight ? xi : (COLS-1-xi);
-        var i = idx(x,y);
-        if (moved[i]) continue;
-        var t = grid[i];
-        if (t===EMPTY || t===STONE) continue;
-        if (t===SAND) updateSand(x,y,i);
-        else if (t===WATER) updateLiquid(x,y,i,WATER);
-        else if (t===OIL) updateLiquid(x,y,i,OIL);
-        else if (t===ACID) updateLiquid(x,y,i,ACID);
-        else if (t===WOOD) updateWood(x,y,i);
-        else if (t===FIRE) updateFire(x,y,i);
-        else if (t===SMOKE) updateSmoke(x,y,i);
-      }
-    }
-  }
-
-
-var currentMaterial=1,brushRadius=3;
-function paintAt(gx, gy){
-    var r = brushRadius;
-    var r2 = r*r;
-    for (var dy=-r; dy<=r; dy++){
-      for (var dx=-r; dx<=r; dx++){
-        if (dx*dx+dy*dy > r2) continue;
-        var x = gx+dx, y = gy+dy;
-        if (x<0||x>=COLS||y<0||y>=ROWS) continue;
-        var i = idx(x,y);
-        if (currentMaterial===EMPTY){
-          setCell(i, EMPTY, 0);
-        } else if (currentMaterial===FIRE){
-          setCell(i, FIRE, FIRE_LIFE_MIN + (random()*(FIRE_LIFE_MAX-FIRE_LIFE_MIN)|0));
-        } else {
-          setCell(i, currentMaterial, 0);
-        }
-      }
-    }
-  }
-
-  function paintLine(gx0,gy0,gx1,gy1){
-    var dx = gx1-gx0, dy = gy1-gy0;
-    var dist = Math.max(1, Math.round(Math.sqrt(dx*dx+dy*dy)));
-    var steps = Math.min(dist, 64);
-    for (var s=0; s<=steps; s++){
-      var t = s/steps;
-      paintAt(Math.round(gx0+dx*t), Math.round(gy0+dy*t));
-    }
-  }
-
-
-// Read-only swept cell query for the new tracer layer; original material rules above are unchanged.
-this.blocksSegment=(x0,y0,x1,y1,width,height)=>{
- const gx0=Math.max(0,Math.min(199,Math.floor(x0/width*200))),gy0=Math.max(0,Math.min(119,Math.floor(y0/height*120))),gx1=Math.max(0,Math.min(199,Math.floor(x1/width*200))),gy1=Math.max(0,Math.min(119,Math.floor(y1/height*120))),steps=Math.max(1,Math.abs(gx1-gx0),Math.abs(gy1-gy0));
- for(let k=0;k<=steps;k++){const x=Math.round(gx0+(gx1-gx0)*k/steps),y=Math.round(gy0+(gy1-gy0)*k/steps),type=grid[y*200+x];if(type===4||type===5)return true;}return false;
-};
-this.grid=grid;this.extra=extra;this.variance=variance;this.materials=MATERIALS;this.step=step;
-this.paint=(x,y,type,r=3)=>{currentMaterial=type;brushRadius=r;paintAt(x,y);};
-this.line=(a,b,c,d,type,r=3)=>{currentMaterial=type;brushRadius=r;paintLine(a,b,c,d);};
-this.clear=()=>{grid.fill(0);extra.fill(0);};
-this.counts=()=>{let total=0,counts=Array(9).fill(0);for(const t of grid){counts[t]++;if(t)total++;}return {total,counts};};
-this.export=()=>({version:1,grid:[...grid],extra:[...extra]});
+  return this;
+ }
+ export(){return {version:2,width:this.width,height:this.height,seed:this.seed,tick:this.tick,cells:Array.from(this.cells),temp:Array.from(this.temp),locked:Array.from(this.locked),origin:Array.from(this.origin),life:Array.from(this.life),stats:{...this.stats}};}
+ clone(){return World.from(this.export());}
+ static from(data){
+  if(!data||data.version!==2)throw Error('Unsupported laboratory save');const world=new World(data.width,data.height,data.seed),n=world.cells.length;
+  for(const [key,max] of [['cells',11],['temp',1500],['locked',1],['origin',11],['life',65535]]){const values=data[key];if(!Array.isArray(values)||values.length!==n||values.some(v=>!Number.isFinite(v)||v<(key==='temp'?-100:0)||v>max||(key!=='temp'&&!Number.isInteger(v))))throw Error('Invalid save '+key);world[key].set(values);}
+  for(let i=0;i<n;i++)if((world.cells[i]===ID.fire||world.cells[i]===ID.smoke)&&world.life[i]===0)throw Error('Invalid reactive lifetime');
+  if(!Number.isSafeInteger(data.tick)||data.tick<0)throw Error('Invalid save tick');world.tick=data.tick;for(const key of Object.keys(world.stats)){if(!Number.isSafeInteger(data.stats?.[key])||data.stats[key]<0)throw Error('Invalid save statistics');world.stats[key]=data.stats[key];}return world;
+ }
 }
-MaterialWorld.from=function(data){if(!data||data.version!==1||!Array.isArray(data.grid)||!Array.isArray(data.extra)||data.grid.length!==24000||data.extra.length!==24000||!data.grid.every(v=>Number.isInteger(v)&&v>=0&&v<=8)||!data.extra.every(v=>Number.isInteger(v)&&v>=0&&v<=65535))throw Error('Invalid material experiment');const w=new MaterialWorld();w.grid.set(data.grid);w.extra.set(data.extra);return w;};
-return {MaterialWorld};
+return {World,MATERIALS,ID};
 });

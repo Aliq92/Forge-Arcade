@@ -1,0 +1,122 @@
+{
+  "layouts": [
+    {
+      "width": 1440,
+      "height": 900,
+      "touch": false,
+      "passed": true,
+      "bfcacheRestored": true
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "touch": true,
+      "passed": true,
+      "bfcacheRestored": true
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "touch": true,
+      "passed": true,
+      "bfcacheRestored": true
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "touch": true,
+      "passed": true,
+      "bfcacheRestored": true
+    }
+  ],
+  "errors": [],
+  "challenges": [
+    {
+      "name": "Sandfall",
+      "ticks": 36,
+      "edits": 24
+    },
+    {
+      "name": "Waterworks",
+      "ticks": 223,
+      "edits": 21
+    },
+    {
+      "name": "The Dam",
+      "ticks": 100,
+      "edits": 29
+    },
+    {
+      "name": "Icebreaker",
+      "ticks": 17,
+      "edits": 1
+    },
+    {
+      "name": "Steam Lift",
+      "ticks": 30,
+      "edits": 1
+    },
+    {
+      "name": "Oil and Water",
+      "ticks": 60,
+      "edits": 34
+    },
+    {
+      "name": "Firebreak",
+      "ticks": 120,
+      "edits": 29
+    },
+    {
+      "name": "Lava Crossing",
+      "ticks": 50,
+      "edits": 34
+    },
+    {
+      "name": "Cooling Chamber",
+      "ticks": 1,
+      "edits": 3
+    },
+    {
+      "name": "Pressure Path",
+      "ticks": 69,
+      "edits": 18
+    },
+    {
+      "name": "Chain Reaction",
+      "ticks": 98,
+      "edits": 2
+    },
+    {
+      "name": "The Grand Laboratory",
+      "ticks": 98,
+      "edits": 5
+    }
+  ],
+  "performance": [
+    {
+      "width": 1440,
+      "samples": 20,
+      "mean": 1.0950000010430814,
+      "max": 5.799999997019768
+    },
+    {
+      "width": 390,
+      "samples": 16,
+      "mean": 0.8937500007450581,
+      "max": 3.300000011920929
+    },
+    {
+      "width": 320,
+      "samples": 16,
+      "mean": 1.050000000745058,
+      "max": 2.7000000029802322
+    },
+    {
+      "width": 844,
+      "samples": 17,
+      "mean": 1.3352941195754444,
+      "max": 4.5999999940395355
+    }
+  ],
+  "passed": true
+}
