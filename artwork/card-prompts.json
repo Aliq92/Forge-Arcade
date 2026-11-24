@@ -202,5 +202,12 @@
     "prompt": "Colourful crisp pixel toy-workshop chain reaction: bright falling dominoes, glossy marble, spring launcher, pivoting seesaw and finish target. Navy, turquoise, coral and gold.",
     "source": "games/domino-disaster/assets/card.svg",
     "method": "Original locally authored pixel SVG rasterized to lossless960x540 WebP."
+  },
+  {
+    "id": "terraform",
+    "title": "TERRAFORM: A Living Planet",
+    "prompt": "An alien planet seen from orbit, with ochre highlands, blue-green basins and bright atmospheric haze against a sparse star field. An orbital research station crosses its sunlit edge.",
+    "source": "assets/thumbnails/terraform.svg",
+    "method": "Original procedurally illustrated terrain and illumination, sampled as pixel artwork and scaled to a lossless 960 by 540 WebP."
   }
 ]

@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#090f13" />
+    <title>TERRAFORM · A Living Planet | Forge Arcade</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand">
+        <span class="brand-icon" data-icon="planet"></span>
+        <div>
+          <h1>TERRAFORM</h1>
+          <small>A LIVING PLANET</small>
+        </div>
+      </div>
+      <nav aria-label="Planet management">
+        <button id="worlds" aria-label="Worlds">
+          <i data-icon="archive"></i><span>Worlds</span></button
+        ><button id="help" title="Field guide" aria-label="Field guide">
+          <i data-icon="help"></i></button
+        ><a href="../../index.html" aria-label="Return to Forge Arcade"
+          ><i data-icon="exit"></i><span>Forge Arcade</span></a
+        >
+      </nav>
+    </header>
+    <main>
+      <div class="world-head">
+        <div>
+          <div class="eyebrow">
+            <span class="signal"></span> PLANETARY OBSERVATORY
+          </div>
+          <h2 id="world-name">Pelagos</h2>
+          <div class="world-sub">
+            <span id="world-seed"></span><span class="separator">/</span
+            ><span id="world-region"></span>
+          </div>
+        </div>
+        <button id="mode" class="mode">
+          <span data-icon="flag"></span><span id="mode-name">Campaign</span
+          ><i data-icon="chevron"></i>
+        </button>
+      </div>
+      <div class="station">
+        <section class="panel toolbox">
+          <button class="panel-heading" id="tools-toggle" aria-expanded="true">
+            <span class="eyebrow"><i data-icon="tools"></i> TOOLBOX</span
+            ><i data-icon="chevron"></i>
+          </button>
+          <div class="panel-body">
+            <div id="groups" role="group" aria-label="Tool categories"></div>
+            <h3 id="tool-heading">Inspection</h3>
+            <div id="tools"></div>
+            <div class="tool-detail">
+              <i data-icon="cursor"></i><span id="tool-hint"></span>
+            </div>
+            <button id="apply-selected" hidden>Apply to selected region</button>
+          </div>
+        </section>
+        <section class="orbit" aria-label="Planet viewport">
+          <canvas id="stars" aria-hidden="true"></canvas>
+          <div class="orbit-path p1"></div>
+          <div class="orbit-path p2"></div>
+          <div class="view-label">
+            <span class="signal"></span> ORBITAL VIEW
+          </div>
+          <button id="focus" title="Focus objective region">
+            <i data-icon="target"></i><span>Focus target</span>
+          </button>
+          <canvas
+            id="planet"
+            tabindex="0"
+            aria-label="Interactive planet. Drag to rotate, scroll or pinch to zoom. Use arrow keys to explore and Enter to apply the selected tool."
+          ></canvas>
+          <div class="viewport-bottom">
+            <button id="overlay-open" title="Choose a surface overlay">
+              <i data-icon="layers"></i><span id="view-name">Surface</span
+              ><i data-icon="chevron"></i>
+            </button>
+            <div class="zoom">
+              <button id="zoom-out" aria-label="Zoom out">−</button
+              ><button id="reset-camera" aria-label="Reset camera">
+                <i data-icon="cross"></i></button
+              ><button id="zoom-in" aria-label="Zoom in">+</button>
+            </div>
+          </div>
+          <div id="overlay-key" hidden aria-label="Overlay scale">
+            <span id="overlay-low"></span><b></b><span id="overlay-high"></span>
+          </div>
+          <div id="feedback" role="status" aria-live="polite"></div>
+        </section>
+        <section class="panel telemetry">
+          <button
+            id="telemetry-toggle"
+            class="panel-heading"
+            aria-expanded="true"
+          >
+            <span class="eyebrow"><i data-icon="pulse"></i> TELEMETRY</span
+            ><i data-icon="chevron"></i>
+          </button>
+          <div class="panel-body">
+            <div class="index-box">
+              <div class="smallcaps">
+                HABITABILITY INDEX
+                <button id="formula" aria-label="Habitability formula">
+                  ⓘ
+                </button>
+              </div>
+              <div class="index-row">
+                <strong id="habit">0</strong><small>/ 100</small
+                ><span id="trend"></span>
+              </div>
+              <div class="meter"><b id="habit-bar"></b></div>
+            </div>
+            <div id="stats"></div>
+          </div>
+        </section>
+      </div>
+      <div class="timebar">
+        <div class="day">
+          <i data-icon="sun"></i><span>Sol <b id="day">0001</b></span>
+        </div>
+        <div id="speeds" aria-label="Simulation speed"></div>
+        <span class="time-status" id="time-status">Simulation live</span>
+        <div class="energy">
+          <i data-icon="bolt"></i><span>Energy</span><b id="energy"></b>
+        </div>
+      </div>
+      <div class="lower">
+        <section class="mission panel">
+          <div class="mission-icon" data-icon="flag"></div>
+          <div class="mission-main">
+            <div class="eyebrow" id="mission-kicker">ACTIVE OBJECTIVE</div>
+            <h3 id="mission-title"></h3>
+            <p id="mission-text"></p>
+            <div class="progress-line">
+              <div class="meter"><b id="progress"></b></div>
+              <small id="progress-label"></small>
+            </div>
+          </div>
+          <button id="missions" aria-label="Open objectives">
+            <i data-icon="arrow"></i>
+          </button>
+        </section>
+        <section class="region panel">
+          <div class="eyebrow"><i data-icon="target"></i> REGION INSPECTOR</div>
+          <strong id="region-title">Select a region</strong>
+          <p id="region-data">
+            Inspect the surface to read its local conditions.
+          </p>
+        </section>
+      </div>
+      <section id="tutorial" hidden>
+        <div>
+          <div class="eyebrow" id="lesson-count"></div>
+          <strong id="lesson-title"></strong>
+          <p id="lesson-text"></p>
+        </div>
+        <button id="skip">Skip</button>
+      </section>
+    </main>
+    <footer>
+      <span
+        ><i data-icon="mouse"></i> Drag to rotate <b>·</b> Scroll or pinch to
+        zoom <b>·</b> Select a region to interact</span
+      ><button id="guide"><i data-icon="book"></i> Field guide</button>
+    </footer>
+    <dialog id="dialog" aria-labelledby="dialog-title">
+      <div class="dialog-head">
+        <h2 id="dialog-title"></h2>
+        <button id="close" aria-label="Close dialog">×</button>
+      </div>
+      <div id="dialog-content"></div>
+    </dialog>
+    <script type="module" src="./main.mjs"></script>
+  </body>
+</html>
