@@ -1,4 +1,5 @@
 :root {
+  --gameplay-button-scale: 1.215;
   --bg: #05070d;
   --panel-bg: rgba(8, 12, 22, 0.92);
   --panel-border: rgba(100, 224, 255, 0.18);
@@ -43,8 +44,8 @@ html, body {
 
 #minimapCanvas {
   position: fixed;
-  top: 14px;
-  right: 14px;
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  right: calc(14px + env(safe-area-inset-right, 0px));
   width: 150px;
   height: 150px;
   border-radius: 50%;
@@ -67,9 +68,9 @@ html, body {
 
 .hud-top {
   position: absolute;
-  top: 14px;
-  left: 14px;
-  right: 190px;
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  left: calc(14px + env(safe-area-inset-left, 0px));
+  right: calc(190px + env(safe-area-inset-right, 0px));
   display: flex;
   justify-content: space-between;
   gap: 24px;
@@ -445,6 +446,12 @@ html, body {
 
 /* ---------------- Touch Controls ---------------- */
 .touch-controls {
+  --flight-side: 16px;
+  --flight-gap: 16px;
+  --steer-size: 86.4px;
+  --thrust-size: 124.8px;
+  --reverse-size: 67.2px;
+  --boost-size: 105.6px;
   position: fixed;
   inset: 0;
   z-index: 6;
@@ -452,17 +459,17 @@ html, body {
 }
 .touch-left, .touch-right {
   position: absolute;
-  bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(48px + env(safe-area-inset-bottom, 0px));
   display: flex;
-  gap: 16px;
+  gap: var(--flight-gap);
   align-items: flex-end;
 }
-.touch-left { left: calc(16px + env(safe-area-inset-left, 0px)); }
-.touch-right { right: calc(16px + env(safe-area-inset-right, 0px)); }
+.touch-left { left: calc(var(--flight-side) + env(safe-area-inset-left, 0px)); }
+.touch-right { right: calc(var(--flight-side) + env(safe-area-inset-right, 0px)); }
 .touch-btn {
   pointer-events: all;
-  width: 100.8px;
-  height: 100.8px;
+  width: calc(var(--flight-size) * var(--gameplay-button-scale));
+  height: calc(var(--flight-size) * var(--gameplay-button-scale));
   border-radius: 50%;
   background: rgba(20, 26, 38, 0.62);
   border: 2px solid var(--panel-border);
@@ -475,14 +482,13 @@ html, body {
   touch-action: none;
   box-shadow: 0 2px 10px rgba(0,0,0,0.35);
 }
-.touch-btn:active { background: rgba(100,224,255,0.3); border-color: var(--accent); transform: scale(0.95); }
-.touch-rotate { width: 86.4px; height: 86.4px; font-size: 26px; }
+.touch-btn:active, .touch-btn[aria-pressed="true"] { background: rgba(100,224,255,0.3); border-color: var(--accent); transform: scale(0.95); }
+.touch-rotate { --flight-size: var(--steer-size); font-size: 26px; }
 .touch-thrust-stack { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.touch-thrust { width: 124.8px; height: 124.8px; font-size: 36px; }
-.touch-reverse { width: 67.2px; height: 67.2px; font-size: 22px; opacity: 0.85; }
+.touch-thrust { --flight-size: var(--thrust-size); font-size: 36px; }
+.touch-reverse { --flight-size: var(--reverse-size); font-size: 22px; opacity: 0.85; }
 .touch-boost {
-  width: 105.6px;
-  height: 105.6px;
+  --flight-size: var(--boost-size);
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -490,11 +496,11 @@ html, body {
   border-color: var(--accent-warn);
   background: rgba(50, 32, 10, 0.5);
 }
-.touch-boost:active { background: rgba(255,179,71,0.3); }
+.touch-boost:active, .touch-boost[aria-pressed="true"] { background: rgba(255,179,71,0.3); }
 .touch-pause {
   position: absolute;
-  top: calc(14px + env(safe-area-inset-top, 0px));
-  right: 14px;
+  top: calc(174px + env(safe-area-inset-top, 0px));
+  right: calc(14px + env(safe-area-inset-right, 0px));
   width: 55.2px;
   height: 55.2px;
   font-size: 16px;
@@ -503,9 +509,12 @@ html, body {
 .touch-dock-btn {
   pointer-events: all;
   position: absolute;
-  left: 50%;
-  bottom: calc(140px + env(safe-area-inset-bottom, 0px));
-  transform: translateX(-50%);
+  left: calc(50% - 12px);
+  bottom: calc(40px + env(safe-area-inset-bottom, 0px) / 1.2);
+  zoom: 1.2;
+  touch-action: none;
+  transform: translateX(-50%) scale(var(--gameplay-button-scale));
+  transform-origin: center bottom;
   padding: 14px 34px;
   border-radius: 30px;
   background: rgba(100,224,255,0.22);
@@ -524,12 +533,9 @@ html, body {
 }
 
 @media (max-width: 420px) {
-  .touch-btn { width: 91.2px; height: 91.2px; }
-  .touch-rotate { width: 76.8px; height: 76.8px; font-size: 22px; }
-  .touch-thrust { width: 110.4px; height: 110.4px; font-size: 32px; }
-  .touch-reverse { width: 57.6px; height: 57.6px; font-size: 18px; }
-  .touch-boost { width: 93.6px; height: 93.6px; font-size: 13px; }
-  .touch-pause { width: 55.2px; height: 55.2px; font-size: 16px; }
+  .touch-rotate { font-size: 22px; }
+  .touch-thrust { font-size: 32px; }
+  .touch-reverse { font-size: 18px; }
 }
 
 .fps-counter {
@@ -551,7 +557,7 @@ html, body {
   /* keep the minimap in the top-right corner (away from the bottom touch controls) and
      push the pause button below it so the two never overlap */
   #minimapCanvas { width: 92px; height: 92px; top: calc(14px + env(safe-area-inset-top, 0px)); right: calc(10px + env(safe-area-inset-right, 0px)); }
-  .touch-pause { top: calc(14px + 92px + 12px + env(safe-area-inset-top, 0px)); }
+  .touch-pause { top: calc(110px + env(safe-area-inset-top, 0px)); }
   .hud-stats { flex-wrap: wrap; gap: 10px 14px; }
   /* the stacked hud-bars + hud-stats block runs tall in portrait; drop the sector banner
      below it instead of over it, and keep its two lines from running edge-to-edge */
@@ -562,16 +568,17 @@ html, body {
   .panel { padding: 22px 18px; }
 }
 
-@media (pointer: coarse) {
-  .touch-controls.enabled { display: block; }
+#forge-back-link {
+  right: calc(12px + env(safe-area-inset-right, 0px));
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
 }
 
-/* Enlarged flight buttons need separate thumb columns on narrow phones. */
-@media (max-width: 520px) {
-  .touch-left { flex-direction: column; gap: 12px; }
-  .touch-dock-btn { bottom: calc(250px + env(safe-area-inset-bottom, 0px)); }
+@media (pointer: coarse) {
+  .touch-controls.enabled { display: block; }
+  .interact-hint { display: none; }
+  .warnings { bottom: calc(310px + env(safe-area-inset-bottom, 0px)); }
+  #forge-back-link { bottom: calc(8px + env(safe-area-inset-bottom, 0px)); }
 }
-.touch-dock-btn { zoom: 1.2; }
 
 /* Recovery guidance stays in the existing HUD palette. */
 .mission-panel{position:absolute;left:14px;top:100px;width:340px;padding:10px 12px;border:1px solid var(--panel-border);border-radius:9px;background:rgba(5,10,19,.85);display:flex;flex-direction:column;gap:5px;font-size:11px;}
@@ -579,7 +586,22 @@ html, body {
 .mission-panel span,.mission-panel small{color:var(--text-dim);font-size:10px;line-height:1.4;}
 .mission-panel #powerStatus.low-power{color:var(--accent-warn);}
 .mission-panel #supplyHint{color:var(--accent-warn);}
-.utility-controls{display:flex;gap:6px;margin-top:3px;pointer-events:auto;}
+.utility-controls {
+  margin-top: 3px;
+  padding-bottom: calc(44px * (var(--gameplay-button-scale) - 1));
+  pointer-events: auto;
+}
+.utility-actions {
+  display: flex;
+  gap: 6px;
+  /* The old row reserved 44px for pause and 6px for its gap. */
+  width: calc(100% - 50px);
+  /* Scale the intrinsic button boxes and their hit areas from the same baseline. */
+  transform: scale(var(--gameplay-button-scale));
+  transform-origin: top left;
+}
+.mission-panel > strong, .mission-panel > #missionDetail, .mission-panel > #powerStatus { padding-right: 50px; }
+#btnHudPause { position: absolute; top: 8px; right: 10px; }
 .utility-controls button{min-height:44px;border:1px solid var(--panel-border);border-radius:6px;background:#101d2c;color:var(--accent);font:600 10px system-ui;padding:6px 9px;touch-action:none;}
 .utility-controls button:disabled{opacity:.45;}.utility-controls #btnReserve{flex:1;}.utility-controls #btnHudPause{min-width:44px;}
 #rewardText{position:absolute;top:38%;left:50%;transform:translateX(-50%);font-weight:700;color:#ffcf70;font-size:18px;text-align:center;opacity:0;max-width:80%;}
@@ -591,23 +613,79 @@ body:not([data-game-state=playing]) .touch-left,body:not([data-game-state=playin
 .sector-banner{top:80px;}.toasts{top:112px;max-width:45%;}.toast{max-width:100%;}
 @media(max-width:760px){
  .hud-bars{min-width:180px;max-width:200px;}.hud-top{gap:6px;}.hud-stats{gap:8px;padding:7px 10px;}.stat-label{font-size:8px;}.stat-value{font-size:11px;}
- .mission-panel{top:154px;left:12px;width:calc(100% - 24px);max-width:380px;padding:8px 10px;gap:3px;}
- .sector-banner{top:306px;}.sector-banner-desc{display:none;}.toasts{top:340px;max-width:90%;width:90%;}
- .touch-pause{width:44px;height:44px;top:112px;right:12px;}
- .touch-left{flex-direction:row;left:12px;bottom:48px;gap:8px;}.touch-right{right:12px;bottom:48px;gap:8px;}
- .touch-rotate{width:52px;height:52px;}.touch-thrust{width:62px;height:62px;}.touch-reverse{width:46px;height:46px;}.touch-boost{width:60px;height:60px;font-size:11px;}.touch-thrust-stack{gap:8px;}
- .touch-dock-btn{zoom:1;bottom:190px;font-size:12px;padding:10px 20px;min-height:44px;}
- .warnings{bottom:195px;width:90%;}.warning-chip{font-size:10px;text-align:center;letter-spacing:0;padding:5px 9px;}
+ .mission-panel{top:calc(154px + env(safe-area-inset-top, 0px));left:calc(12px + env(safe-area-inset-left, 0px));width:calc(100% - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));max-width:380px;padding:8px 10px;gap:3px;}
+ .sector-banner{top:calc(336px + env(safe-area-inset-top, 0px));}.sector-banner-desc{display:none;}.toasts{top:340px;max-width:90%;width:90%;}
+ .touch-pause{width:44px;height:44px;right:calc(12px + env(safe-area-inset-right, 0px));}
+ .touch-controls {
+   --flight-side: 10px;
+   --flight-gap: 6px;
+   --steer-size: 52px;
+   --thrust-size: 62px;
+   --reverse-size: 46px;
+   --boost-size: 60px;
+ }
+ .touch-boost{font-size:11px;}.touch-thrust-stack{gap:8px;}
+ .touch-dock-btn {
+   zoom: 1;
+   left: 50%;
+   bottom: calc(198px + env(safe-area-inset-bottom, 0px));
+   font-size: 12px;
+   padding: 10px 20px;
+   min-height: 44px;
+ }
+ .warnings{bottom:calc(265px + env(safe-area-inset-bottom, 0px));width:90%;}.warning-chip{font-size:10px;text-align:center;letter-spacing:0;padding:5px 9px;}
  .title-wrap{max-height:96svh;overflow:auto;max-width:95%;}.hint{max-width:300px;line-height:1.5;}
 }
 @media(max-height:500px){
- .mission-panel{top:95px;max-width:300px;}.mission-panel #missionDetail,.mission-panel #activeBoosts{display:none;}
- .hud-top{right:170px;}.hud-bars{min-width:170px;}.hud-stats{gap:8px;}.stat-value{font-size:11px;}
+ .mission-panel{top:calc(95px + env(safe-area-inset-top, 0px));max-width:300px;}.mission-panel #missionDetail,.mission-panel #activeBoosts{display:none;}
+ .hud-top{right:170px;flex-direction:row;justify-content:flex-start;}.hud-bars{min-width:170px;}.hud-stats{gap:8px;}.stat-value{font-size:11px;}
  .sector-banner{top:258px;left:170px;}.toasts{top:62px;left:60%;max-width:38%;}
- #minimapCanvas{width:80px;height:80px;}.touch-pause{top:102px;}.touch-left,.touch-right{bottom:42px;flex-direction:row;}
- .touch-rotate{width:48px;height:48px;}.touch-thrust{width:54px;height:54px;}.touch-reverse{width:44px;height:44px;}.touch-boost{width:54px;height:54px;font-size:10px;}
- .warnings{bottom:75px;width:45%;}.touch-dock-btn{bottom:150px;}.game-title{font-size:40px;}.best-distance{margin:8px 0;}.mode-select{margin-bottom:8px;}.menu-buttons{gap:6px;}.btn{padding:10px 16px;}.hint{margin-top:10px;}
+ #minimapCanvas{width:80px;height:80px;}
+ .touch-pause{top:calc(102px + env(safe-area-inset-top, 0px));}
+ .touch-controls {
+   --steer-size: 48px;
+   --thrust-size: 54px;
+   --reverse-size: 44px;
+   --boost-size: 54px;
+ }
+ .touch-boost{font-size:10px;}
+ .warnings {
+   bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+   left: calc(320px + env(safe-area-inset-left, 0px));
+   right: calc(184px + env(safe-area-inset-right, 0px));
+   width: auto;
+   transform: none;
+ }
+ .touch-dock-btn{bottom:calc(48px + env(safe-area-inset-bottom, 0px));}.game-title{font-size:40px;}.best-distance{margin:8px 0;}.mode-select{margin-bottom:8px;}.menu-buttons{gap:6px;}.btn{padding:10px 16px;}.hint{margin-top:10px;}
 }
+
+@media (max-width: 420px) and (min-height: 501px) {
+  .touch-dock-btn {
+    left: calc(10px + env(safe-area-inset-left, 0px));
+    bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+    transform: scale(var(--gameplay-button-scale));
+    transform-origin: left bottom;
+  }
+  .touch-thrust-stack { order: 1; }
+  .warnings {
+    left: auto;
+    right: calc(94px + env(safe-area-inset-right, 0px));
+    bottom: calc(126px + env(safe-area-inset-bottom, 0px));
+    width: calc(100% - 220px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+    transform: none;
+    flex-flow: row wrap;
+    justify-content: center;
+  }
+}
+@media (max-width: 315px) {
+  .touch-left { flex-direction: column; }
+  .touch-dock-btn {
+    left: calc(82px + env(safe-area-inset-left, 0px));
+    bottom: calc(126px + env(safe-area-inset-bottom, 0px));
+  }
+  .warnings { bottom: calc(186px + env(safe-area-inset-bottom, 0px)); }
+}
+
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;}#rewardText.show{opacity:1;}}
 body.reduced-motion *,body.reduced-motion *::before,body.reduced-motion *::after{animation:none!important;transition:none!important;}
 body.reduced-motion #rewardText.show{opacity:1;}
