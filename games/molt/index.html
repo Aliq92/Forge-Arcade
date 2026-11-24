@@ -144,7 +144,7 @@
   </div>
 </div>
 
-<script src="living-world.js?v=13"></script>
+<script src="living-world.js?v=27"></script>
 <script>
 (function(){
   "use strict";
@@ -152,14 +152,15 @@
   // ---------------- Canvas / world setup ----------------
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
-  let W = 0, H = 0, DPR = Math.min(window.devicePixelRatio || 1, 1.5);
+  let W = 0, H = 0;
 
   function resize(){
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
     const rect = canvas.getBoundingClientRect();
     W = rect.width; H = rect.height;
     canvas.width = Math.round(W * DPR);
     canvas.height = Math.round(H * DPR);
-    ctx.setTransform(DPR,0,0,DPR,0,0);
+    ctx.setTransform(canvas.width/(W||1),0,0,canvas.height/(H||1),0,0);
   }
   window.addEventListener('resize', resize);
   resize();
@@ -290,7 +291,7 @@
   try{settings=Object.assign(settings,JSON.parse(localStorage.getItem('molt.presentation.v1')||'{}'));}catch{}
   muted=!!settings.muted;art.reduced=!!settings.reduced;
   const frameCosts=new Float32Array(240);let costIndex=0;
-  function snapshot(){return {player,npcs,motes,particles,floatingTexts,state,stage:lastMoltIdx+1,CFG,shakeMag};}
+  function snapshot(){return {player,npcs,motes,particles,floatingTexts,state,stage:lastMoltIdx+1,moltRemaining:moltBannerTimer,CFG,shakeMag};}
   function clearInput(){keys={};inputVec.x=inputVec.y=0;joyEnd();}
   function savePresentation(){try{localStorage.setItem('molt.presentation.v1',JSON.stringify({muted,reduced:art.reduced}));}catch{}}
   function pauseGame(){if(state!=='playing'&&state!=='molting')return;resumeState=state;state='paused';clearInput();document.getElementById('pauseOverlay').classList.add('show');}
@@ -764,10 +765,22 @@
     const frameStart=performance.now(),dt=Math.max(0,Math.min(.05,(ts-lastTs)/1000||0));lastTs=ts;
     if(state!=='paused'){
       visualTime+=dt;
-      if(state==='molting'){moltBannerTimer-=dt;if(moltBannerTimer<=0){document.getElementById('moltBanner').classList.remove('show');state='playing';}}
+      if(state==='molting'){
+        moltBannerTimer-=dt;
+        shakeMag*=Math.exp(-dt*10);
+        if(shakeMag<0.05)shakeMag=0;
+        if(moltBannerTimer<=0){document.getElementById('moltBanner').classList.remove('show');state='playing';}
+      }
       else if(state==='playing')update(dt);
       else if(state==='start')for(const n of npcs){n.x+=n.vx*dt*.48;n.y+=n.vy*dt*.48;}
-      if(state==='dead'){shakeMag*=Math.exp(-dt*10);if(shakeMag<.05)shakeMag=0;}
+      if(state==='dead'){
+        if(moltBannerTimer>0){
+          moltBannerTimer=0;
+          document.getElementById('moltBanner').classList.remove('show');
+        }
+        shakeMag*=Math.exp(-dt*10);
+        if(shakeMag<.05)shakeMag=0;
+      }
       advanceVisuals(dt);
     }
     render(visualTime);

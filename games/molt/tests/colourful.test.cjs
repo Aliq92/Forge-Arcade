@@ -2,7 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 function art(){const s={window:{},Math};vm.createContext(s);vm.runInContext(fs.readFileSync(path.resolve(__dirname,'../living-world.js'),'utf8'),s);return s.window.MoltPresentation;}
 test('small-size player rendering remains simple at all twelve stages and still draws two eyes',()=>{
  const Art=art(),a=new Art();a.reduced=true;
- for(let i=0;i<12;i++){let paths=0,eyes=0;const ctx=new Proxy({createLinearGradient:()=>({addColorStop(){}}),beginPath(){paths++;},fill(){if(this.fillStyle==='#fffdf1')eyes++;}},{get:(o,k)=>o[k]??(()=>{})});a.creature(ctx,0,0,16,i,0,0);assert.ok(paths<=18,`Stage ${i} uses ${paths} paths`);assert.equal(eyes,2);}
+ for(let i=0;i<12;i++){let paths=0,eyes=0;const ctx=new Proxy({createLinearGradient:()=>({addColorStop(){}}),beginPath(){paths++;},ellipse(x,y,rx){if(rx===.218)eyes++;}},{get:(o,k)=>o[k]??(()=>{})});a.creature(ctx,0,0,16,i,0,0);assert.ok(paths<=18,`Stage ${i} uses ${paths} paths`);assert.equal(eyes,2);}
 });
 test('starting food changes placement only, keeps six motes and uses no additional gameplay randomness',()=>{
  const a=harness(true,42).api,b=harness(false,42).api;a.start();b.start();const old=a.get(),next=b.get();assert.equal(next.motes.length,6);assert.deepEqual(JSON.parse(JSON.stringify(next.npcs)),JSON.parse(JSON.stringify(old.npcs)));assert.deepEqual(Array.from(next.motes,m=>m.phase),Array.from(old.motes,m=>m.phase));assert.ok(next.motes.slice(0,4).every(m=>Math.hypot(m.x-next.player.x,m.y-next.player.y)<=120));assert.equal(next.player.mass,22);
