@@ -94,10 +94,11 @@ const GAMES = [
   },
   {
     id: 'particle-lab',
-    title: 'Particle Lab',
-    description: 'An interactive particle-physics playground for experimenting with forces and motion.',
+    title: 'ELEMENTERRA',
+    description: 'Shape a living world of matter. Build structures, control flowing liquids, experiment with heat, and discover satisfying material reactions through creative sandbox experiments and physics-based challenges.',
     category: 'Experiments',
-    palette: ['#44d7ff', '#ff68cf'],
+    palette: ['#a3dfbf', '#ecc68a'],
+    artworkVersion: '28',
   },
   {
     id: 'ripple-run',

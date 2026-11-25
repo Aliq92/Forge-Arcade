@@ -17,6 +17,7 @@ const rows=[
 ];
 const MATERIALS=Object.freeze(rows.map((r,id)=>Object.freeze({id,key:Object.keys(ID)[id],name:r[0],state:r[1],density:r[2],temp:r[3],temperature:r[3],conductivity:r[4],color:r[5],description:r[6],flammable:id===5||id===6,ignition:id===5?280:id===6?230:Infinity,...(id===8?{melting:0}:id===2?{boiling:100}:id===9?{condensation:75}:id===7?{solidification:650}:{})})));
 const clamp=t=>Math.max(-100,Math.min(1500,t));
+const conductivity=MATERIALS.map(material=>material.conductivity);
 class World{
  constructor(width=96,height=64,seed=23){
   if(!Number.isInteger(width)||!Number.isInteger(height)||width<2||height<2||width>256||height>256)throw Error('Invalid world dimensions');
@@ -31,24 +32,57 @@ class World{
  rect(x1,y1,x2,y2,id,filled=true,options={}){if(![x1,y1,x2,y2].every(Number.isFinite))return 0;let n=0;for(let y=Math.max(0,Math.min(y1,y2));y<=Math.min(this.height-1,Math.max(y1,y2));y++)for(let x=Math.max(0,Math.min(x1,x2));x<=Math.min(this.width-1,Math.max(x1,x2));x++)if(filled||x===x1||x===x2||y===y1||y===y2)n+=this.paint(x,y,id,0,options);return n;}
  heat(x,y,delta,radius=2){if(![x,y,delta,radius].every(Number.isFinite))return 0;let n=0;radius=Math.min(20,Math.max(0,Math.floor(radius)));for(let yy=y-radius;yy<=y+radius;yy++)for(let xx=x-radius;xx<=x+radius;xx++)if(this.inside(xx,yy)&&(xx-x)**2+(yy-y)**2<=radius*radius){const i=yy*this.width+xx;if(!this.locked[i]){this.temp[i]=clamp(this.temp[i]+delta);n++;}}return n;}
  count(id,rect){let n=0;for(let y=0;y<this.height;y++)for(let x=0;x<this.width;x++)if((!rect||(x>=rect.x&&y>=rect.y&&x<rect.x+rect.w&&y<rect.y+rect.h))&&this.cells[y*this.width+x]===id)n++;return n;}
- change(i,id,stat){this.cells[i]=id;this.life[i]=id===ID.fire?45:id===ID.smoke?100:0;if(stat)this.stats[stat]++;}
- step(){
-  const w=this.width,h=this.height,n=this.cells.length;this.tick++;this.delta.fill(0);this.moved.fill(0);
+ change(i,id,stat,effect){this.cells[i]=id;this.life[i]=id===ID.fire?45:id===ID.smoke?100:0;if(stat){this.stats[stat]++;effect?.(i,id,stat);}}
+ step(effect,verticalMotion){
+  const {width:w,height:h,cells,temp,delta,origin,life,moved}=this,n=cells.length;
+  this.tick++;delta.fill(0);moved.fill(0);
+  verticalMotion?.fill(0);
   // Pairwise conservative diffusion; sum of the four exchanges stays bounded.
-  for(let i=0;i<n;i++){if(this.cells[i]===ID.fire)this.temp[i]=Math.max(650,this.temp[i]);for(const j of [i%w<w-1?i+1:-1,i+w<n?i+w:-1])if(j>=0){const q=(this.temp[j]-this.temp[i])*Math.min(MATERIALS[this.cells[i]].conductivity,MATERIALS[this.cells[j]].conductivity)*.20;this.delta[i]+=q;this.delta[j]-=q;}}
-  for(let i=0;i<n;i++)this.temp[i]=clamp(this.temp[i]+this.delta[i]);
+  for(let y=0,i=0;y<h;y++)for(let x=0;x<w;x++,i++){
+   const id=cells[i],rate=conductivity[id];
+   if(id===ID.fire)temp[i]=Math.max(650,temp[i]);
+   if(x+1<w){
+    const j=i+1,q=(temp[j]-temp[i])*Math.min(rate,conductivity[cells[j]])*.20;
+    delta[i]+=q;delta[j]-=q;
+   }
+   if(y+1<h){
+    const j=i+w,q=(temp[j]-temp[i])*Math.min(rate,conductivity[cells[j]])*.20;
+    delta[i]+=q;delta[j]-=q;
+   }
+  }
+  for(let i=0;i<n;i++)temp[i]=clamp(temp[i]+delta[i]);
   for(let i=0;i<n;i++){
    const id=this.cells[i],t=this.temp[i];
-   if(id===ID.ice&&t>=0)this.change(i,ID.water,'melted');
-   else if(id===ID.water&&t>=100)this.change(i,ID.steam,'boiled');
-   else if(id===ID.steam&&t<=75)this.change(i,ID.water,'condensed');
-   else if(id===ID.lava&&t<=650)this.change(i,ID.stone,'cooled');
-   else if(MATERIALS[id].flammable&&t>=MATERIALS[id].ignition){this.change(i,ID.fire,'ignited');this.temp[i]=800;}
-   else if(id===ID.fire){const x=i%w,y=(i/w)|0;let wet=false;for(const [dx,dy] of [[0,-1],[0,1],[-1,0],[1,0]])if(this.get(x+dx,y+dy)===ID.water)wet=true;if(wet){this.change(i,ID.smoke,'extinguished');this.temp[i]=100;}else if(--this.life[i]===0)this.change(i,ID.smoke);}
+   if(id===ID.ice&&t>=0)this.change(i,ID.water,'melted',effect);
+   else if(id===ID.water&&t>=100)this.change(i,ID.steam,'boiled',effect);
+   else if(id===ID.steam&&t<=75)this.change(i,ID.water,'condensed',effect);
+   else if(id===ID.lava&&t<=650)this.change(i,ID.stone,'cooled',effect);
+   else if(MATERIALS[id].flammable&&t>=MATERIALS[id].ignition){this.change(i,ID.fire,'ignited',effect);this.temp[i]=800;}
+   else if(id===ID.fire){const x=i%w;const wet=cells[i-w]===ID.water||cells[i+w]===ID.water||
+    (x>0&&cells[i-1]===ID.water)||(x+1<w&&cells[i+1]===ID.water);
+    if(wet){this.change(i,ID.smoke,'extinguished',effect);this.temp[i]=100;}else if(--this.life[i]===0)this.change(i,ID.smoke);}
    else if(id===ID.smoke&&--this.life[i]===0)this.change(i,ID.air);
   }
-  const swap=(i,j)=>{for(const arr of [this.cells,this.temp,this.origin,this.life]){const a=arr[i];arr[i]=arr[j];arr[j]=a;}this.moved[i]=this.moved[j]=1;};
-  const move=(i,x,y,gas)=>{if(!this.inside(x,y))return false;const j=y*w+x;if(this.moved[j])return false;const a=MATERIALS[this.cells[i]],b=MATERIALS[this.cells[j]];if(b.id===ID.air||(gas?b.state==='gas'&&a.density<b.density:(b.state==='liquid'||b.state==='gas')&&a.density>b.density)){swap(i,j);return true;}return false;};
+  const dynamicLayers=[cells,temp,origin,life];
+  const move=(i,x,y,gas)=>{
+   if(x<0||x>=w||y<0||y>=h)return false;
+   const j=y*w+x;
+   if(moved[j])return false;
+   const a=MATERIALS[cells[i]],b=MATERIALS[cells[j]];
+   if(b.id!==ID.air&&!(gas?b.state==='gas'&&a.density<b.density:(b.state==='liquid'||b.state==='gas')&&a.density>b.density))return false;
+   for(const layer of dynamicLayers){const value=layer[i];layer[i]=layer[j];layer[j]=value;}
+   moved[i]=moved[j]=1;
+   if((verticalMotion||effect)&&b.id===ID.air){
+    const dy=y-Math.floor(i/w);
+    if(verticalMotion)verticalMotion[j]=dy;
+    if(effect&&dy>0){
+     const below=cells[j+w];
+     if(below===undefined||MATERIALS[below].state==='solid'||
+      (a.state==='liquid'&&below===a.id&&cells[i-w]!==a.id))effect(j,a.id,'impact');
+    }
+   }
+   return true;
+  };
   for(let y=h-1;y>=0;y--)for(let k=0;k<w;k++){
    const x=this.tick%2?k:w-1-k,i=y*w+x,id=this.cells[i],m=MATERIALS[id];if(this.moved[i]||id===ID.air||m.state==='solid')continue;
    const gas=m.state==='gas',dy=gas?-1:1,dir=((this.tick+x+y+this.seed)&1)?1:-1;
