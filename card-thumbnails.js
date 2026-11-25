@@ -91,5 +91,6 @@ function cardArtworkHTML(game) {
   if (!CARD_THUMBNAILS.has(game.id)) return '<span class="art-code">' + game.title.charAt(0) + '</span>';
   const image = '<img class="game-thumbnail" src="assets/thumbnails/' + game.id + '.svg" alt="" width="640" height="360" loading="lazy" decoding="async">';
   if (!PIXEL_CARD_IDS.has(game.id)) return image;
-  return '<picture class="game-thumbnail-frame"><source type="image/webp" srcset="assets/thumbnails/pixel/' + game.id + '.webp">' + image + '</picture>';
+  const version = game.artworkVersion ? '?v=' + game.artworkVersion : '';
+  return '<picture class="game-thumbnail-frame"><source type="image/webp" srcset="assets/thumbnails/pixel/' + game.id + '.webp' + version + '">' + image + '</picture>';
 }

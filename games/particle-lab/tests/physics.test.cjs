@@ -8,6 +8,32 @@ test('phase changes conserve cells and locked fixtures can transform',()=>{
  const w=new World(12,12); w.set(2,2,ID.ice,20,true); w.set(4,2,ID.water,150); w.set(6,2,ID.steam,40); w.set(8,2,ID.lava,400); w.step();
  assert.equal(w.stats.melted,1);assert.equal(w.stats.boiled,1);assert.equal(w.stats.condensed,1);assert.equal(w.stats.cooled,1); assert.equal(w.cells.filter(Boolean).length,4);
 });
+test('visual hooks report real events and leave deterministic physics intact', () => {
+ const world = new World(12, 12);
+ world.set(2, 2, ID.sand);
+ world.set(6, 6, ID.steam);
+ world.set(9, 8, ID.ice, 20);
+ const reference = world.clone();
+ const moves = new Int8Array(world.cells.length).fill(9);
+ const events = [];
+ world.step((index, id, reaction) => events.push({index, id, reaction}), moves);
+ reference.step();
+ assert.deepEqual(world.export(), reference.export());
+ assert.deepEqual(events, [{index:8*12+9, id:ID.water, reaction:'melted'}]);
+ assert.equal(moves[2*12+2], 0);
+ assert.equal(moves[3*12+2], 1);
+ assert.equal(moves[5*12+6], -1);
+});
+test('a liquid landing on a flat fixture emits a splash at its occupied destination', () => {
+ const world = new World(8, 8);
+ world.line(0, 6, 7, 6, ID.stone);
+ world.set(3, 4, ID.water);
+ const impacts = [];
+ world.step((index, id, event) => {
+  if (event === 'impact') impacts.push({index, id, occupied:world.cells[index]});
+ });
+ assert.deepEqual(impacts, [{index:5*8+3, id:ID.water, occupied:ID.water}]);
+});
 test('heat crosses metal into ice and tools protect fixtures',()=>{
  const w=new World(8,8);w.set(2,5,ID.metal,500,true);w.set(3,5,ID.ice,-10,true); w.paint(2,5,ID.air,0,{overwrite:true});assert.equal(w.get(2,5),ID.metal);for(let i=0;i<8;i++)w.step();assert.ok(w.stats.melted>0);
 });
