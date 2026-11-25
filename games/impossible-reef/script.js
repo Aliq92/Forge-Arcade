@@ -1093,9 +1093,20 @@ window.addEventListener('visibilitychange', ()=>{ if(document.hidden) saveState(
 window.addEventListener('pagehide', saveState);
 
 /* Optional exploration layers are independent of the planted garden save. */
-const OCEAN_KEY='impossible_reef_ocean_v1';
+const OCEAN_KEY='impossible_reef_ocean_v2';
+const LEGACY_OCEAN_KEY='impossible_reef_ocean_v1';
 let oceanSaved=null;
-try{const raw=localStorage.getItem(OCEAN_KEY);if(raw&&raw.length<64000)oceanSaved=JSON.parse(raw);}catch{}
+for (const key of [OCEAN_KEY, LEGACY_OCEAN_KEY]) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw || raw.length >= 64000) continue;
+    const candidate = JSON.parse(raw);
+    if (candidate?.v === (key === OCEAN_KEY ? 2 : 1)) {
+      oceanSaved = candidate;
+      break;
+    }
+  } catch {}
+}
 ocean=new ReefOcean.Ocean(17017,oceanSaved);
 oceanRenderer=new ReefOceanRenderer(canvas,ocean);
 state.quality=oceanSaved?.quality==='low'?'low':'high';
@@ -1107,9 +1118,34 @@ function refreshOceanUI(){
  document.getElementById('survey-status').textContent=state.paused?'PAUSED · Your reef is safe.':survey?`${ReefOcean.REGIONS[ocean.region].name} · ${count}/8 treasures · ${ocean.journal.points} points · Tap to swim`:`Garden · ${SPECIES[state.selectedSpecies].name} selected · Tap to plant`;
  for(const id of ['btn-nurture','btn-remove','btn-clear','btn-autogrow'])document.getElementById(id).disabled=state.paused||survey;
  document.getElementById('species-row').inert=state.paused||survey;
+ refreshSurveyObjective();
 }
 function setPaused(value){if(value===state.paused)return;state.paused=value;ocean.paused=value;keys.clear();if(value){pauseWall=Date.now();audioCtx?.suspend();}else{const elapsed=Date.now()-pauseWall;state.moodStart+=elapsed;for(const [id,t]of state.bredPairs)state.bredPairs.set(id,t+elapsed);if(state.sound&&audioCtx)audioCtx.resume();}refreshOceanUI();}
-function showOceanDialog(id){setPaused(true);document.getElementById(id).showModal();}
+function showOceanDialog(id) {
+  const dialog = document.getElementById(id);
+  const wasPaused = state.paused;
+  setPaused(true);
+  dialog.addEventListener('close', () => setPaused(wasPaused), {once:true});
+  dialog.showModal();
+}
+function refreshSurveyObjective() {
+  const element = document.getElementById('survey-objective');
+  let message = '';
+  if (ocean.survey && !ocean.paused) {
+    const {probe, gate, habitat, markers} = ocean;
+    const near = (item, radius) => Math.hypot(probe.x - item.x, probe.y - item.y) < radius;
+    if (habitat && habitat.state !== 'undiscovered' && habitat.state !== 'restored' && near(habitat, 190)) {
+      message = `${habitat.name} · ${habitat.objective} (${habitat.progress}/${habitat.total})`;
+    } else if (gate && !ocean.gateOpen() && near({x:gate.x,y:gate.y+gate.h/2}, 175)) {
+      message = gate.hint;
+    } else {
+      const marker = markers?.find(item => item.active && !item.collected && near(item, 68));
+      if (marker) message = `Swim to ${marker.label}`;
+    }
+  }
+  if (element.textContent !== message) element.textContent = message;
+  element.hidden = !message;
+}
 document.getElementById('btn-survey').onclick=()=>{if(state.paused)return;ocean.survey=!ocean.survey;ocean.target=null;keys.clear();selectOrganism(null);document.getElementById('hint').classList.add('gone');refreshOceanUI();canvas.focus({preventScroll:true});};
 document.getElementById('region-select').onchange=e=>{ocean.setRegion(Number(e.target.value));saveOcean();refreshOceanUI();};
 document.getElementById('btn-pause').onclick=()=>setPaused(!state.paused);
@@ -1117,13 +1153,55 @@ document.getElementById('btn-ocean-menu').onclick=()=>showOceanDialog('ocean-men
 document.getElementById('ocean-quality').value=state.quality;
 document.getElementById('ocean-quality').onchange=e=>{state.quality=e.target.value==='low'?'low':'high';saveOcean();};
 document.getElementById('btn-survey-restart').onclick=()=>{ocean.restartSurvey();saveOcean();document.getElementById('ocean-menu').close();setPaused(false);};
-document.querySelectorAll('[data-ocean-close]').forEach(b=>b.onclick=()=>{b.closest('dialog').close();setPaused(false);});
-document.querySelectorAll('dialog').forEach(d=>d.addEventListener('cancel',()=>setPaused(false)));
-document.getElementById('btn-journal').onclick=()=>{
- const j=ocean.journal;document.getElementById('journal-summary').textContent=`${j.found.length}/32 treasures · ${j.secrets.length}/4 hidden habitats · ${j.points} discovery points · ${j.encounters.length}/4 wildlife groups observed`;
- document.getElementById('journal-regions').replaceChildren(...ReefOcean.REGIONS.map((r,i)=>{const p=document.createElement('p');const count=j.found.filter(id=>id.startsWith(r.id+'-')).length;p.textContent=`${r.name}: ${count}/8 · ${j.secrets.includes('secret-'+i)?r.secret+' discovered':'Habitat undiscovered'}`;return p;}));
- const labels={'rare-pearls':'Find three rare pearls','all-secrets':'Discover all four habitats','clean-discovery':'Collect a treasure without brushing the curtain',upstream:'Swim against a current for two seconds'};
- document.getElementById('journal-challenges').replaceChildren(...Object.entries(labels).map(([id,text])=>{const li=document.createElement('li');li.textContent=`${j.challenges.includes(id)?'✓':'○'} ${text}`;return li;}));const rewards=document.createElement('p');rewards.textContent=`Discovery milestones: ${[5,12,24].map(n=>`${j.milestones.includes(n)?'★':'☆'} ${n} treasures`).join(' · ')}`;document.getElementById('journal-regions').append(rewards);showOceanDialog('ocean-journal');
+document.querySelectorAll('[data-ocean-close]').forEach(button => {
+  button.onclick = () => button.closest('dialog').close();
+});
+document.getElementById('btn-journal').onclick = () => {
+  const journal = ocean.journal;
+  document.getElementById('journal-summary').textContent =
+    `${journal.found.length}/32 treasures · ${journal.secrets.length}/4 hidden habitats · ${journal.restored.length}/4 restored · ${journal.points} points · ${journal.encounters.length}/4 wildlife groups observed`;
+  const regions = ReefOcean.REGIONS.map((region, index) => {
+    const progress = ocean.regionProgress(index);
+    const section = document.createElement('section');
+    const title = document.createElement('h3');
+    title.textContent = region.name;
+    section.append(title);
+    const companion = ReefOcean.COMPANIONS[index];
+    const icons = {clownfish:'🐠', seahorse:'◌', jellyfish:'🪼', turtle:'🐢'};
+    const lines = [
+      `Habitat · ${progress.habitat}: ${progress.habitatState} · ${progress.restoration}/${progress.totalTasks} tasks`,
+      progress.companionFound
+        ? `Creatures · ${icons[companion.kind]} ${companion.name}. ${companion.description}`
+        : 'Creatures · Companion undiscovered',
+      `Treasures · ${progress.treasures}/${progress.totalTreasures} collected, ${progress.totalTreasures - progress.treasures} remaining · Rare pearl ${journal.found.includes(region.id + '-3') ? 'found' : 'unfound'}`,
+      `Exploration · ${progress.gate}: ${progress.gateOpen ? 'opened' : 'closed'}`,
+      ...progress.activities.map(activity => `${activity.done ? '✓' : '○'} ${activity.name}`),
+      ...progress.discoveries.filter(item => item.done).map(item => `✦ ${item.label}`)
+    ];
+    for (const line of lines) {
+      const paragraph = document.createElement('p');
+      paragraph.textContent = line;
+      section.append(paragraph);
+    }
+    return section;
+  });
+  document.getElementById('journal-regions').replaceChildren(...regions);
+  const milestones = document.createElement('p');
+  milestones.textContent = 'Treasure milestones · ' + [5, 12, 24]
+    .map(count => `${journal.milestones.includes(count) ? '★' : '☆'} ${count}`).join(' · ');
+  document.getElementById('journal-regions').append(milestones);
+  const badges = {
+    'rare-pearls':'Find three rare pearls',
+    'all-secrets':'Discover all four habitats',
+    'clean-discovery':'Collect a treasure without touching a closed gate',
+    upstream:'Swim against a current for two seconds'
+  };
+  document.getElementById('journal-challenges').replaceChildren(...Object.entries(badges).map(([id, label]) => {
+    const item = document.createElement('li');
+    item.textContent = `${journal.challenges.includes(id) ? '✓' : '○'} ${label}`;
+    return item;
+  }));
+  showOceanDialog('ocean-journal');
 };
 document.addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName)||document.querySelector('dialog[open]'))return;if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','w','a','s','d'].includes(e.key)){e.preventDefault();keys.add(e.key.toLowerCase());}if(e.key.toLowerCase()==='p')setPaused(!state.paused);});
 document.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
@@ -1268,7 +1346,8 @@ function frame(now){
     triggerAmbientEvent();
   }
   ocean.step(dt,{x:(keys.has('d')||keys.has('arrowright')?1:0)-(keys.has('a')||keys.has('arrowleft')?1:0),y:(keys.has('s')||keys.has('arrowdown')?1:0)-(keys.has('w')||keys.has('arrowup')?1:0)});
-  const discoveries=ocean.drainEvents();if(discoveries.length){const priority={complete:5,secret:4,treasure:3,challenge:2,encounter:1};const message=discoveries.reduce((a,b)=>(priority[b.type]||0)>=(priority[a.type]||0)?b:a);showBanner(message.text);playChime();saveOcean();refreshOceanUI();}
+  refreshSurveyObjective();
+  const discoveries=ocean.drainEvents();if(discoveries.length){const priority={restored:8,companion:7,gate:6,complete:5,secret:4,treasure:3,activity:3,challenge:2,encounter:1};const message=discoveries.reduce((a,b)=>(priority[b.type]||0)>=(priority[a.type]||0)?b:a);showBanner(message.text);playChime();saveOcean();refreshOceanUI();}
   }
   ReefLab.metrics.updateMs=performance.now()-begin;
   const drawStart=performance.now();

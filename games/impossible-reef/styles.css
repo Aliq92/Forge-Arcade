@@ -15,7 +15,6 @@ html, body{
   margin:0; padding:0; width:100%; height:100%;
   background:#02060a;
   overflow:hidden;
-  touch-action:none;
   -webkit-user-select:none; user-select:none;
 }
 
@@ -284,3 +283,17 @@ button{
 .surveying #hint{display:none}
 @media(max-height:500px) and (max-width:700px){#bottombar{grid-template-columns:minmax(0,1fr) auto;row-gap:5px;column-gap:10px}#species-row{grid-column:1;grid-row:1;max-width:100%;justify-content:flex-start}#action-row{grid-column:1;grid-row:2;min-width:0;max-width:300px}#mini-row{grid-column:2;grid-row:1/3;display:grid;grid-template-columns:repeat(2,36px)}.surveying #bottombar{display:flex}.surveying #mini-row{display:flex}}
 #species-row{justify-content:flex-start;max-width:min(100%,840px);scrollbar-width:thin}#species-row .species-btn{scroll-snap-align:center}#species-row{scroll-snap-type:x proximity}
+
+#survey-objective {
+  position:absolute; bottom:68px; left:50%; transform:translateX(-50%);
+  margin:0; padding:7px 12px; max-width:calc(100% - 24px); width:max-content;
+  border-radius:12px; border:1px solid #a0dce84a; background:#082333e8;
+  color:#eefbf4; font:600 12px/1.4 system-ui; text-align:center; pointer-events:none;
+}
+#ui-layer.zen #survey-objective { display:none; }
+#journal-regions section + section { border-top:1px solid #a0dce840; }
+#journal-regions h3 { margin:12px 0 5px; color:#a8e5d3; }
+#ocean-journal { overflow:auto; overscroll-behavior:contain; touch-action:pan-y; }
+@media(max-height:500px) {
+  #survey-objective { bottom:53px; padding:4px 8px; font-size:10px; }
+}
